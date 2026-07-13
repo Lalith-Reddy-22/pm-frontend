@@ -1,6 +1,15 @@
 "use client";
 
-import { Search, ChevronDown, Upload } from "lucide-react";
+import { Search, Upload, ChevronDown } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import ViewToggle from "./ViewToggle";
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
@@ -15,88 +24,74 @@ export default function ProjectToolbar({
   setView,
 }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-4 mt-2 bg-white p-5">
+    <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
 
-      {/* Left */}
-      <div className="flex items-center gap-3">
-
-        <span className="text-sm font-medium text-gray-600">
+      {/* ── Left: Search ── */}
+      <div className="flex items-center gap-2">
+        <span className="hidden text-sm font-medium text-muted-foreground sm:block">
           Search:
         </span>
-
         <div className="relative">
-
           <Search
-            size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            size={15}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
           />
-
-          <input
+          <Input
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
               setPage(1);
             }}
-            placeholder="Project Name or Code"
-            className="w-72 rounded-lg border border-gray-300 py-2 pl-10 pr-3 outline-none focus:border-red-500"
+            placeholder="Project name or code…"
+            className="h-8 w-56 pl-9 text-sm sm:w-72 focus-visible:border-[#E12729] focus-visible:ring-[#E12729]/20"
           />
-
         </div>
-
       </div>
 
-      {/* Right */}
-      <div className="flex items-center gap-3">
+      {/* ── Right: Page size + Export + View toggle ── */}
+      <div className="flex flex-wrap items-center gap-2">
 
-        <span className="text-sm text-gray-600">
-          Show
-        </span>
-
-        <div className="relative">
-
-          <select
-            value={pageSize}
-            onChange={(e) => {
-              setPageSize(Number(e.target.value));
+        {/* Page size */}
+        {/* <div className="flex items-center gap-1.5">
+          <span className="text-sm text-muted-foreground">Show</span>
+          <Select
+            value={String(pageSize)}
+            onValueChange={(val) => {
+              setPageSize(Number(val));
               setPage(1);
             }}
-            className="appearance-none rounded-lg border border-gray-300 px-4 py-2 pr-8"
           >
-            {PAGE_SIZE_OPTIONS.map((n) => (
-              <option key={n}>{n}</option>
-            ))}
-          </select>
+            <SelectTrigger className="h-8 w-20 text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {PAGE_SIZE_OPTIONS.map((n) => (
+                <SelectItem key={n} value={String(n)}>
+                  {n}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <span className="text-sm text-muted-foreground">entries</span>
+        </div> */}
 
-          <ChevronDown
-            size={15}
-            className="absolute right-2 top-1/2 -translate-y-1/2"
-          />
+        {/* Export */}
+        <Button variant="outline" className="gap-1.5 text-sm border-[#E12729] cursor-pointer">
+          <Upload size={14} />
+          <span>Export</span>
+          <ChevronDown size={13} />
+        </Button>
 
+        {/* Add Project Button */}
+        <div className="flex justify-end">
+          <Button
+            className="gap-2 bg-[#E12729] text-white text-sm hover:bg-[#c81f21] border-[#E12729] cursor-pointer"
+          >
+            + Add Project
+          </Button>
         </div>
-
-        <span className="text-sm text-gray-600">
-          entries
-        </span>
-
-        <button className="flex items-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 hover:bg-gray-100">
-          <Upload size={16} />
-          Export
-          <ChevronDown size={15} />
-        </button>
-
-        <ViewToggle
-  view={view}
-  setView={setView}
-/>
-
-        {/* <button
-          onClick={onAdd}
-          className="flex items-center gap-2 rounded-lg bg-[#2f2f2f] px-5 py-2 text-white hover:bg-black"
-        >
-          <Plus size={16} />
-          Add Project
-        </button> */}
-
+        {/* List / Grid toggle */}
+        {/* <ViewToggle view={view} setView={setView} /> */}
       </div>
 
     </div>
