@@ -8,7 +8,7 @@ import { ThemeProvider, useTheme } from "../context/ThemeContext";
 
 function LayoutInner({ children }) {
   const { t, isDark } = useTheme();
-  const [sidebarOpen,      setSidebarOpen]      = useState(false);  // mobile overlay
+  const [sidebarOpen, setSidebarOpen] = useState(false);  // mobile overlay
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);  // desktop collapse
 
   return (
@@ -40,7 +40,7 @@ function LayoutInner({ children }) {
         >
           {sidebarCollapsed
             ? <ChevronRight size={13} strokeWidth={2.5} />
-            : <ChevronLeft  size={13} strokeWidth={2.5} />
+            : <ChevronLeft size={13} strokeWidth={2.5} />
           }
         </button>
       )}
@@ -69,7 +69,7 @@ function LayoutInner({ children }) {
       </aside>
 
       {/* Right column */}
-      <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
+      <div className="grid grid-rows-[auto_1fr] gap-1 w-full overflow-hidden">
 
         <div className={`flex-shrink-0 ${t.navbarBg} ${t.navbarBorder} transition-colors duration-300`}>
           <Navbar onMenuClick={() => setSidebarOpen(o => !o)} />
