@@ -1,0 +1,80 @@
+export const TEMPLATE_TASKS = [
+  {
+    id: "tpl-1",
+    templateName: "AnimateBanner",
+    taskName: "Medic review of WSB - round 1",
+    responsibility: "AMD / MD",
+    actualHours: 2,
+  },
+  {
+    id: "tpl-2",
+    templateName: "Emailer",
+    taskName: "Copy approval for launch mailer",
+    responsibility: "Email Team",
+    actualHours: 3,
+  },
+  {
+    id: "tpl-3",
+    templateName: "Website",
+    taskName: "UX review for product landing page",
+    responsibility: "Web Team",
+    actualHours: 5,
+  },
+  {
+    id: "tpl-4",
+    templateName: "Landing Page",
+    taskName: "A/B test hero section",
+    responsibility: "Growth",
+    actualHours: 4,
+  },
+  {
+    id: "tpl-5",
+    templateName: "Brochure",
+    taskName: "Design refresh for client brochure",
+    responsibility: "Creative",
+    actualHours: 2,
+  },
+  {
+    id: "tpl-6",
+    templateName: "AnimateBanner",
+    taskName: "Motion polish for campaign banner",
+    responsibility: "Design",
+    actualHours: 2,
+  },
+  {
+    id: "tpl-7",
+    templateName: "Emailer",
+    taskName: "Test automation email sequence",
+    responsibility: "Ops",
+    actualHours: 3,
+  },
+  {
+    id: "tpl-8",
+    templateName: "Website",
+    taskName: "SEO audit for landing microsite",
+    responsibility: "Marketing",
+    actualHours: 4,
+  },
+  {
+    id: "tpl-9",
+    templateName: "Landing Page",
+    taskName: "Onboarding page content review",
+    responsibility: "Product",
+    actualHours: 3,
+  },
+  {
+    id: "tpl-10",
+    templateName: "Brochure",
+    taskName: "Brand guide template update",
+    responsibility: "Brand",
+    actualHours: 2,
+  },
+];
+
+export const TEMPLATE_LIST = [
+  { id: "template-1", name: "AnimateBanner", department: "Marketing", description: "Animated banner template for digital campaigns.", status: "Active" },
+  { id: "template-2", name: "Emailer", department: "Operations", description: "Email template for product newsletters.", status: "Active" },
+  { id: "template-3", name: "Website", department: "Product", description: "Landing page website template.", status: "Draft" },
+  { id: "template-4", name: "Landing Page", department: "Marketing", description: "Responsive landing page template for campaigns.", status: "Active" },
+  { id: "template-5", name: "Brochure", department: "Design", description: "Brochure layout template for print collateral.", status: "Inactive" },
+];
