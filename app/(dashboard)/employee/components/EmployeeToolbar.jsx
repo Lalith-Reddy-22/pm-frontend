@@ -1,11 +1,8 @@
 "use client";
 
-import {
-  Upload,
-  ChevronDown,
-  Plus,
-} from "lucide-react";
-
+import { Search, Plus } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import ExportDropdown from "./ExportDropdown";
 
 export default function EmployeeToolbar({
@@ -27,60 +24,27 @@ export default function EmployeeToolbar({
   setShowDrawer,
 }) {
   return (
-    <div className="px-6 py-4 flex flex-wrap items-center justify-between gap-3">
-
-      {/* Search */}
-      <div className={`flex items-center gap-2 text-sm ${t.textSecondary}`}>
-        Search:
-
-        <input
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-          placeholder="Search"
-          className={`rounded-lg border ${border} ${inputBg}
-          px-3 py-1.5 text-sm ${t.textPrimary} w-56
-          focus:outline-none focus:ring-2
-          ${
-            isDark
-              ? "focus:ring-red-500/40"
-              : "focus:ring-red-500/30"
-          }`}
-        />
-      </div>
-
-      {/* Right Side */}
-      <div className="flex flex-wrap items-center gap-3">
-
-        {/* Show Entries */}
-
-        <div className={`flex items-center gap-2 text-sm ${t.textSecondary}`}>
-          Show
-
-          <select
-            value={pageSize}
+    <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+      <div className="flex items-center gap-2">
+        <span className="hidden text-sm font-medium text-muted-foreground sm:block">Search:</span>
+        <div className="relative">
+          <Search
+            size={15}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+          />
+          <Input
+            value={search}
             onChange={(e) => {
-              setPageSize(Number(e.target.value));
+              setSearch(e.target.value);
               setPage(1);
             }}
-            className={`rounded-lg border ${border} ${inputBg}
-            px-2 py-1 text-sm ${t.textPrimary}`}
-          >
-            {[10,25,50,100].map((n)=>(
-              <option key={n} value={n}>
-                {n}
-              </option>
-            ))}
-          </select>
-
-          entries
-
+            placeholder="Search"
+            className="h-8 w-56 pl-10 text-sm sm:w-72 focus-visible:border-[#E12729] focus-visible:ring-[#E12729]/20"
+          />
         </div>
+      </div>
 
-        {/* Export */}
-
+      <div className="flex flex-wrap items-center gap-2">
         <ExportDropdown
           border={border}
           t={t}
@@ -93,26 +57,14 @@ export default function EmployeeToolbar({
           handleCSV={handleCSV}
         />
 
-        {/* Add Employee */}
-
-        <button
+        <Button
+          className="flex items-center gap-2 bg-[#E12729] text-white text-sm hover:bg-[#c81f21] border-[#E12729]"
           onClick={() => setShowDrawer(true)}
-          className={`flex items-center gap-1.5 rounded-lg px-4 py-2
-          text-sm font-semibold text-white transition-colors
-          ${
-            isDark
-              ? "bg-gray-100 text-gray-900 hover:bg-white"
-              : "bg-gray-900 hover:bg-black"
-          }`}
         >
           <Plus size={16} />
-
           Add Employee
-
-        </button>
-
+        </Button>
       </div>
-
     </div>
   );
 }

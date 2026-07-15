@@ -69,6 +69,19 @@ export const TEMPLATE_TASKS = [
     responsibility: "Brand",
     actualHours: 2,
   },
+   {
+     id: "tpl-11",
+     templateName: "Landing Page",
+     taskName: "Onboarding page content review",
+     responsibility: "Product",
+     actualHours: 3,
+   }, {
+     id: "tpl-12",
+     templateName: "Brochure",
+     taskName: "Brand guide template update",
+     responsibility: "Brand",
+     actualHours: 2,
+   },
 ];
 
 export const TEMPLATE_LIST = [

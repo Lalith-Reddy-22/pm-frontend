@@ -92,30 +92,26 @@ export default function TemplateTasksPage() {
   };
 
   return (
-    <div className="space-y-4 p-4 sm:p-4">
-      <div>
-        <div className="p-2">
-          <TaskToolbar
-            search={search}
-            onSearchChange={handleSearchChange}
-            selectedTemplate={selectedTemplate}
-            templates={TEMPLATE_OPTIONS}
-            onTemplateChange={handleTemplateChange}
-          />
-        </div>
+    <div className="space-y-4 p-4 sm:p-6">
+      <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+        <TaskToolbar
+          search={search}
+          onSearchChange={handleSearchChange}
+          selectedTemplate={selectedTemplate}
+          templates={TEMPLATE_OPTIONS}
+          onTemplateChange={handleTemplateChange}
+        />
       </div>
 
-      <div>
-        <div className="p-2">
-          <TaskTable
-            tasks={pagination.paginatedData}
-            sortBy={sortBy}
-            sortDirection={sortDirection}
-            onSort={handleSort}
-            onAddTask={handleAddTask}
-            pagination={<DataPagination {...pagination} className="border-t border-border" />}
-          />
-        </div>
+      <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+        <TaskTable
+          tasks={pagination.paginatedData}
+          sortBy={sortBy}
+          sortDirection={sortDirection}
+          onSort={handleSort}
+          onAddTask={handleAddTask}
+          pagination={<DataPagination {...pagination} className="border-t border-border" />}
+        />
       </div>
 
       <AddTaskDrawer open={showAddTaskDrawer} onClose={handleCloseDrawer}>

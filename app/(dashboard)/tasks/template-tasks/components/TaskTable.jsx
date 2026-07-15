@@ -39,7 +39,7 @@ export default function TaskTable({ tasks, sortBy, sortDirection, onSort, onAddT
 
   if (tasks.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-border bg-background p-10 text-center shadow-sm">
+      <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center shadow-sm">
         <p className="text-lg font-semibold text-foreground">No tasks found</p>
         <p className="mt-2 text-sm text-muted-foreground">Create a template or adjust your filters to continue.</p>
       </div>
@@ -47,43 +47,45 @@ export default function TaskTable({ tasks, sortBy, sortDirection, onSort, onAddT
   }
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-border bg-background shadow-sm">
-      <Table>
-        <TableHeader>
-          <TableRow className="bg-muted/70 hover:bg-muted/80">
-            {headers.map((column) => (
-              <TableHead
-                key={column.accessor}
-                className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground"
-              >
-                <button
-                  type="button"
-                  onClick={() => handleSort(column.accessor)}
-                  className="inline-flex items-center gap-2"
+    <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+      <div className="overflow-x-auto">
+        <Table className="min-w-[940px]">
+          <TableHeader>
+            <TableRow className="bg-muted/100">
+              {headers.map((column) => (
+                <TableHead
+                  key={column.accessor}
+                  className="sticky top-0 z-10 bg-card/95 px-6 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
                 >
-                  {column.label}
-                  {renderSortIcon(column.accessor)}
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSort(column.accessor)}
+                    className="inline-flex items-center gap-2"
+                  >
+                    {column.label}
+                    {renderSortIcon(column.accessor)}
+                  </button>
+                </TableHead>
+              ))}
+              <TableHead className="sticky top-0 z-10 bg-card/95 px-6 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground text-center">
+                Action
               </TableHead>
-            ))}
-            <TableHead className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground text-right">
-              Action
-            </TableHead>
-          </TableRow>
-        </TableHeader>
+            </TableRow>
+          </TableHeader>
 
-        <TableBody>
-          {tasks.map((task, index) => (
-            <TaskRow
-              key={task.id}
-              task={task}
-              onAddTask={onAddTask}
-              isStriped={index % 2 === 0}
-            />
-          ))}
-        </TableBody>
-      </Table>
-      {pagination ? <div className="mt-4">{pagination}</div> : null}
+          <TableBody>
+            {tasks.map((task, index) => (
+              <TaskRow
+                key={task.id}
+                task={task}
+                onAddTask={onAddTask}
+                isStriped={index % 2 === 0}
+              />
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+      {pagination ? <div className="border-t border-border bg-card pb-3">{pagination}</div> : null}
     </div>
   );
 }

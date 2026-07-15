@@ -81,64 +81,49 @@ const [selectedEmployee, setSelectedEmployee] = useState(null);
 
   return (
     <>
-    <div className="p-6">
-      <div className={`rounded-2xl  ${t.cardBg} ${t.cardShadow} overflow-hidden`}>
+      <div className="space-y-4 p-4 sm:p-6">
+        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+          <EmployeeToolbar
+            search={search}
+            setSearch={setSearch}
+            pageSize={pageSize}
+            setPageSize={setPageSize}
+            setPage={setPage}
+            border={border}
+            inputBg={inputBg}
+            t={t}
+            isDark={isDark}
+            showExport={showExport}
+            setShowExport={setShowExport}
+            handleCopy={() => handleCopy(sorted)}
+            handleCSV={() => handleCSV(sorted)}
+            handlePrint={() => handlePrint(sorted)}
+            handlePDF={() => handlePDF(sorted)}
+            setShowDrawer={setShowDrawer}
+          />
+        </div>
 
-        {/* <div className={`px-6 py-5 border-b ${border}`}>
-          <h1 className={`text-xl font-semibold ${t.textPrimary}`}>Employee Details</h1>
-        </div> */}
-<EmployeeToolbar
-  search={search}
-  setSearch={setSearch}
-  pageSize={pageSize}
-  setPageSize={setPageSize}
-  setPage={setPage}
-  border={border}
-  inputBg={inputBg}
-  t={t}
-  isDark={isDark}
-  showExport={showExport}
-  setShowExport={setShowExport}
-
-  handleCopy={() => handleCopy(sorted)}
-  handleCSV={() => handleCSV(sorted)}
-  handlePrint={() => handlePrint(sorted)}
-  handlePDF={() => handlePDF(sorted)}
-
-  setShowDrawer={setShowDrawer}
-/>
-
-<EmployeeTable
-  pageRows={pageRows}
-  border={border}
-  headerBg={headerBg}
-  t={t}
-  isDark={isDark}
-  avatar={avatar}
-  filtered={sorted}
-  clampedPage={clampedPage}
-  pageSize={pageSize}
-  totalPages={totalPages}
-  setShowEditModal={setShowEditModal}
-  setSelectedEmployee={setSelectedEmployee}
-  setPage={setPage}
-  COLUMNS={COLUMNS}
-  sort={sort}
-  toggleSort={toggleSort}
-/>
-
-<EditEmployeeModal
-  showEditModal={showEditModal}
-  setShowEditModal={setShowEditModal}
-  employee={selectedEmployee}
-/>
+        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+          <EmployeeTable
+            pageRows={pageRows}
+            border={border}
+            headerBg={headerBg}
+            t={t}
+            isDark={isDark}
+            avatar={avatar}
+            filtered={sorted}
+            clampedPage={clampedPage}
+            pageSize={pageSize}
+            totalPages={totalPages}
+            setPage={setPage}
+            COLUMNS={COLUMNS}
+            sort={sort}
+            toggleSort={toggleSort}
+          />
+        </div>
       </div>
-    </div>
-    
-<AddEmployeeDrawer
-  showDrawer={showDrawer}
-  setShowDrawer={setShowDrawer}
-/>
-  </>
+
+      <AddEmployeeDrawer showDrawer={showDrawer} setShowDrawer={setShowDrawer} />
+    </>
   );
 }

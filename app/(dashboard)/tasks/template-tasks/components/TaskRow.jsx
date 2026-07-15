@@ -1,20 +1,23 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+
 export default function TaskRow({ task, onAddTask, isStriped }) {
   return (
-    <tr className={isStriped ? "bg-gray-50" : "bg-white"}>
-      <td className="px-4 py-4 text-sm text-gray-700">{task.taskName}</td>
-      <td className="px-4 py-4 text-sm text-gray-700">{task.templateName}</td>
-      <td className="px-4 py-4 text-sm text-gray-700">{task.responsibility}</td>
-      <td className="px-4 py-4 text-sm text-gray-700">{task.actualHours}</td>
-      <td className="px-4 py-4 text-sm text-right">
-        <button
-          type="button"
+    <tr className={`transition-colors ${isStriped ? "bg-muted/50" : "bg-card"} hover:bg-accent/30`}>
+      <td className="px-6 py-3 text-sm text-foreground font-medium">{task.taskName}</td>
+      <td className="px-6 py-3 text-sm text-muted-foreground">{task.templateName}</td>
+      <td className="px-6 py-3 text-sm text-muted-foreground">{task.responsibility}</td>
+      <td className="px-6 py-3 text-sm text-muted-foreground">{task.actualHours}</td>
+      <td className="px-6 py-3 text-right">
+        <Button
+          size="sm"
+          variant="outline"
           onClick={() => onAddTask?.(task)}
-          className="inline-flex rounded-xl bg-black px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-900"
+          className="border-[#E12729] text-[#E12729] hover:bg-[#fee2e2]"
         >
           Add Task
-        </button>
+        </Button>
       </td>
     </tr>
   );
