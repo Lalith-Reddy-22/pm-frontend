@@ -60,6 +60,7 @@ body {
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
+
 *::-webkit-scrollbar {
   display: none;
 }
@@ -80,47 +81,43 @@ body {
 }
 
 .sidebar-scroll::-webkit-scrollbar-thumb {
-  background: linear-gradient(
-    to bottom,
-    transparent 0%,
-    rgba(220, 38, 38, 0.15) 20%,
-    rgba(220, 38, 38, 0.35) 50%,
-    rgba(220, 38, 38, 0.15) 80%,
-    transparent 100%
-  );
+  background: linear-gradient(to bottom,
+      transparent 0%,
+      rgba(220, 38, 38, 0.15) 20%,
+      rgba(220, 38, 38, 0.35) 50%,
+      rgba(220, 38, 38, 0.15) 80%,
+      transparent 100%);
   border-radius: 999px;
 }
 
 .sidebar-scroll::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(
-    to bottom,
-    transparent 0%,
-    rgba(220, 38, 38, 0.3) 20%,
-    rgba(220, 38, 38, 0.6) 50%,
-    rgba(220, 38, 38, 0.3) 80%,
-    transparent 100%
-  );
+  background: linear-gradient(to bottom,
+      transparent 0%,
+      rgba(220, 38, 38, 0.3) 20%,
+      rgba(220, 38, 38, 0.6) 50%,
+      rgba(220, 38, 38, 0.3) 80%,
+      transparent 100%);
 }
 
-@keyframes slideIn{
+@keyframes slideIn {
 
-from{
+  from {
 
-transform:translateX(100%);
+    transform: translateX(100%);
+
+  }
+
+  to {
+
+    transform: translateX(0);
+
+  }
 
 }
 
-to{
+.animate-slide {
 
-transform:translateX(0);
-
-}
-
-}
-
-.animate-slide{
-
-animation:slideIn .35s ease;
+  animation: slideIn .35s ease;
 
 }
 
@@ -197,9 +194,11 @@ animation:slideIn .35s ease;
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+
   html {
     @apply font-sans;
   }
