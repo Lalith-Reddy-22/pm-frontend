@@ -11,18 +11,25 @@ export default function Navbar({ onMenuClick }) {
   "/dashboard": "Dashboard",
   "/employee": "Employee Details",
   "/timesheet": "Task Time Sheet",
-  "/resource-allocation": "Resource Allocation",
   "/finance": "Finance Dashboard",
+  "/finance/clients": "Clients",
+  "/finance/clients/new": "Clients",
   "/projects": "Projects",
   "/settings": "Settings",
+  "/calendar": "Calendar",
+  "/tasks": "Tasks",
+  "/tasks/template-tasks": "Template Tasks",
+  "/reports/resource-allocation": "Resource Allocation"
 };
 
 let pageTitle = "Dashboard";
+let pageSubtitle = "Medtrix Project Management";
 
 // Exact match
 if (pageTitles[pathname]) {
   pageTitle = pageTitles[pathname];
 }
+
 
 // Dynamic pages
 if (pathname.startsWith("/employee/")) {
@@ -51,14 +58,17 @@ if (pathname.startsWith("/project/")) {
            <h1 className={`text-xl font-semibold ${t.textPrimary}`}>
             {pageTitle}
             </h1>  
+            {pageSubtitle && (
             <p className={`text-xs ${t.textMuted}`}>
-            Medtrix Project Management
-            </p>      
+            {pageSubtitle}
+            </p>
+            )}
             </div>
       </div>
 
       {/* Right */}
       <div className="flex items-center gap-1.5">
+
 
         {/* Theme */}
         <button
