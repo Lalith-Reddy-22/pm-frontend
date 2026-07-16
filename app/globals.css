@@ -61,6 +61,7 @@ body {
   -ms-overflow-style: none;
 }
 
+
 *::-webkit-scrollbar {
   display: none;
 }
@@ -87,6 +88,12 @@ body {
       rgba(220, 38, 38, 0.35) 50%,
       rgba(220, 38, 38, 0.15) 80%,
       transparent 100%);
+  background: linear-gradient(to bottom,
+      transparent 0%,
+      rgba(220, 38, 38, 0.15) 20%,
+      rgba(220, 38, 38, 0.35) 50%,
+      rgba(220, 38, 38, 0.15) 80%,
+      transparent 100%);
   border-radius: 999px;
 }
 
@@ -96,28 +103,58 @@ body {
       rgba(220, 38, 38, 0.3) 20%,
       rgba(220, 38, 38, 0.6) 50%,
       rgba(220, 38, 38, 0.3) 80%,
-    transparent 100%
-  );
+      transparent 100%);
 }
+
+/* ── Custom Scrollbar for scrollable tables and panels ── */
+.custom-scrollbar {
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(220, 38, 38, 0.25) transparent !important;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  display: block !important;
+  width: 6px !important;
+  height: 6px !important;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(220, 38, 38, 0.3) !important;
+  border-radius: 999px !important;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(220, 38, 38, 0.6) !important;
+}
+
 
 @keyframes slideIn {
 
   from {
 
     transform: translateX(100%);
+    transform: translateX(100%);
 
   }
 
+ 
   to {
 
     transform: translateX(0);
+    transform: translateX(0);
 
   }
+  
 
 }
 
 .animate-slide {
 
+  animation: slideIn .35s ease;
   animation: slideIn .35s ease;
 
 }
@@ -196,9 +233,11 @@ body {
     @apply border-border outline-ring/50;
   }
 
+
   body {
     @apply bg-background text-foreground;
   }
+
 
   html {
     @apply font-sans;

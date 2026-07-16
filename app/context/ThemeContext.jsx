@@ -63,6 +63,17 @@ const THEMES = {
 
     // Section label
     sectionLabel: "text-gray-400",
+
+    // Client page
+    clientBorder:   "border-gray-100",
+    clientInputBg:  "bg-white",
+    clientInputText:"text-gray-700",
+    clientMutedBg:  "bg-gray-50",
+    clientMutedText:"text-gray-600",
+    clientRowHover: "hover:bg-gray-50",
+    clientModalBg:  "bg-white",
+    clientModalText:"text-gray-900",
+    clientIconBg:   "bg-red-50",
   },
 
   dark: {
@@ -111,6 +122,17 @@ const THEMES = {
 
     // Section label
     sectionLabel: "text-gray-700",
+
+    // Client page
+    clientBorder:   "border-white/10",
+    clientInputBg:  "bg-[#1c1c1c]",
+    clientInputText:"text-gray-200",
+    clientMutedBg:  "bg-white/5",
+    clientMutedText:"text-gray-400",
+    clientRowHover: "hover:bg-white/5",
+    clientModalBg:  "bg-[#1a1a1a]",
+    clientModalText:"text-gray-100",
+    clientIconBg:   "bg-red-500/10",
   },
 };
 
@@ -123,7 +145,11 @@ const ThemeContext = createContext({
 
 export function ThemeProvider({ children }) {
   const [mode, setMode] = useState("light");
-  const toggle = () => setMode(m => (m === "light" ? "dark" : "light"));
+  const toggle = () => setMode(m => {
+    const next = m === "light" ? "dark" : "light";
+    document.documentElement.classList.toggle("dark", next === "dark");
+    return next;
+  });
   return (
     <ThemeContext.Provider value={{ mode, toggle, isDark: mode === "dark", t: THEMES[mode] }}>
       {children}
