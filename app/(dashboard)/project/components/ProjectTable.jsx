@@ -24,14 +24,14 @@ const TABLE_HEADERS = [
 
 export default function ProjectTable({ rows = [] }) {
   return (
-    <div className="overflow-x-auto rounded-md">
-      <Table>
-        <TableHeader>
+    <div className="overflow-auto relative max-h-[60vh] sm:max-h-[70vh] lg:max-h-[70vh] custom-scrollbar">
+      <table className="w-full caption-bottom text-sm min-w-[960px]">
+        <TableHeader className="bg-card/95">
           <TableRow className="bg-muted/100 hover:bg-muted/50">
             {TABLE_HEADERS.map((h) => (
               <TableHead
                 key={h.label}
-                className={`px-6 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground ${h.className}`}
+                className={`px-6 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground sticky top-0 z-10 bg-muted ${h.className}`}
               >
                 {h.label}
               </TableHead>
@@ -55,7 +55,7 @@ export default function ProjectTable({ rows = [] }) {
             ))
           )}
         </TableBody>
-      </Table>
+      </table>
     </div>
   );
 }
