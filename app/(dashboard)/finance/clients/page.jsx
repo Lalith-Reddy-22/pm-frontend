@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Download, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useTheme } from "../../../context/ThemeContext";
 import StatCards     from "./components/StatCards";
 import GPBarChart    from "./components/GPBarChart";
@@ -26,9 +26,6 @@ export default function FinanceClientsPage() {
           </select>
         </div>
         <div className="flex gap-2">
-          <button className={`flex items-center gap-1.5 px-3 py-1.5 border ${t.clientBorder} rounded-lg text-sm ${t.clientMutedText} ${t.clientRowHover}`}>
-            <Download className="w-4 h-4" /> Export Report
-          </button>
           <button
             onClick={() => router.push("/finance/clients/new")}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700"

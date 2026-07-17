@@ -17,11 +17,11 @@ export default function NewClientPage() {
   };
 
   return (
-    <div className={`${t.mainBg} h-full p-6`}>
+    <div className={`${t.mainBg} min-h-screen px-6 py-6`}>
       {/* Back */}
       <button
         onClick={() => router.push("/finance/clients")}
-        className={`flex items-center gap-1.5 text-sm mb-6 text-blue-500 hover:text-blue-600`}
+        className={`flex items-center gap-1.5 text-sm mb-6 text-red-500 hover:text-red-600`}
       >
         <ArrowLeft className="w-4 h-4" /> Back to Clients
       </button>
@@ -33,18 +33,15 @@ export default function NewClientPage() {
         </div>
         <div>
           <h1 className={`text-2xl font-bold ${t.textPrimary}`}>Add New Client</h1>
-          <p className={`text-sm ${t.textSecondary}`}>
-            Create a new client organization that can own projects and users.
-          </p>
         </div>
       </div>
 
       {/* Card */}
-      <div className={`${t.cardBg} ${t.cardShadow} rounded-2xl p-6 w-full`}>
+      <div className={`${t.cardBg} ${t.cardShadow} rounded-2xl p-6 max-w-2xl mx-auto`}>
         {/* Section title */}
         <div className={`flex items-center gap-3 pb-4 mb-6 border-b ${t.clientBorder}`}>
           <div className={`p-2 rounded-lg ${t.clientMutedBg}`}>
-            <Building2 className="w-5 h-5 text-blue-500" />
+            <Building2 className="w-5 h-5 text-red-500" />
           </div>
           <span className={`font-semibold ${t.textPrimary}`}>Client Information</span>
         </div>
@@ -56,7 +53,7 @@ export default function NewClientPage() {
               Client Name <span className="text-red-500">*</span>
             </label>
             <div className={`flex items-center gap-2 border ${t.clientBorder} rounded-lg px-3 py-2 ${t.clientInputBg}`}>
-              <Building2 className="w-4 h-4 text-blue-400 shrink-0" />
+              <Building2 className="w-4 h-4 text-red-500 shrink-0" />
               <input
                 required
                 value={form.name}
@@ -65,9 +62,6 @@ export default function NewClientPage() {
                 className={`flex-1 bg-transparent outline-none text-sm ${t.clientInputText}`}
               />
             </div>
-            <p className={`text-xs mt-1 ${t.textSecondary}`}>
-              Enter the full name of the client or organization.
-            </p>
           </div>
 
           {/* Description */}
@@ -76,7 +70,7 @@ export default function NewClientPage() {
               Description
             </label>
             <div className={`flex gap-2 border ${t.clientBorder} rounded-lg px-3 py-2 ${t.clientInputBg}`}>
-              <Building2 className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
+              <Building2 className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
               <textarea
                 rows={4}
                 value={form.description}
@@ -85,9 +79,6 @@ export default function NewClientPage() {
                 className={`flex-1 bg-transparent outline-none text-sm resize-none ${t.clientInputText}`}
               />
             </div>
-            <p className={`text-xs mt-1 ${t.textSecondary}`}>
-              This will help your team understand the client better.
-            </p>
           </div>
 
           {/* Actions */}
