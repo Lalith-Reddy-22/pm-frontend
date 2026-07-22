@@ -17,6 +17,14 @@ export default function TimesheetTable({
   clampedPage,
   pageSize,
   totalPages,
+  totalItems,
+  startIndex,
+  endIndex,
+  hasPrev,
+  hasNext,
+  prevPage,
+  nextPage,
+  pageNumbers,
   setPage,
   formatMDY,
 }) {
@@ -86,14 +94,20 @@ export default function TimesheetTable({
 
       {/* Pagination */}
       <TimesheetPagination
-        filtered={filtered}
-        clampedPage={clampedPage}
-        pageSize={pageSize}
-        totalPages={totalPages}
-        setPage={setPage}
-        border={border}
-        t={t}
-      />
+  startIndex={startIndex}
+  endIndex={endIndex}
+  totalItems={totalItems}
+  page={clampedPage}
+  pageNumbers={pageNumbers}
+  totalPages={totalPages}
+  hasPrev={hasPrev}
+  hasNext={hasNext}
+  prevPage={prevPage}
+  nextPage={nextPage}
+  setPage={setPage}
+  border={border}
+  t={t}
+/>
     </div>
   );
 }

@@ -1,0 +1,47 @@
+export const columns = [
+  { key: "employee", label: "Employee Name" },
+  { key: "empId", label: "EMP ID" },
+  { key: "designation", label: "Designation" },
+  { key: "abbvie", label: "ABBVIE (US)" },
+  { key: "allerganInt", label: "ALLERGAN (INT)" },
+  { key: "allerganUs", label: "ALLERGAN (US)" },
+  { key: "argenx", label: "ARGENX (US)" },
+  { key: "berlin", label: "BERLIN CHEMIE" },
+  { key: "bgb", label: "BGB (INT)" },
+];
+
+export const employees = [
+  {
+    employee: "Abhishek Badiger",
+    empId: 121,
+    designation: "Jr.Dotnet developer",
+    abbvie: 72,
+    allerganInt: 60,
+    allerganUs: 72,
+    argenx: 72,
+    berlin: 64.8,
+    bgb: 60,
+  },
+  {
+    employee: "Ananya M",
+    empId: 169,
+    designation: "Jr.Web Developer",
+    abbvie: 72,
+    allerganInt: 60,
+    allerganUs: 72,
+    argenx: 72,
+    berlin: 0,
+    bgb: 72,
+  },
+  {
+    employee: "Avinash Ranchagi",
+    empId: 27,
+    designation: "Test Engineer",
+    abbvie: 48,
+    allerganInt: 40,
+    allerganUs: 48,
+    argenx: 48,
+    berlin: 48.6,
+    bgb: 40,
+  },
+];

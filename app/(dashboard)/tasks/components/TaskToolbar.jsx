@@ -4,14 +4,11 @@ import { Search, Upload, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import DateRangePicker from "@/components/DateRangePicker";
+import { useRouter } from "next/navigation";
 
-export default function TaskToolbar({
-  search,
-  setSearch,
-  setPage,
-  dateRange,
-  setDateRange,
-}) {
+export default function TaskToolbar({ search, setSearch, setPage, onAddTask, dateRange, setDateRange }) {
+  const router = useRouter();
+
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
       {/* ── Left: Search + Date Range ── */}
@@ -56,9 +53,7 @@ export default function TaskToolbar({
           <span>Export</span>
           <ChevronDown size={13} />
         </Button>
-        <Button
-          className="gap-2 bg-[#E12729] text-white text-sm hover:bg-[#c81f21] border-[#E12729] cursor-pointer"
-        >
+        <Button className="bg-[#E12729] hover:bg-[#E12729] cursor-pointer" onClick={onAddTask}>
           + Add Task
         </Button>
       </div>

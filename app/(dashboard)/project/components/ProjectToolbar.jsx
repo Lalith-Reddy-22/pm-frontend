@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import ViewToggle from "./ViewToggle";
+import { useRouter } from "next/navigation";
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 
@@ -23,6 +24,8 @@ export default function ProjectToolbar({
   view,
   setView,
 }) {
+    const router = useRouter();
+
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
 
@@ -85,10 +88,12 @@ export default function ProjectToolbar({
         {/* Add Project Button */}
         <div className="flex justify-end">
           <Button
-            className="gap-2 bg-[#E12729] text-white text-sm hover:bg-[#c81f21] border-[#E12729] cursor-pointer"
-          >
-            + Add Project
-          </Button>
+  type="button"
+  onClick={() => router.push("/project/add-project")}
+  className="gap-2 bg-[#E12729] text-white text-sm hover:bg-[#c81f21] border-[#E12729] cursor-pointer"
+>
+  + Add Project
+</Button>
         </div>
         {/* List / Grid toggle */}
         {/* <ViewToggle view={view} setView={setView} /> */}

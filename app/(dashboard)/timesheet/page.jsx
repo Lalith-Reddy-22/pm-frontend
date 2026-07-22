@@ -10,6 +10,7 @@ import {
 
 import { useTheme } from "../../context/ThemeContext";
 import DateRangePicker from "../../components/DateRangePicker";
+import { usePagination } from "../../../hooks/usePagination";
 
 import StatCard from "./components/statCard";
 import UtilizationCard from "./components/UtilizationCard";
@@ -28,8 +29,6 @@ export default function TimesheetPage() {
   const { t, isDark } = useTheme();
 
   const [weekOffset] = useState(0);
-  const [pageSize, setPageSize] = useState(50);
-  const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [data, setData] = useState(TASKS);
 
@@ -82,17 +81,25 @@ export default function TimesheetPage() {
   }, [data, search]);
 
   // Pagination
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filtered.length / pageSize)
-  );
-
-  const clampedPage = Math.min(page, totalPages);
-
-  const pageRows = filtered.slice(
-    (clampedPage - 1) * pageSize,
-    clampedPage * pageSize
-  );
+const {
+  paginatedData: pageRows,
+  page: clampedPage,
+  setPage,
+  pageSize,
+  setPageSize,
+  totalPages,
+  totalItems,
+  startIndex,
+  endIndex,
+  hasPrev,
+  hasNext,
+  prevPage,
+  nextPage,
+  pageNumbers,
+} = usePagination({
+  data: filtered,
+  pageSize: 50,
+});
 
   // Update Actual Hours
   function updateActual(taskId, dayKey, value) {
@@ -189,13 +196,10 @@ export default function TimesheetPage() {
           Show
 
           <select
-            value={pageSize}
-            onChange={(e) => {
-              setPageSize(Number(e.target.value));
-              setPage(1);
-            }}
-            className={`rounded-lg border ${border} ${inputBg} px-2 py-1 text-sm ${t.textPrimary}`}
-          >
+  value={pageSize}
+  onChange={(e) => setPageSize(Number(e.target.value))}
+  className={`rounded-lg border ${border} ${inputBg} px-2 py-1 text-sm ${t.textPrimary}`}
+>
             {[10, 25, 50, 100].map((n) => (
               <option key={n} value={n}>
                 {n}
@@ -227,22 +231,30 @@ export default function TimesheetPage() {
       {/* Table */}
 
       <TimesheetTable
-        pageRows={pageRows}
-        weekDates={weekDates}
-        border={border}
-        headerBg={headerBg}
-        rowLabelColor={rowLabelColor}
-        inputBg={inputBg}
-        t={t}
-        isDark={isDark}
-        updateActual={updateActual}
-        filtered={filtered}
-        clampedPage={clampedPage}
-        pageSize={pageSize}
-        totalPages={totalPages}
-        setPage={setPage}
-        formatMDY={formatMDY}
-      />
+  pageRows={pageRows}
+  weekDates={weekDates}
+  border={border}
+  headerBg={headerBg}
+  rowLabelColor={rowLabelColor}
+  inputBg={inputBg}
+  t={t}
+  isDark={isDark}
+  updateActual={updateActual}
+  filtered={filtered}
+  clampedPage={clampedPage}
+  pageSize={pageSize}
+  totalPages={totalPages}
+  totalItems={totalItems}
+  startIndex={startIndex}
+  endIndex={endIndex}
+  hasPrev={hasPrev}
+  hasNext={hasNext}
+  prevPage={prevPage}
+  nextPage={nextPage}
+  pageNumbers={pageNumbers}
+  setPage={setPage}
+  formatMDY={formatMDY}
+/>
 
     </div>
   );

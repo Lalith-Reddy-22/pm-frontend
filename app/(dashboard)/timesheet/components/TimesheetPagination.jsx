@@ -1,47 +1,80 @@
 "use client";
 
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
+
 export default function TimesheetPagination({
-  filtered,
-  clampedPage,
-  pageSize,
+  startIndex,
+  endIndex,
+  totalItems,
+  page,
   totalPages,
+  pageNumbers,
+  hasPrev,
+  hasNext,
+  prevPage,
+  nextPage,
   setPage,
   border,
   t,
 }) {
   return (
     <div
-      className={`sticky bottom-0 flex flex-wrap items-center justify-between gap-3 border-t ${border} bg-white px-4 py-3 text-xs dark:bg-[#111827] ${t.textMuted}`}
+      className={`sticky bottom-0 flex items-center justify-between border-t ${border} bg-white dark:bg-[#111827] px-4 py-3`}
     >
-      <span>
-        Showing{" "}
-        {filtered.length === 0
-          ? 0
-          : (clampedPage - 1) * pageSize + 1}{" "}
-        to{" "}
-        {Math.min(clampedPage * pageSize, filtered.length)}{" "}
-        of {filtered.length} entries
+      <span className={`text-sm ${t.textMuted}`}>
+        Showing {startIndex} to {endIndex} of {totalItems} entries
       </span>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1">
         <button
-          onClick={() => setPage((p) => Math.max(1, p - 1))}
-          disabled={clampedPage === 1}
-          className={`rounded-lg px-3 py-1 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${t.userHover}`}
+          onClick={() => setPage(1)}
+          disabled={!hasPrev}
         >
-          Previous
+          <ChevronsLeft size={16} />
         </button>
 
-        <span className={`px-2 ${t.textSecondary}`}>
-          {clampedPage} / {totalPages}
-        </span>
+        <button
+          onClick={prevPage}
+          disabled={!hasPrev}
+        >
+          <ChevronLeft size={16} />
+        </button>
+
+        {pageNumbers.map((item, i) =>
+          item === "…" ? (
+            <span key={i}>…</span>
+          ) : (
+            <button
+              key={item}
+              onClick={() => setPage(item)}
+              className={
+                page === item
+                  ? "bg-red-500 text-white rounded px-3 py-1"
+                  : "rounded px-3 py-1"
+              }
+            >
+              {item}
+            </button>
+          )
+        )}
 
         <button
-          onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-          disabled={clampedPage === totalPages}
-          className={`rounded-lg px-3 py-1 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${t.userHover}`}
+          onClick={nextPage}
+          disabled={!hasNext}
         >
-          Next
+          <ChevronRight size={16} />
+        </button>
+
+        <button
+          onClick={() => setPage(totalPages)}
+          disabled={!hasNext}
+        >
+          <ChevronsRight size={16} />
         </button>
       </div>
     </div>
