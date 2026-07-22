@@ -73,7 +73,7 @@ export default function RateCardTopBar({
 
       {/* Toolbar */}
 
-      <div className="flex flex-wrap items-center justify-between gap-5 border-b border-gray-200 px-4 py-2">
+      <div className="flex flex-wrap items-center justify-between gap-5 border-b border-gray-200 px-4 py-5">
 
         <div className="flex flex-wrap gap-3">
 
