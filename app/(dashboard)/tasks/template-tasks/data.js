@@ -82,6 +82,110 @@ export const TEMPLATE_TASKS = [
      responsibility: "Brand",
      actualHours: 2,
    },
+   {
+     id: "tpl-13",
+     templateName: "Website",
+     taskName: "UX review for product landing page",
+     responsibility: "Web Team",
+     actualHours: 5,
+   }, {
+     id: "tpl-14",
+     templateName: "Landing Page",
+     taskName: "A/B test hero section",
+     responsibility: "Growth",
+     actualHours: 4,
+   }, {
+     id: "tpl-15",
+     templateName: "Brochure",
+     taskName: "Design refresh for client brochure",
+     responsibility: "Creative",
+     actualHours: 2,
+   }, {
+     id: "tpl-16",
+     templateName: "AnimateBanner",
+     taskName: "Motion polish for campaign banner",
+     responsibility: "Design",
+     actualHours: 2,
+   }, {
+     id: "tpl-17",
+     templateName: "Emailer",
+     taskName: "Test automation email sequence",
+     responsibility: "Ops",
+     actualHours: 3,
+   }, {
+     id: "tpl-18",
+     templateName: "Website",
+     taskName: "SEO audit for landing microsite",
+     responsibility: "Marketing",
+     actualHours: 4,
+   }, {
+     id: "tpl-19",
+     templateName: "Landing Page",
+     taskName: "Onboarding page content review",
+     responsibility: "Product",
+     actualHours: 3,
+   },
+   {
+     id: "tpl-10",
+     templateName: "Brochure",
+     taskName: "Brand guide template update",
+     responsibility: "Brand",
+     actualHours: 2,
+   }, {
+     id: "tpl-21",
+     templateName: "Landing Page",
+     taskName: "Onboarding page content review",
+     responsibility: "Product",
+     actualHours: 3,
+   }, {
+     id: "tpl-22",
+     templateName: "Brochure",
+     taskName: "Brand guide template update",
+     responsibility: "Brand",
+     actualHours: 2,
+   }, {
+     id: "tpl-23",
+     templateName: "Website",
+     taskName: "UX review for product landing page",
+     responsibility: "Web Team",
+     actualHours: 5,
+   }, {
+     id: "tpl-24",
+     templateName: "Landing Page",
+     taskName: "A/B test hero section",
+     responsibility: "Growth",
+     actualHours: 4,
+   }, {
+     id: "tpl-25",
+     templateName: "Brochure",
+     taskName: "Design refresh for client brochure",
+     responsibility: "Creative",
+     actualHours: 2,
+   }, {
+     id: "tpl-26",
+     templateName: "AnimateBanner",
+     taskName: "Motion polish for campaign banner",
+     responsibility: "Design",
+     actualHours: 2,
+   }, {
+     id: "tpl-27",
+     templateName: "Emailer",
+     taskName: "Test automation email sequence",
+     responsibility: "Ops",
+     actualHours: 3,
+   }, {
+     id: "tpl-28",
+     templateName: "Website",
+     taskName: "SEO audit for landing microsite",
+     responsibility: "Marketing",
+     actualHours: 4,
+   }, {
+     id: "tpl-29",
+     templateName: "Landing Page",
+     taskName: "Onboarding page content review",
+     responsibility: "Product",
+     actualHours: 3,
+   }
 ];
 
 export const TEMPLATE_LIST = [

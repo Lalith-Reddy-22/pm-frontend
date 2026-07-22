@@ -94,7 +94,7 @@ if (pathname.startsWith("/project/")) {
             AS
           </span>
           <div className="hidden sm:flex flex-col items-start">
-            <span className={`text-xs font-semibold leading-tight ${t.textPrimary}`}>Andrew Smith</span>
+            <span className={`text-xs font-semibold leading-tight font-mono ${t.textPrimary}`}>Andrew Smith</span>
             <span className={`text-[10px] leading-tight ${t.textMuted}`}>Admin</span>
           </div>
           <ChevronDown size={12} className={`hidden sm:block ${t.textMuted}`} />

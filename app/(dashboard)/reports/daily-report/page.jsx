@@ -216,7 +216,7 @@ export default function DailyReportPage() {
           const row = info.row.original;
           return (
             <p className="text-sm text-foreground">
-              <span class="inline-flex text-sm font-medium uppercase tracking-wide text-[#B91C1C]">#{row.projectCode ? `${row.projectCode}` : ""} &nbsp;</span>{info.getValue()}
+              <span className="inline-flex text-sm font-medium uppercase tracking-wide text-[#B91C1C]">#{row.projectCode ? `${row.projectCode}` : ""} &nbsp;</span>{info.getValue()}
             </p>
           );
         },

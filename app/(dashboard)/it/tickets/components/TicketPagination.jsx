@@ -1,21 +1,7 @@
-"use client";
+﻿"use client";
 
-import Pagination from "@/app/components/pagination.jsx";
+import DataPagination from "@/components/DataPagination";
 
-export default function TicketPagination({
-  page,
-  setPage,
-  totalPages = 1,
-  totalEntries = 0,
-  pageSize = 50,
-}) {
-  return (
-    <Pagination
-      page={page}
-      totalPages={totalPages}
-      totalEntries={totalEntries}
-      pageSize={pageSize}
-      onPageChange={setPage}
-    />
-  );
+export default function TicketPagination(props) {
+  return <DataPagination {...props} />;
 }

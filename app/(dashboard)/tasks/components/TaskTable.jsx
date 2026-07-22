@@ -32,7 +32,7 @@ export default function TaskTable({ rows = [] }) {
               {TABLE_HEADERS.map((h) => (
                 <TableHead
                   key={h.label}
-                  className={`px-6 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground sticky top-0 z-10 bg-muted ${h.className}`}
+                  className={`px-6 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground sticky top-0 z-1 bg-muted ${h.className}`}
                 >
                   {h.label}
                 </TableHead>
