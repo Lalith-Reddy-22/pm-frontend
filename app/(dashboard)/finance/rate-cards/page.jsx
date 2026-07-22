@@ -10,40 +10,42 @@ export default function Page() {
   const [department, setDepartment] = useState("Tech");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-const pageSize = 10;
+  const pageSize = 10;
 
-const totalEntries = employees.length;
-const totalPages = Math.ceil(totalEntries / pageSize);
+  const totalEntries = employees.length;
+  const totalPages = Math.ceil(totalEntries / pageSize);
 
-const paginatedEmployees = employees.slice(
-  (page - 1) * pageSize,
-  page * pageSize
-);
+  const paginatedEmployees = employees.slice(
+    (page - 1) * pageSize,
+    page * pageSize
+  );
 
   return (
-  <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
+    <div className="space-y-4 p-4 sm:p-6">
+      <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
 
-    <RateCardTopBar
-      department={department}
-      setDepartment={setDepartment}
-      search={search}
-      setSearch={setSearch}
-    />
+        <RateCardTopBar
+          department={department}
+          setDepartment={setDepartment}
+          search={search}
+          setSearch={setSearch}
+        />
 
-    <RateCardTable
-      employees={paginatedEmployees}
-      department={department}
-      search={search}
-    />
+        <RateCardTable
+          employees={paginatedEmployees}
+          department={department}
+          search={search}
+        />
 
-    <Pagination
-  page={page}
-  totalPages={totalPages}
-  totalEntries={totalEntries}
-  pageSize={pageSize}
-  onPageChange={setPage}
-/>
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          totalEntries={totalEntries}
+          pageSize={pageSize}
+          onPageChange={setPage}
+        />
 
-  </div>
-);
+      </div>
+    </div>
+  );
 }
