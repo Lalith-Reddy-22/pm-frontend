@@ -11,6 +11,7 @@ import {
 import StatusBadge from "./StatusBadge";
 import { Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 const TABLE_HEADERS = [
   { label: "Project Name", className: "min-w-[220px]" },
@@ -61,32 +62,38 @@ export default function ProjectTable({ rows = [] }) {
 }
 
 function ProjectTableRow({ project }) {
+  const router = useRouter();
   return (
     <TableRow className="group border-b border-border transition-colors hover:bg-accent/30 ">
 
 
       {/* Project Name + Client */}
-      <TableCell className="px-6 py-2">
-        <div className="flex gap-2 items-center">
-          <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[#FFDAD5]">
-            <p className="text-[#FF3B30] font-semibold">{project.client.charAt(0).toUpperCase()}</p>
-          </div>
-          <p className="font-semibold text-foreground leading-snug">
-            {project.name ?? "—"}
-          </p>
-        </div>
-        <div className="flex gap-1 items-center">
-          {project.client && (
-            <span className="mt-0.5 text-sm text-muted-foreground mr-1 font-medium">
-              Client: {project.client}
-            </span>
-          )}
-          {/* Create Date */}
-          <span className="mt-1 text-xs text-muted-foreground border border-border bg-muted/30 rounded-full inline-flex items-center justify-center px-2.5 py-0.5">
-            {project.createDate ?? "—"}
-          </span>
-        </div>
-      </TableCell>
+      <TableCell
+  onClick={() => router.push(`/project/${project.id}`)}
+  className="px-6 py-2 cursor-pointer"
+>
+  <div className="flex gap-2 items-center">
+    <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[#FFDAD5]">
+      <p className="text-[#FF3B30] font-semibold">
+        {project.client.charAt(0).toUpperCase()}
+      </p>
+    </div>
+
+    <p className="font-semibold text-foreground leading-snug hover:text-[#E12729] transition-colors">
+      {project.name ?? "—"}
+    </p>
+  </div>
+
+  <div className="flex gap-1 items-center">
+    <span className="mt-0.5 text-sm text-muted-foreground mr-1 font-medium">
+      Client: {project.client}
+    </span>
+
+    <span className="mt-1 text-xs text-muted-foreground border border-border bg-muted/30 rounded-full inline-flex items-center justify-center px-2.5 py-0.5">
+      {project.createDate ?? "—"}
+    </span>
+  </div>
+</TableCell>
 
       {/* Start Date */}
       <TableCell className="px-4 py-3 text-center text-sm text-muted-foreground">

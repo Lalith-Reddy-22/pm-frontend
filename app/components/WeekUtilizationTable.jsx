@@ -4,6 +4,7 @@ import { useState, useMemo, useRef } from "react";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import WeekRangePicker from "./WeekRangePicker";
 import { useTheme } from "../context/ThemeContext";
+import EmployeeTaskDetailsModal from "./EmployeeTaskDetailsModal";
 
 const SEED_START = new Date("2026-02-04");
 const SEED_END   = new Date("2026-02-10");
@@ -65,7 +66,12 @@ function fmtColDate(date) {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function DayCell({ entry, isDark, t }) {
+function DayCell({
+  entry,
+  isDark,
+  t,
+  onCellClick,
+}) {
   if (!entry) return <td className={`px-4 py-3 text-center ${t.textMuted}`}>—</td>;
 
   if (entry.type === "dot" || entry.type === "available") {
@@ -83,13 +89,30 @@ function DayCell({ entry, isDark, t }) {
 
   return (
     <td className="px-4 py-3">
-      <div className="flex items-center gap-1 text-xs justify-center mb-1">
-        <span className={`font-medium ${t.textPrimary}`}>P:{p}</span>
-        <span className={t.textMuted}>|</span>
-        <span className="text-blue-500 font-medium">A:{a}</span>
-        <span className={t.textMuted}>|</span>
-        <span className={l > p && p > 0 ? "text-red-500 font-medium" : t.textMuted}>L:{l}</span>
-      </div>
+      <div
+  onClick={() => onCellClick(entry)}
+  className="mb-1 flex cursor-pointer items-center justify-center gap-1 rounded-md px-2 py-1 text-xs transition hover:bg-red-50 hover:text-red-600"
+>
+  <span className={`font-medium ${t.textPrimary}`}>P:{p}</span>
+
+  <span className={t.textMuted}>|</span>
+
+  <span className="font-medium text-blue-500">
+    A:{a}
+  </span>
+
+  <span className={t.textMuted}>|</span>
+
+  <span
+    className={
+      l > p && p > 0
+        ? "font-medium text-red-500"
+        : t.textMuted
+    }
+  >
+    L:{l}
+  </span>
+</div>
       <div className={`relative h-1 w-full rounded-full overflow-hidden ${isDark ? "bg-white/10" : "bg-gray-200"}`}>
         <div className={`absolute left-0 top-0 h-full rounded-full ${barColor}`} style={{ width: `${pPct}%` }} />
         {l > p && p > 0 && <div className="absolute top-0 h-full rounded-full bg-red-400" style={{ width: `${lPct}%` }} />}
@@ -124,9 +147,21 @@ export default function WeekUtilizationTable() {
   const [sortDir,    setSortDir]    = useState("asc");
   const [page,       setPage]       = useState(1);
 
+  const [taskPopupOpen, setTaskPopupOpen] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedEntry, setSelectedEntry] = useState(null);
+
 
   const allData  = useRef(transformApiData(TECH_API_DATA, "Tech")).current;
   const weekDays = useMemo(() => getDatesInRange(startDate, endDate), [startDate, endDate]);
+
+  function handleTaskPopup(employee, date, entry) {
+    setSelectedEmployee(employee);
+    setSelectedDate(date);
+    setSelectedEntry(entry);
+    setTaskPopupOpen(true);
+}
 
   function handleRangeChange(s, e) { setStartDate(s); setEndDate(e); setPage(1); }
 
@@ -237,7 +272,9 @@ export default function WeekUtilizationTable() {
                   {/* Day cells */}
                   {weekDays.map(day => {
                     const key = day.toISOString().slice(0, 10);
-                    return <DayCell key={key} entry={row.dailyData[key]} isDark={isDark} t={t} />;
+                    return <DayCell key={key} entry={row.dailyData[key]} isDark={isDark} t={t}
+                    onCellClick={() => handleTaskPopup(row,day,
+                    row.dailyData[key])}/>;
                   })}
                 </tr>
               );
@@ -288,7 +325,12 @@ export default function WeekUtilizationTable() {
           </button>
         </div>
       </div>
-
+     <EmployeeTaskDetailsModal 
+     open={taskPopupOpen} 
+     onOpenChange={setTaskPopupOpen} 
+     employee={selectedEmployee} 
+     date={selectedDate} 
+     entry={selectedEntry} />
     </div>
   );
 }

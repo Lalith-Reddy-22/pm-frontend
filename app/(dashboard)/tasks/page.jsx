@@ -1,11 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
-
-import TaskToolbar from "./components/TaskToolbar";
-import TaskTable from "./components/TaskTable";
-import TaskPagination from "./components/TaskPagination";
-import { usePagination } from "@/hooks/usePagination";
+import TaskList from "./TaskList";
 
 const SAMPLE_TASKS = [
   {
@@ -201,38 +196,5 @@ const SAMPLE_TASKS = [
 ];
 
 export default function TasksPage() {
-  const [search, setSearch] = useState("");
-
-  const filteredTasks = useMemo(() => {
-    const query = search.trim().toLowerCase();
-    if (!query) return SAMPLE_TASKS;
-
-    return SAMPLE_TASKS.filter((task) =>
-      [
-        String(task.id),
-        task.title,
-        task.projectTitle,
-        task.projectCode,
-        task.priority,
-        (task.employees || []).join(", "),
-      ]
-        .filter(Boolean)
-        .some((value) => value.toLowerCase().includes(query))
-    );
-  }, [search]);
-
-  const pagination = usePagination({ data: filteredTasks, pageSize: 10 });
-
-  return (
-    <div className="space-y-4 p-4 sm:p-6">
-      <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-        <TaskToolbar search={search} setSearch={setSearch} setPage={pagination.setPage} />
-      </div>
-
-      <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-        <TaskTable rows={pagination.paginatedData} />
-        <TaskPagination {...pagination} />
-      </div>
-    </div>
-  );
+  return <TaskList tasks={SAMPLE_TASKS} />;
 }

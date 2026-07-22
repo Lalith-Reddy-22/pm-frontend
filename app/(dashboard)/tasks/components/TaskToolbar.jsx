@@ -3,8 +3,11 @@
 import { Search, Upload, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
-export default function TaskToolbar({ search, setSearch, setPage }) {
+export default function TaskToolbar({ search, setSearch, setPage, onAddTask }) {
+  const router = useRouter();
+
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
       <div className="flex items-center gap-2">
@@ -34,11 +37,9 @@ export default function TaskToolbar({ search, setSearch, setPage }) {
           <span>Export</span>
           <ChevronDown size={13} />
         </Button>
-        <Button
-          className="gap-2 bg-[#E12729] text-white text-sm hover:bg-[#c81f21] border-[#E12729] cursor-pointer"
-        >
-          + Add Task
-        </Button>
+        <Button className="bg-[#E12729] hover:bg-[#E12729] cursor-pointer" onClick={onAddTask}>
+    + Add Task
+</Button>
       </div>
     </div>
   );
