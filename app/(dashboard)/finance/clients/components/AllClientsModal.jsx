@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { X, Search } from "lucide-react";
 import { useTheme } from "../../../../context/ThemeContext";
-import { CLIENTS, fmt, fmtPct } from "../data";
+import { CLIENTS, fmtM } from "../data";
 
-const sorted = [...CLIENTS].sort((a, b) => b.currentGPPct - a.currentGPPct);
+const sorted = [...CLIENTS].sort((a, b) => b.poValue - a.poValue);
 
 function StatusBadge({ status, isDark }) {
   const map = isDark
@@ -18,7 +18,7 @@ export default function AllClientsModal({ onClose }) {
   const { t, isDark } = useTheme();
   const [search, setSearch] = useState("");
   const filtered = sorted.filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
-  const max = Math.max(...CLIENTS.map(c => c.currentGPPct));
+  const max = Math.max(...CLIENTS.map(c => c.poValue));
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -29,7 +29,7 @@ export default function AllClientsModal({ onClose }) {
         <div className={`flex items-center justify-between px-6 py-4 border-b ${t.clientBorder}`}>
           <div>
             <h2 className={`text-base font-semibold ${t.clientModalText}`}>All Clients</h2>
-            <p className={`text-xs ${t.textMuted} mt-0.5`}>Ranked by Current GP%</p>
+            <p className={`text-xs ${t.textMuted} mt-0.5`}>Ranked by PO Value</p>
           </div>
           <button onClick={onClose} className={`w-8 h-8 flex items-center justify-center rounded-lg ${t.clientRowHover} ${t.textMuted}`}>
             <X className="w-4 h-4" />
@@ -56,23 +56,19 @@ export default function AllClientsModal({ onClose }) {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-1">
                   <span className={`text-sm font-medium ${t.clientModalText} truncate`}>{c.name}</span>
-                  <span className={`text-xs font-semibold ml-2 shrink-0 ${c.currentGPPct >= 60 ? "text-green-500" : c.currentGPPct >= 20 ? t.clientMutedText : "text-red-500"}`}>
-                    {fmtPct(c.currentGPPct)}
+                  <span className={`text-xs font-semibold ml-2 shrink-0 text-red-500`}>
+                    {fmtM(c.poValue)}
                   </span>
                 </div>
                 <div className={`h-1.5 w-full ${isDark ? "bg-white/10" : "bg-gray-100"} rounded-full overflow-hidden`}>
                   <div
-                    className="h-full rounded-full transition-all"
-                    style={{
-                      width: `${Math.max(0, (c.currentGPPct / max) * 100)}%`,
-                      background: c.currentGPPct >= 60 ? "#dc2626" : c.currentGPPct >= 20 ? "#9ca3af" : "#fca5a5",
-                    }}
+                    className="h-full rounded-full transition-all bg-red-600"
+                    style={{ width: `${Math.max(0, (c.poValue / max) * 100)}%` }}
                   />
                 </div>
               </div>
 
               <div className="shrink-0"><StatusBadge status={c.status} isDark={isDark} /></div>
-              <span className={`text-xs ${t.textMuted} shrink-0 w-24 text-right`}>{fmt(c.actualGP)}</span>
             </div>
           ))}
 

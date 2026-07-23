@@ -5,14 +5,19 @@ import { Pie, PieChart, Cell, Label } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { useTheme } from "../../../../context/ThemeContext";
-import { TOP_PERFORMERS } from "../data";
+import { CLIENTS, fmtM } from "../data";
 import AllClientsModal from "./AllClientsModal";
 
 const COLORS = ["#dc2626", "#ef4444", "#f87171", "#fca5a5", "#fee2e2"];
 
+const TOP_PERFORMERS = [...CLIENTS]
+  .sort((a, b) => b.poValue - a.poValue)
+  .slice(0, 5)
+  .map(c => ({ name: c.name, value: c.poValue }));
+
 const pieData = TOP_PERFORMERS.map((p, i) => ({
   name: p.name,
-  value: Math.max(0, p.pct),
+  value: Math.max(0, p.value),
   fill: COLORS[i],
 }));
 
@@ -31,7 +36,7 @@ export default function TopPerformers() {
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm font-semibold">Top Performers</CardTitle>
-            <span className={`text-xs ${t.textMuted}`}>by Current GP%</span>
+            <span className={`text-xs ${t.textMuted}`}>by PO Value</span>
           </div>
         </CardHeader>
         <CardContent className="pt-0 flex flex-col items-center">
@@ -61,7 +66,7 @@ export default function TopPerformers() {
                   <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: COLORS[i] }} />
                   <span className={t.textPrimary}>{p.name}</span>
                 </div>
-                <span className={`font-medium ${t.clientMutedText}`}>{p.pct.toFixed(2)}%</span>
+                <span className={`font-medium ${t.clientMutedText}`}>{fmtM(p.value)}</span>
               </div>
             ))}
           </div>

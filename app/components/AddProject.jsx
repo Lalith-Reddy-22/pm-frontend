@@ -20,7 +20,7 @@ export default function AddProject() {
     endDate: "",
     projectOwner: "",
 
-    includeBuyingCenter: false,
+    includeBuyingCenter: true,
     buyingCenter: "",
     financialYear: "",
     purchaseOrderValue: "",
