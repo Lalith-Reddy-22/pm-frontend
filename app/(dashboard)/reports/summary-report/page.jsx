@@ -321,7 +321,7 @@ const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
           </div>
 
           {/* Table & Pagination Card */}
-          <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+          <div className="overflow-visible rounded-xl border border-border bg-card shadow-sm">
             <ReportTable
               rows={reportData}
               isLoading={isLoading}

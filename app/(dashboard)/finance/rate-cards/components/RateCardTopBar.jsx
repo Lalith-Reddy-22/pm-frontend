@@ -59,9 +59,9 @@ export default function RateCardTopBar({
         </Link>
 
         <Link
-          href="/finance/buying-center"
+          href="/finance/rate-cards/buying-center"
           className={`px-5 py-4 text-sm font-medium border-b-2 transition ${
-            pathname === "/finance/buying-center"
+            pathname === "/finance/rate-cards/buying-center"
               ? "border-[#E12729] text-[#E12729]"
               : "border-transparent text-gray-600 hover:text-[#E12729]"
           }`}
@@ -73,7 +73,7 @@ export default function RateCardTopBar({
 
       {/* Toolbar */}
 
-      <div className="flex flex-wrap items-center justify-between gap-5 border-b border-gray-200 px-4 py-2">
+      <div className="flex flex-wrap items-center justify-between gap-5 border-b border-gray-200 px-4 py-5">
 
         <div className="flex flex-wrap gap-3">
 

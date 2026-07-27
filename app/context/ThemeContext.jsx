@@ -133,6 +133,7 @@ const THEMES = {
     clientModalBg:  "bg-[#1a1a1a]",
     clientModalText:"text-gray-100",
     clientIconBg:   "bg-red-500/10",
+    
   },
 };
 

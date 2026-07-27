@@ -21,13 +21,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "../../../context/ThemeContext";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import CustomSelect from "@/components/ui/CustomSelect";
 import DatePicker from "@/app/components/DatePicker";
 import ExportDropdown from "@/app/(dashboard)/employee/components/ExportDropdown";
 import DataPagination from "@/components/DataPagination";
@@ -453,50 +447,34 @@ export default function DailyReportPage() {
 
       <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
         <div className="flex flex-row items-center justify-between gap-4 border-b border-border px-5 py-4 flex-wrap md:flex-nowrap">
-          <div className="min-w-[260px] w-full sm:w-auto">
-            <Select
-              value={employeeFilter}
-              onValueChange={(value) => {
-                setEmployeeFilter(value);
-              }}
-            >
-              <SelectTrigger className="h-10 w-full sm:w-64 text-sm">
-                <SelectValue placeholder="Employee" />
-              </SelectTrigger>
-              <SelectContent>
-                {EMPLOYEE_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <div className="w-full sm:w-64">
+  <CustomSelect
+    value={employeeFilter}
+    onChange={setEmployeeFilter}
+    options={EMPLOYEE_OPTIONS}
+    placeholder="All Employees"
+  />
+</div>
 
           <div className="flex items-center gap-2 text-sm text-muted-foreground flex-shrink-0">
             <span>Show</span>
             <div className="rounded-lg border border-input bg-background">
-              <Select
-                value={String(pageSize)}
-                onValueChange={(value) => {
-                  setPagination((prev) => ({
-                    ...prev,
-                    pageSize: Number(value),
-                    pageIndex: 0,
-                  }));
-                }}
-              >
-                <SelectTrigger className="h-10 w-20 text-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {[10, 25, 50, 100].map((size) => (
-                    <SelectItem key={size} value={String(size)}>
-                      {size}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <CustomSelect
+  value={String(pageSize)}
+  onChange={(value) =>
+    setPagination((prev) => ({
+      ...prev,
+      pageSize: Number(value),
+      pageIndex: 0,
+    }))
+  }
+  options={[
+    { value: "10", label: "10" },
+    { value: "25", label: "25" },
+    { value: "50", label: "50" },
+    { value: "100", label: "100" },
+  ]}
+/>
             </div>
             <span>entries</span>
           </div>

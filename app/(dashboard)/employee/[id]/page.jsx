@@ -12,12 +12,16 @@ import { ArrowLeft } from "lucide-react";
 import { useTheme } from "../../../context/ThemeContext";
 import EmployeeInfoCard from "./components/EmployeeInfoCard";
 import EditEmployeeModal from "./components/EditEmployeeModal";
-import EmployeeProjectsTable from "./components/EmployeeProjects";
 import EmployeeHeader from "./components/EmployeeHeader";
-
+import EmployeeStatsCards from "./components/EmployeeStatsCards";
+import EmployeePerformanceChart from "./components/EmployeePerformanceChart";
+import EmployeeProjects from "./components/EmployeeProjects";
+import EmployeeTaskSummary from "./components/EmployeeTaskSummary";
 
 export default function EmployeeDetailPage() {
   const { t, isDark } = useTheme();
+//   console.log("Theme Object:", useTheme());
+// console.log("t =", t);
   const { id } = useParams();
   const employee = getEmployeeById(id);
 
@@ -26,6 +30,7 @@ export default function EmployeeDetailPage() {
   const [search, setSearch] = useState("");
   const [pageSize, setPageSize] = useState(10);
   const [page, setPage] = useState(1);
+  const [dateFilter, setDateFilter] = useState("7");
 
   const rows = useMemo(() => {
     if (!employee?.projects) return [];
@@ -80,57 +85,58 @@ export default function EmployeeDetailPage() {
     );
   }
 
-  return (
-    <div className="p-6 space-y-4">
-      <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-4 items-start">
-        {/* ── Profile card ─────────────────────────────────────────── */}
+return (
+  <div className="space-y-6 p-6">
+
+    {/* Header */}
+    <EmployeeHeader
+      employee={employee}
+      dateFilter={dateFilter}
+      setDateFilter={setDateFilter}
+    />
+
+    {/* Top Section */}
+    <div className="grid grid-cols-12 gap-6">
+  <div className="col-span-12 xl:col-span-9">
+    <EmployeeStatsCards />
+  </div>
+
+  <div className="col-span-12 xl:col-span-3">
 <EmployeeInfoCard
   employee={employee}
-  totalTasks={totalTasks}
-  totalProjects={totalProjects}
-  t={t}
-  isDark={isDark}
-  border={border}
   onEdit={() => setShowEditModal(true)}
-/>
-        {/* ── Projects table ───────────────────────────────────────── */}
-        <div className={`rounded-2xl border ${border} ${t.cardBg} ${t.cardShadow} overflow-hidden`}>
-    <EmployeeHeader
-    pageSize={pageSize}
-    setPageSize={setPageSize}
-    search={search}
-    setSearch={setSearch}
-    setPage={setPage}
-    border={border}
-    isDark={isDark}
-    t={t}
-/>      
-<EmployeeProjectsTable
-    pageRows={pageRows}
-    border={border}
-    isDark={isDark}
-    t={t}
-/>
-{/* <EmployeePagination
-  totalEntries={totalEntries}
-  startIdx={startIdx}
-  endIdx={endIdx}
-  safePage={safePage}
-  totalPages={totalPages}
-  setPage={setPage}
-  border={border}
-  isDark={isDark}
-  t={t}
-/>    */}
-        </div>
+/>  </div>
+</div>
+
+    {/* Middle */}
+
+    <div className="grid grid-cols-12 gap-6">
+
+<div className="col-span-12 xl:col-span-7">
+        <EmployeePerformanceChart />
+
       </div>
-      <EditEmployeeModal
-  open={showEditModal}
-  employee={employee}
-  onClose={() => setShowEditModal(false)}
-  onUpdate={handleEmployeeUpdate}
-/>
+
+<div className="col-span-12 xl:col-span-5">
+        <EmployeeProjects
+          pageRows={pageRows}
+        />
+
+      </div>
 
     </div>
-  );
+
+    {/* Bottom */}
+
+    <EmployeeTaskSummary />
+
+    <EditEmployeeModal
+      open={showEditModal}
+      employee={employee}
+      onClose={() => setShowEditModal(false)}
+      onUpdate={handleEmployeeUpdate}
+    />
+
+  </div>
+);
 }

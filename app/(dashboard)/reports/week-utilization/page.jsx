@@ -8,7 +8,7 @@ import {designationBillable, designationNonBillable , clientData} from "./data";
 
 export default function WeekUtilization() {
   return (
-    <div className="min-h-screen bg-[#f4f5f7] py-8">
+    <div className="min-h-screen bg-[#f4f5f7] p-4 sm:p-6">
       <div className="mx-auto max-w-[1600px] rounded-lg border bg-white shadow-md p-6">
 
         <Header />

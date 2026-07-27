@@ -1,10 +1,93 @@
 "use client";
 
+import CustomSelect from "@/components/ui/CustomSelect";
+import { useState } from "react";
+
 export default function AddEmployeeDrawer({
   showDrawer,
   setShowDrawer,
 }) {
   if (!showDrawer) return null;
+  const TEAM_OPTIONS = [
+  {
+    value: "",
+    label: "Select Team",
+  },
+  {
+    value: "Tech Team",
+    label: "Tech Team",
+  },
+  {
+    value: "Creative Team",
+    label: "Creative Team",
+  },
+  {
+    value: "Content Team",
+    label: "Content Team",
+  },
+  {
+    value: "QA Team",
+    label: "QA Team",
+  },
+];
+
+const SUB_TEAM_OPTIONS = [
+  {
+    value: "",
+    label: "Select Sub Team",
+  },
+  {
+    value: "Frontend",
+    label: "Frontend",
+  },
+  {
+    value: "Backend",
+    label: "Backend",
+  },
+  {
+    value: "UI/UX",
+    label: "UI/UX",
+  },
+];
+
+const TYPE_OPTIONS = [
+  {
+    value: "",
+    label: "Select Type",
+  },
+  {
+    value: "Permanent",
+    label: "Permanent",
+  },
+  {
+    value: "Contract",
+    label: "Contract",
+  },
+  {
+    value: "Intern",
+    label: "Intern",
+  },
+];
+
+const UTILIZATION_OPTIONS = [
+  {
+    value: "",
+    label: "Select Required",
+  },
+  {
+    value: "Yes",
+    label: "Yes",
+  },
+  {
+    value: "No",
+    label: "No",
+  },
+];
+
+const [team, setTeam] = useState("");
+const [subTeam, setSubTeam] = useState("");
+const [type, setType] = useState("");
+const [utilization, setUtilization] = useState("");
 
   return (
     <div className="fixed inset-0 z-50">
@@ -122,11 +205,12 @@ export default function AddEmployeeDrawer({
               Team
             </label>
 
-            <select className="w-full rounded-lg border border-gray-300 px-4 py-2 text-xs">
-
-              <option>Tech Team</option>
-
-            </select>
+            <CustomSelect
+  value={team}
+  onChange={setTeam}
+  options={TEAM_OPTIONS}
+  placeholder="Select Team"
+/>
 
           </div>
 
@@ -138,11 +222,12 @@ export default function AddEmployeeDrawer({
               Sub Team
             </label>
 
-            <select className="w-full rounded-lg border border-gray-300 bg-[#F2F2F2] px-4 py-2 text-xs">
-
-              <option>Select Sub Team</option>
-
-            </select>
+            <CustomSelect
+  value={subTeam}
+  onChange={setSubTeam}
+  options={SUB_TEAM_OPTIONS}
+  placeholder="Select Sub Team"
+/>
 
           </div>
 
@@ -154,11 +239,12 @@ export default function AddEmployeeDrawer({
               Type
             </label>
 
-            <select className="w-full rounded-lg border border-gray-300 bg-[#F2F2F2] px-4 py-2 text-xs">
-
-              <option>Select</option>
-
-            </select>
+            <CustomSelect
+  value={type}
+  onChange={setType}
+  options={TYPE_OPTIONS}
+  placeholder="Select Type"
+/>
 
           </div>
 
@@ -170,11 +256,12 @@ export default function AddEmployeeDrawer({
               Utilization Required
             </label>
 
-            <select className="w-full rounded-lg border border-gray-300 bg-[#F2F2F2] px-4 py-2 text-xs">
-
-              <option>Select isRequired</option>
-
-            </select>
+            <CustomSelect
+  value={utilization}
+  onChange={setUtilization}
+  options={UTILIZATION_OPTIONS}
+  placeholder="Select Required"
+/>
 
           </div>
 

@@ -1,7 +1,5 @@
 export const columns = [
   { key: "employee", label: "Employee Name" },
-  { key: "empId", label: "EMP ID" },
-  { key: "designation", label: "Designation" },
   { key: "abbvie", label: "ABBVIE (US)" },
   { key: "allerganInt", label: "ALLERGAN (INT)" },
   { key: "allerganUs", label: "ALLERGAN (US)" },
@@ -14,7 +12,7 @@ export const employees = [
   {
     employee: "Abhishek Badiger",
     empId: 121,
-    designation: "Jr.Dotnet developer",
+    designation: "Jr. Dotnet Developer",
     abbvie: 72,
     allerganInt: 60,
     allerganUs: 72,
@@ -25,7 +23,7 @@ export const employees = [
   {
     employee: "Ananya M",
     empId: 169,
-    designation: "Jr.Web Developer",
+    designation: "Jr. Web Developer",
     abbvie: 72,
     allerganInt: 60,
     allerganUs: 72,

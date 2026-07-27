@@ -1,51 +1,90 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
 
 export default function Pagination({
-  page = 1,
-  totalPages = 1,
-  totalEntries = 0,
-  pageSize = 50,
-  onPageChange,
+  page,
+  totalPages,
+  totalItems,
+  startIndex,
+  endIndex,
+  hasPrev,
+  hasNext,
+  prevPage,
+  nextPage,
+  pageNumbers,
+  setPage,
 }) {
-  const start =
-    totalEntries === 0
-      ? 0
-      : (page - 1) * pageSize + 1;
-
-  const end = Math.min(
-    page * pageSize,
-    totalEntries
-  );
-
   return (
-    <div className="flex flex-wrap items-center justify-between bg-white px-6 py-5">
+    <div className="flex flex-wrap items-center justify-between border-t bg-white px-6 py-5">
 
       <p className="text-sm text-gray-600">
-        Showing {start} to {end} of {totalEntries} entries
+        Showing {startIndex} to {endIndex} of {totalItems} entries
       </p>
 
       <div className="flex items-center gap-2">
 
         <button
-          disabled={page === 1}
-          onClick={() => onPageChange(page - 1)}
-          className="rounded-md border bg-gray-50 px-4 py-2 text-sm disabled:opacity-40"
+          onClick={() => setPage(1)}
+          disabled={!hasPrev}
+          className="rounded-md border bg-gray-50 px-3 py-2 disabled:opacity-40"
+        >
+          <ChevronsLeft size={16} />
+        </button>
+
+        <button
+          onClick={prevPage}
+          disabled={!hasPrev}
+          className="rounded-md border bg-gray-50 px-3 py-2 disabled:opacity-40"
         >
           <ChevronLeft size={16} />
         </button>
 
+        {pageNumbers.map((item, index) =>
+          item === "..." ? (
+            <span
+              key={index}
+              className="px-2 text-gray-500"
+            >
+              ...
+            </span>
+          ) : (
+            <button
+              key={item}
+              onClick={() => setPage(item)}
+              className={`h-9 min-w-9 rounded-md border px-3 text-sm ${
+                page === item
+                  ? "border-red-500 bg-red-500 text-white"
+                  : "border-gray-300 bg-white hover:bg-gray-100"
+              }`}
+            >
+              {item}
+            </button>
+          )
+        )}
+
         <button
-          disabled={page >= totalPages}
-          onClick={() => onPageChange(page + 1)}
-          className="rounded-md border bg-gray-50 px-4 py-2 text-sm disabled:opacity-40"
+          onClick={nextPage}
+          disabled={!hasNext}
+          className="rounded-md border bg-gray-50 px-3 py-2 disabled:opacity-40"
         >
           <ChevronRight size={16} />
         </button>
 
-      </div>
+        <button
+          onClick={() => setPage(totalPages)}
+          disabled={!hasNext}
+          className="rounded-md border bg-gray-50 px-3 py-2 disabled:opacity-40"
+        >
+          <ChevronsRight size={16} />
+        </button>
 
+      </div>
     </div>
   );
 }
