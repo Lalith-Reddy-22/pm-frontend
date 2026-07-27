@@ -7,6 +7,7 @@ import ReportTable from "./components/ReportTable";
 import EmployeeToolbar from "./components/EmployeeToolbar";
 import EmployeeTable from "./components/EmployeeTable";
 import DataPagination from "@/components/DataPagination";
+import { usePagination } from "@/hooks/usePagination";
 import {
   getTaskAllocationReport,
   getProjects,
@@ -31,24 +32,21 @@ export default function SummaryReportPage() {
   const [search, setSearch] = useState("");
 
   // Pagination state
-  const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
   // Employee List state
   const [employeeSearch, setEmployeeSearch] = useState("");
   const [employeePageSize, setEmployeePageSize] = useState(50);
-  const [employeePage, setEmployeePage] = useState(1);
   const [employeeData, setEmployeeData] = useState([]);
   const [employeeTotal, setEmployeeTotal] = useState(0);
   const [employeeIsLoading, setEmployeeIsLoading] = useState(false);
 
   // Project Report State
-const [projectSearch, setProjectSearch] = useState("");
-const [projectPage, setProjectPage] = useState(1);
-const [projectPageSize, setProjectPageSize] = useState(10);
-const [projectData, setProjectData] = useState([]);
-const [projectTotal, setProjectTotal] = useState(0);
-const [projectIsLoading, setProjectIsLoading] = useState(false);
+  const [projectSearch, setProjectSearch] = useState("");
+  const [projectPageSize, setProjectPageSize] = useState(10);
+  const [projectData, setProjectData] = useState([]);
+  const [projectTotal, setProjectTotal] = useState(0);
+  const [projectIsLoading, setProjectIsLoading] = useState(false);
 
 const [selectedProjectDetails, setSelectedProjectDetails] = useState(null);
 const [projectModalOpen, setProjectModalOpen] = useState(false);
@@ -63,9 +61,10 @@ const [projectModalOpen, setProjectModalOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
 const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
 
-  // Calculate total pages
-  const totalPages = useMemo(() => Math.ceil(total / pageSize), [total, pageSize]);
-  const employeeTotalPages = useMemo(() => Math.ceil(employeeTotal / employeePageSize), [employeeTotal, employeePageSize]);
+  // usePagination hooks (server-driven — data slice comes from API, hook drives UI only)
+  const reportPagination = usePagination({ data: reportData, pageSize });
+  const employeePagination = usePagination({ data: employeeData, pageSize: employeePageSize });
+  const projectPagination = usePagination({ data: projectData, pageSize: projectPageSize });
 
   /**
    * Fetch report data whenever filters or pagination changes
@@ -82,7 +81,7 @@ const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
         search,
         sortBy: "projectCode",
         sortDirection: "asc",
-        page,
+        page: reportPagination.page,
         pageSize,
       };
 
@@ -95,7 +94,7 @@ const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
     } finally {
       setIsLoading(false);
     }
-  }, [selectedProject, startDate, endDate, search, page, pageSize]);
+  }, [selectedProject, startDate, endDate, search, reportPagination.page, pageSize]);
 
   /**
    * Fetch projects for filter dropdown on mount
@@ -117,8 +116,8 @@ const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
    * Fetch report data whenever filters change
    */
   useEffect(() => {
-    // Reset to page 1 when filters change
-    setPage(1);
+    reportPagination.setPage(1);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedProject, startDate, endDate, search]);
 
   useEffect(() => {
@@ -161,7 +160,7 @@ const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
 
       const filters = {
         search: employeeSearch,
-        page: employeePage,
+        page: employeePagination.page,
         pageSize: employeePageSize,
       };
 
@@ -173,13 +172,14 @@ const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
     } finally {
       setEmployeeIsLoading(false);
     }
-  }, [employeeSearch, employeePage, employeePageSize]);
+  }, [employeeSearch, employeePagination.page, employeePageSize]);
 
   /**
    * Fetch employee data when filters change
    */
   useEffect(() => {
-    setEmployeePage(1);
+    employeePagination.setPage(1);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [employeeSearch]);
 
   /**
@@ -315,7 +315,7 @@ const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
               setSearch={setSearch}
               pageSize={pageSize}
               setPageSize={setPageSize}
-              setPage={setPage}
+              setPage={reportPagination.setPage}
               onExport={handleExport}
             />
           </div>
@@ -334,13 +334,7 @@ const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
 
             {/* Pagination */}
             {reportData.length > 0 && (
-              <DataPagination
-                page={page}
-                setPage={setPage}
-                pageSize={pageSize}
-                total={total}
-                totalPages={totalPages}
-              />
+              <DataPagination {...reportPagination} />
             )}
           </div>
 
@@ -404,7 +398,7 @@ const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
               setSearch={setEmployeeSearch}
               pageSize={employeePageSize}
               setPageSize={setEmployeePageSize}
-              setPage={setEmployeePage}
+              setPage={employeePagination.setPage}
               onExport={handleEmployeeExport}
             />
           </div>
@@ -426,13 +420,7 @@ const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
   />
 
   {employeeData.length > 0 && (
-    <DataPagination
-      page={employeePage}
-      setPage={setEmployeePage}
-      pageSize={employeePageSize}
-      total={employeeTotal}
-      totalPages={employeeTotalPages}
-    />
+    <DataPagination {...employeePagination} />
   )}
 
   <EmployeeTaskModal
@@ -458,7 +446,7 @@ const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
         setSearch={setProjectSearch}
         pageSize={projectPageSize}
         setPageSize={setProjectPageSize}
-        setPage={setProjectPage}
+        setPage={projectPagination.setPage}
         onExport={() => {}}
       />
 
@@ -478,13 +466,7 @@ const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
       />
 
       {projectData.length > 0 && (
-        <DataPagination
-          page={projectPage}
-          setPage={setProjectPage}
-          pageSize={projectPageSize}
-          total={projectTotal}
-          totalPages={1}
-        />
+        <DataPagination {...projectPagination} />
       )}
 
     </div>

@@ -81,7 +81,7 @@ export default function LoginPage() {
 
       {/* Left branding */}
       <div className="hidden lg:flex flex-col items-start justify-center flex-1 pl-24 z-10 gap-3">
-        <Image src="/login.png" alt="Medtrix" width={600} height={400} className="object-contain drop-shadow-[2px_4px_6px_black]" />
+        <Image src="/login.png" alt="Medtrix" width={600} height={400} loading="eager" className="object-contain drop-shadow-[2px_4px_6px_black] h-auto" />
       </div>
 
       {/* Login card */}
