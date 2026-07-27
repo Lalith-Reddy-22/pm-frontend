@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 
 import { useTheme } from "../../context/ThemeContext";
-import DateRangePicker from "../../components/DateRangePicker";
+import WeekRangePicker from "../../components/WeekRangePicker";
 import { usePagination } from "../../../hooks/usePagination";
 
 import StatCard from "./components/statCard";
@@ -28,20 +28,23 @@ import {
 export default function TimesheetPage() {
   const { t, isDark } = useTheme();
 
-  const [weekOffset] = useState(0);
   const [search, setSearch] = useState("");
   const [data, setData] = useState(TASKS);
 
   // Week Dates
-  const monday = useMemo(
-    () => addDays(startOfWeek(new Date()), weekOffset * 7),
-    [weekOffset]
-  );
+  const [startDate, setStartDate] = useState(() => startOfWeek(new Date()));
+  const [endDate, setEndDate] = useState(() => addDays(startOfWeek(new Date()), 4));
 
-  const weekDates = useMemo(
-    () => DAY_KEYS.map((_, i) => addDays(monday, i)),
-    [monday]
-  );
+  const weekDates = useMemo(() => {
+    const dates = [];
+    const cur = new Date(startDate);
+    while (cur <= endDate) {
+      const day = cur.getDay();
+      if (day !== 0 && day !== 6) dates.push(new Date(cur));
+      cur.setDate(cur.getDate() + 1);
+    }
+    return dates;
+  }, [startDate, endDate]);
 
   // Card Totals
   const totals = useMemo(() => {
@@ -188,7 +191,11 @@ const {
 
       <div className="flex flex-wrap items-center justify-end gap-6 py-5">
 
-        <DateRangePicker />
+        <WeekRangePicker
+          start={startDate}
+          end={endDate}
+          onChange={(s, e) => { setStartDate(s); setEndDate(e); }}
+        />
 
         <div
           className={`flex items-center gap-2 text-sm ${t.textSecondary}`}

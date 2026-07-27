@@ -3,11 +3,9 @@
 import { Search, Upload, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import DateRangePicker from "@/components/DateRangePicker";
-import { useRouter } from "next/navigation";
+import WeekRangePicker from "@/app/components/WeekRangePicker";
 
 export default function TaskToolbar({ search, setSearch, setPage, onAddTask, dateRange, setDateRange }) {
-  const router = useRouter();
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
@@ -32,17 +30,10 @@ export default function TaskToolbar({ search, setSearch, setPage, onAddTask, dat
           />
         </div>
 
-        {/* Date Range Picker */}
-        <DateRangePicker
-          dateRange={dateRange}
-          onChange={(range) => {
-            setDateRange(range ?? { from: undefined, to: undefined });
-            setPage(1);
-          }}
-          onClear={() => {
-            setDateRange({ from: undefined, to: undefined });
-            setPage(1);
-          }}
+        <WeekRangePicker
+          start={dateRange.from ?? new Date()}
+          end={dateRange.to ?? new Date()}
+          onChange={(s, e) => { setDateRange({ from: s, to: e }); setPage(1); }}
         />
       </div>
 

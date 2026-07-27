@@ -3,17 +3,17 @@
 import { useState, useRef, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 import { useTheme } from "../../../context/ThemeContext";
+import { useRouter } from "next/navigation";
 import ProjectTable from "./components/ProjectTable";
-import AddProjectPanel from "./components/AddProjectPanel";
 import AddRateCardPanel from "./components/AddRateCardPanel";
 
 const YEARS = ["2026 - 2027", "2025 - 2026", "2024 - 2025"];
 
 export default function ProjectListsPage() {
   const { t } = useTheme();
+  const router = useRouter();
   const [selectedYear, setSelectedYear] = useState(YEARS[0]);
   const [open, setOpen] = useState(false);
-  const [showProject, setShowProject] = useState(false);
   const [showRateCard, setShowRateCard] = useState(false);
   const wrapperRef = useRef(null);
 
@@ -62,7 +62,7 @@ export default function ProjectListsPage() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={() => setShowProject(true)} className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition-colors duration-150">
+          <button onClick={() => router.push("/project/add-project")} className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition-colors duration-150">
             <span className="text-base leading-none">+</span> Project
           </button>
           <button onClick={() => setShowRateCard(true)} className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition-colors duration-150">
@@ -75,7 +75,6 @@ export default function ProjectListsPage() {
         <ProjectTable />
       </div>
 
-      {showProject && <AddProjectPanel onClose={() => setShowProject(false)} />}
       {showRateCard && <AddRateCardPanel onClose={() => setShowRateCard(false)} />}
     </div>
   );

@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import DateRangePicker from "@/app/components/DateRangePicker";
+import WeekRangePicker from "@/app/components/WeekRangePicker";
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 
@@ -18,7 +18,8 @@ export default function ReportToolbar({
   projects,
   selectedProject,
   setSelectedProject,
-  dateRange,
+  startDate,
+  endDate,
   setDateRange,
   search,
   setSearch,
@@ -58,9 +59,10 @@ export default function ReportToolbar({
           <span className="hidden text-sm font-medium text-muted-foreground sm:block">
             Date Range:
           </span>
-          <DateRangePicker
-            value={dateRange}
-            onChange={setDateRange}
+          <WeekRangePicker
+            start={startDate}
+            end={endDate}
+            onChange={(s, e) => setDateRange(s, e)}
           />
         </div>
       </div>

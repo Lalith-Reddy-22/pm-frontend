@@ -15,6 +15,7 @@ function fmt(date) {
 export default function DatePicker({ value, onChange, placeholder = "Select date" }) {
   const { t } = useTheme();
   const [open, setOpen]     = useState(false);
+  const [pos, setPos]       = useState({ top: 0, left: 0 });
   const [cursor, setCursor] = useState(() => value ? new Date(value.getFullYear(), value.getMonth(), 1) : new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   const ref = useRef(null);
 
@@ -27,6 +28,14 @@ export default function DatePicker({ value, onChange, placeholder = "Select date
   useEffect(() => {
     if (value) setCursor(new Date(value.getFullYear(), value.getMonth(), 1));
   }, [value]);
+
+  function handleToggle() {
+    if (!open && ref.current) {
+      const rect = ref.current.getBoundingClientRect();
+      setPos({ top: rect.bottom + 4, left: rect.left });
+    }
+    setOpen(o => !o);
+  }
 
   const year        = cursor.getFullYear();
   const month       = cursor.getMonth();
@@ -44,7 +53,7 @@ export default function DatePicker({ value, onChange, placeholder = "Select date
     <div ref={ref} className="relative inline-block">
       {/* Trigger */}
       <button
-        onClick={() => setOpen(o => !o)}
+        onClick={() => handleToggle()}
         className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors
           border border-red-200 bg-white text-red-600 hover:bg-red-50
           ${open ? "bg-red-50 border-red-400" : ""}`}
@@ -54,7 +63,9 @@ export default function DatePicker({ value, onChange, placeholder = "Select date
       </button>
 
       {open && (
-        <div className="absolute z-50 mt-1 w-64 rounded-xl shadow-xl p-3 bg-white border border-red-100">
+        <div className="fixed z-50 w-64 rounded-xl shadow-xl p-3 bg-white border border-red-100"
+          style={{ top: pos.top, left: pos.left }}
+        >
           {/* Month nav */}
           <div className="flex items-center justify-between mb-2 bg-red-500 rounded-lg px-2 py-1.5">
             <button onClick={() => setCursor(new Date(year, month - 1, 1))} className="p-1 rounded-lg text-white/80 hover:text-white hover:bg-white/20 transition-colors">

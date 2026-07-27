@@ -20,7 +20,17 @@ function parseMDY(str) {
 
 export default function TaskList({ tasks, showBackButton=false, }) {
   const [search, setSearch] = useState("");
-  const [dateRange, setDateRange] = useState({ from: undefined, to: undefined });
+  const [dateRange, setDateRange] = useState(() => {
+    const today = new Date();
+    const day = today.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+    const mon = new Date(today);
+    mon.setDate(today.getDate() + diff);
+    mon.setHours(0, 0, 0, 0);
+    const fri = new Date(mon);
+    fri.setDate(mon.getDate() + 4);
+    return { from: mon, to: fri };
+  });
   const [openDrawer, setOpenDrawer] = useState(false);
   const router = useRouter();
 
@@ -77,7 +87,7 @@ export default function TaskList({ tasks, showBackButton=false, }) {
     </button>
   </div>
 )}
-      <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+      <div className="rounded-xl border border-border bg-card shadow-sm">
         
 <TaskToolbar
   search={search}

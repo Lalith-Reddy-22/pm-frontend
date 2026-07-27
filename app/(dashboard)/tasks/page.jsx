@@ -195,13 +195,6 @@ const SAMPLE_TASKS = [
   },
 ];
 
-// Parse date string "MM/dd/yyyy" → Date
-function parseMDY(str) {
-  if (!str) return undefined;
-  const d = parse(str, "MM/dd/yyyy", new Date());
-  return isValid(d) ? d : undefined;
-}
-
 export default function TasksPage() {
   return <TaskList tasks={SAMPLE_TASKS} />;
 }

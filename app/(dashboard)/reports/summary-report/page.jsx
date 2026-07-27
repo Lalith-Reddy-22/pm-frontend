@@ -26,10 +26,8 @@ export default function SummaryReportPage() {
 
   // Filter state
   const [selectedProject, setSelectedProject] = useState("all");
-  const [dateRange, setDateRange] = useState({
-    from: new Date(new Date().setDate(new Date().getDate() - 30)),
-    to: new Date(),
-  });
+  const [startDate, setStartDate] = useState(() => new Date(new Date().setDate(new Date().getDate() - 30)));
+  const [endDate, setEndDate] = useState(() => new Date());
   const [search, setSearch] = useState("");
 
   // Pagination state
@@ -79,8 +77,8 @@ const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
 
       const filters = {
         projectId: selectedProject,
-        startDate: dateRange.from ? format(dateRange.from, "yyyy-MM-dd") : null,
-        endDate: dateRange.to ? format(dateRange.to, "yyyy-MM-dd") : null,
+        startDate: startDate ? format(startDate, "yyyy-MM-dd") : null,
+        endDate: endDate ? format(endDate, "yyyy-MM-dd") : null,
         search,
         sortBy: "projectCode",
         sortDirection: "asc",
@@ -97,7 +95,7 @@ const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
     } finally {
       setIsLoading(false);
     }
-  }, [selectedProject, dateRange, search, page, pageSize]);
+  }, [selectedProject, startDate, endDate, search, page, pageSize]);
 
   /**
    * Fetch projects for filter dropdown on mount
@@ -121,7 +119,7 @@ const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
   useEffect(() => {
     // Reset to page 1 when filters change
     setPage(1);
-  }, [selectedProject, dateRange, search]);
+  }, [selectedProject, startDate, endDate, search]);
 
   useEffect(() => {
   if (activeTab !== "project") return;
@@ -201,13 +199,13 @@ const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
       // Fetch all data for export without pagination
       const filters = {
         projectId: selectedProject,
-        startDate: dateRange.from ? format(dateRange.from, "yyyy-MM-dd") : null,
-        endDate: dateRange.to ? format(dateRange.to, "yyyy-MM-dd") : null,
+        startDate: startDate ? format(startDate, "yyyy-MM-dd") : null,
+        endDate: endDate ? format(endDate, "yyyy-MM-dd") : null,
         search,
         sortBy: "projectCode",
         sortDirection: "asc",
         page: 1,
-        pageSize: 10000, // Large number to get all records
+        pageSize: 10000,
       };
 
       const result = await getTaskAllocationReport(filters);
@@ -310,8 +308,9 @@ const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
               projects={projects}
               selectedProject={selectedProject}
               setSelectedProject={setSelectedProject}
-              dateRange={dateRange}
-              setDateRange={setDateRange}
+              startDate={startDate}
+              endDate={endDate}
+              setDateRange={(s, e) => { setStartDate(s); setEndDate(e); }}
               search={search}
               setSearch={setSearch}
               pageSize={pageSize}

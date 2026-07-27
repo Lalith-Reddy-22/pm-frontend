@@ -25,7 +25,7 @@ const NAV_ITEMS = [
     ],
   },
   {
-    id: "tasks", label: "Tasks", icon: CheckSquare,
+    id: "tasks", label: "Tasks Section", icon: CheckSquare,
     children: [
       { id: "tasks",          href: "/tasks",                label: "Tasks",          icon: CheckSquare },
       { id: "template-tasks", href: "/tasks/template-tasks", label: "Template Tasks", icon: Layout      },
@@ -47,7 +47,6 @@ const NAV_ITEMS = [
     id: "finance", label: "Finance Module", icon: DollarSign,
     children: [
       { id: "finance-clients", href: "/finance/clients",       label: "Clients",       icon: Briefcase  },
-      { id: "projects-info",   href: "/finance/projects-info", label: "Projects Info", icon: FolderOpen },
       { id: "project-lists",   href: "/finance/project-lists", label: "Project Lists", icon: List       },
       { id: "rate-cards",      href: "/finance/rate-cards",    label: "Rate Cards",    icon: CreditCard },
     ],
@@ -82,6 +81,7 @@ export default function Sidebar({ onClose, collapsed = false }) {
   }
 
   function isActive(href) {
+    if (href === "/tasks") return pathname === "/tasks";
     return pathname === href || pathname.startsWith(href + "/");
   }
 

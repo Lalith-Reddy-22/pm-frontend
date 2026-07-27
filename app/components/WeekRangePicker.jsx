@@ -113,6 +113,7 @@ function MiniCalendar({ cursor, onCursorChange, start, end, onDayClick, isDark, 
 export default function WeekRangePicker({ start, end, onChange }) {
   const { t, isDark } = useTheme();
   const [open,      setOpen]      = useState(false);
+  const [pos,       setPos]       = useState({ top: 0, left: 0 });
   const [activeKey, setActiveKey] = useState("mon-fri");
   const [cursor,    setCursor]    = useState(new Date(start.getFullYear(), start.getMonth(), 1));
   const [selecting, setSelecting] = useState(null);
@@ -125,6 +126,14 @@ export default function WeekRangePicker({ start, end, onChange }) {
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+
+  function handleToggle() {
+    if (!open && ref.current) {
+      const rect = ref.current.getBoundingClientRect();
+      setPos({ top: rect.bottom + 4, left: rect.right });
+    }
+    setOpen(o => !o);
+  }
 
   function pickPreset(key) {
     setActiveKey(key);
@@ -153,7 +162,7 @@ export default function WeekRangePicker({ start, end, onChange }) {
     <div ref={ref} className="relative inline-block">
       {/* Trigger */}
       <button
-        onClick={() => setOpen(o => !o)}
+        onClick={() => handleToggle()}
         className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors
           border-red-200 bg-white text-red-600 hover:bg-red-50
           ${isDark ? "bg-transparent border-red-500/40 text-red-400 hover:bg-red-500/10" : ""}
@@ -165,7 +174,7 @@ export default function WeekRangePicker({ start, end, onChange }) {
 
       {/* Dropdown */}
       {open && (
-        <div className={`absolute z-50 mt-1 flex rounded-xl shadow-xl overflow-hidden ${dropdownBg}`}>
+        <div className={`fixed z-50 flex rounded-xl shadow-xl overflow-hidden ${dropdownBg}`} style={{ top: pos.top, left: pos.left, transform: 'translateX(-100%)' }}>
           {/* Preset list */}
           <div className={`w-36 border-r py-1 ${presetBorder}`}>
             {PRESETS.map(p => (

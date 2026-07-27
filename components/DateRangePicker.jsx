@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/style.css";
 import { format } from "date-fns";
@@ -24,18 +25,42 @@ export default function DateRangePicker({
   className,
 }) {
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
   const containerRef = useRef(null);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => { setMounted(true); }, []);
 
   /* close on outside click */
   useEffect(() => {
     function handleOutside(e) {
-      if (containerRef.current && !containerRef.current.contains(e.target)) {
+      if (
+        containerRef.current && !containerRef.current.contains(e.target) &&
+        dropdownRef.current && !dropdownRef.current.contains(e.target)
+      ) {
         setOpen(false);
       }
     }
     document.addEventListener("mousedown", handleOutside);
     return () => document.removeEventListener("mousedown", handleOutside);
   }, []);
+
+  function updatePos() {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    setPos({ top: rect.bottom + window.scrollY + 6, left: rect.left + window.scrollX });
+  }
+
+  useEffect(() => {
+    if (!open) return;
+    window.addEventListener("scroll", updatePos, true);
+    window.addEventListener("resize", updatePos);
+    return () => {
+      window.removeEventListener("scroll", updatePos, true);
+      window.removeEventListener("resize", updatePos);
+    };
+  }, [open]);
 
   const hasRange = dateRange?.from || dateRange?.to;
 
@@ -57,11 +82,11 @@ export default function DateRangePicker({
   }
 
   return (
-    <div ref={containerRef} className="relative z-10">
+    <div ref={containerRef} className="relative">
       {/* ── Trigger ── */}
       <Button
         variant="outline"
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => { updatePos(); setOpen((o) => !o); }}
         className={cn(
           "h-8 gap-1.5 text-sm border-border text-muted-foreground hover:border-[#E12729] hover:text-foreground transition-colors",
           hasRange && "border-[#E12729] text-foreground",
@@ -81,14 +106,12 @@ export default function DateRangePicker({
         )}
       </Button>
 
-      {/* ── Dropdown calendar ── */}
-      {open && (
+      {/* ── Dropdown calendar (portal) ── */}
+      {mounted && open && createPortal(
         <div
-          className={cn(
-            "absolute z-50 mt-1.5 rounded-xl border border-border bg-card shadow-lg",
-            // on small screens anchor to the right edge
-            "right-0 sm:right-auto sm:left-0"
-          )}
+          ref={dropdownRef}
+          style={{ position: "absolute", top: pos.top, left: pos.left, zIndex: 999999 }}
+          className="rounded-xl border border-border bg-card shadow-lg"
         >
           <DayPicker
             mode="range"
@@ -137,7 +160,8 @@ export default function DateRangePicker({
               </button>
             </div>
           )}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
