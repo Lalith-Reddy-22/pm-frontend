@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   BarChart2, FileText, PieChart, Users,
   CheckSquare, Layout, Ticket, Package,
@@ -72,9 +72,15 @@ function getDefaultOpenGroups(pathname) {
 
 export default function Sidebar({ onClose, collapsed = false }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { t, isDark } = useTheme();
 
   const [openGroups, setOpenGroups] = useState(() => getDefaultOpenGroups(pathname));
+
+  function handleLogout() {
+    sessionStorage.removeItem("auth");
+    router.push("/login");
+  }
 
   function toggleGroup(id) {
     setOpenGroups(prev => ({ ...prev, [id]: !prev[id] }));
@@ -237,6 +243,7 @@ export default function Sidebar({ onClose, collapsed = false }) {
       {/* ── Logout ───────────────────────────────────────────────────────── */}
       <div className={`px-2 py-3 flex-shrink-0 border-t ${isDark ? "border-white/5" : "border-gray-100"}`}>
         <button
+          onClick={handleLogout}
           title={collapsed ? "Log out" : undefined}
           className={`group w-full flex items-center gap-3 rounded-lg text-sm font-medium transition-all duration-150 ${t.logoutBase}
             ${collapsed ? "justify-center px-2 py-2.5" : "px-3 py-2"}`}

@@ -170,7 +170,7 @@ export default function WeekRangePicker({ start, end, onChange }) {
     <div ref={ref} className="relative inline-block">
       {/* Trigger */}
       <button
-        onClick={() => handleToggle()}
+        onClick={handleToggle}
         className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors
           border-red-200 bg-white text-red-600 hover:bg-red-50
           ${isDark ? "bg-transparent border-red-500/40 text-red-400 hover:bg-red-500/10" : ""}
