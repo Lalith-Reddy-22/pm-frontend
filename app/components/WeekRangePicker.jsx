@@ -74,20 +74,20 @@ function MiniCalendar({ cursor, onCursorChange, start, end, onDayClick, isDark, 
     : "text-gray-500 hover:text-gray-800 hover:bg-gray-100";
 
   return (
-    <div className="w-56">
-      <div className="flex items-center justify-between mb-2">
-        <button onClick={() => onCursorChange(new Date(year, month - 1, 1))} className={`p-1 rounded transition-colors ${navBtn}`}>
-          <ChevronLeft size={13} />
+    <div className="w-72">
+      <div className="flex items-center justify-between mb-3">
+        <button onClick={() => onCursorChange(new Date(year, month - 1, 1))} className={`p-1.5 rounded transition-colors ${navBtn}`}>
+          <ChevronLeft size={15} />
         </button>
-        <span className={`text-xs font-semibold ${t.textPrimary}`}>{MONTHS[month]} {year}</span>
-        <button onClick={() => onCursorChange(new Date(year, month + 1, 1))} className={`p-1 rounded transition-colors ${navBtn}`}>
-          <ChevronRight size={13} />
+        <span className={`text-sm font-semibold ${t.textPrimary}`}>{MONTHS[month]} {year}</span>
+        <button onClick={() => onCursorChange(new Date(year, month + 1, 1))} className={`p-1.5 rounded transition-colors ${navBtn}`}>
+          <ChevronRight size={15} />
         </button>
       </div>
       <div className="grid grid-cols-7 mb-1">
-        {DAYS.map(d => <div key={d} className="text-center text-[9px] font-semibold text-red-400 py-0.5">{d}</div>)}
+        {DAYS.map(d => <div key={d} className="text-center text-[10px] font-semibold text-red-400 py-1">{d}</div>)}
       </div>
-      <div className="grid grid-cols-7 gap-y-0.5">
+      <div className="grid grid-cols-7 gap-y-1">
         {cells.map((d, i) => {
           if (!d) return <div key={i} />;
           const sel   = isStart(d) || isEnd(d);
@@ -96,7 +96,7 @@ function MiniCalendar({ cursor, onCursorChange, start, end, onDayClick, isDark, 
             <button
               key={i}
               onClick={() => onDayClick(new Date(year, month, d))}
-              className={`h-6 w-6 mx-auto rounded-full text-[11px] font-medium transition-colors
+              className={`h-8 w-8 mx-auto rounded-full text-xs font-medium transition-colors
                 ${sel   ? "bg-red-500 text-white"
                 : range ? isDark ? "bg-red-500/20 text-red-400 rounded-none" : "bg-red-100 text-red-700 rounded-none"
                 : isDark ? "text-gray-300 hover:bg-white/10" : "text-gray-700 hover:bg-red-50 hover:text-red-600"}`}
@@ -115,7 +115,11 @@ export default function WeekRangePicker({ start, end, onChange }) {
   const [open,      setOpen]      = useState(false);
   const [pos,       setPos]       = useState({ top: 0, left: 0 });
   const [activeKey, setActiveKey] = useState("mon-fri");
-  const [cursor,    setCursor]    = useState(new Date(start.getFullYear(), start.getMonth(), 1));
+  const [cursor,    setCursor]    = useState(() => new Date(start.getFullYear(), start.getMonth(), 1));
+
+  useEffect(() => {
+    setCursor(new Date(start.getFullYear(), start.getMonth(), 1));
+  }, [start]);
   const [selecting, setSelecting] = useState(null);
   const [tempStart, setTempStart] = useState(start);
   const [tempEnd,   setTempEnd]   = useState(end);
@@ -130,14 +134,19 @@ export default function WeekRangePicker({ start, end, onChange }) {
   function handleToggle() {
     if (!open && ref.current) {
       const rect = ref.current.getBoundingClientRect();
-      setPos({ top: rect.bottom + 4, left: rect.right });
+      const dropdownHeight = 320;
+      const top = rect.bottom + 4 + dropdownHeight > window.innerHeight
+        ? rect.top - dropdownHeight - 4
+        : rect.bottom + 4;
+      setPos({ top, left: rect.right });
     }
     setOpen(o => !o);
   }
 
   function pickPreset(key) {
     setActiveKey(key);
-    if (key === "custom") { setSelecting("start"); return; }
+    if (key === "custom") { setTempStart(null); setTempEnd(null); setSelecting("start"); return; }
+    setSelecting(null);
     const range = getPresetRange(key);
     if (range) { onChange(range.start, range.end); setOpen(false); }
   }
@@ -148,10 +157,9 @@ export default function WeekRangePicker({ start, end, onChange }) {
     } else {
       const s = tempStart <= date ? tempStart : date;
       const e = tempStart <= date ? date : tempStart;
+      setTempStart(s);
       setTempEnd(e);
-      onChange(s, e);
       setSelecting(null);
-      setOpen(false);
     }
   }
 
@@ -196,10 +204,7 @@ export default function WeekRangePicker({ start, end, onChange }) {
 
           {/* Custom range calendar */}
           {activeKey === "custom" && (
-            <div className="p-3">
-              <p className={`text-xs mb-2 ${t.textMuted}`}>
-                {selecting === "start" ? "Select start date" : "Select end date"}
-              </p>
+            <div className="p-4">
               <MiniCalendar
                 cursor={cursor}
                 onCursorChange={setCursor}
@@ -209,6 +214,27 @@ export default function WeekRangePicker({ start, end, onChange }) {
                 isDark={isDark}
                 t={t}
               />
+              <div className="mt-2 flex gap-2">
+                <button
+                  onClick={() => { setTempStart(null); setTempEnd(null); setSelecting("start"); }}
+                  className={`flex-1 text-xs py-1.5 rounded-lg border transition-colors
+                    ${isDark
+                      ? "border-white/10 text-gray-400 hover:bg-white/5 hover:text-red-400"
+                      : "border-gray-200 text-gray-500 hover:bg-red-50 hover:text-red-600"}`}
+                >
+                  Reset
+                </button>
+                <button
+                  disabled={!tempStart || !tempEnd}
+                  onClick={() => { onChange(tempStart, tempEnd); setOpen(false); }}
+                  className={`flex-1 text-xs py-1.5 rounded-lg border transition-colors
+                    ${!tempStart || !tempEnd
+                      ? isDark ? "border-white/10 text-gray-600 cursor-not-allowed" : "border-gray-200 text-gray-300 cursor-not-allowed"
+                      : "bg-red-600 border-red-600 text-white hover:bg-red-700"}`}
+                >
+                  Apply
+                </button>
+              </div>
             </div>
           )}
         </div>
