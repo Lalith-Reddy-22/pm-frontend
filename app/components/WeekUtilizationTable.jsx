@@ -5,6 +5,8 @@ import { ChevronUp, ChevronDown } from "lucide-react";
 import WeekRangePicker from "./WeekRangePicker";
 import { useTheme } from "../context/ThemeContext";
 import EmployeeTaskDetailsModal from "./EmployeeTaskDetailsModal";
+import Pagination from "./pagination";
+import { usePagination } from "../../hooks/usePagination";
 
 const SEED_START = new Date("2026-02-04");
 const SEED_END   = new Date("2026-02-10");
@@ -145,7 +147,6 @@ export default function WeekUtilizationTable() {
   const [search,     setSearch]     = useState("");
   const [sortCol,    setSortCol]    = useState("name");
   const [sortDir,    setSortDir]    = useState("asc");
-  const [page,       setPage]       = useState(1);
 
   const [taskPopupOpen, setTaskPopupOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
@@ -163,7 +164,7 @@ export default function WeekUtilizationTable() {
     setTaskPopupOpen(true);
 }
 
-  function handleRangeChange(s, e) { setStartDate(s); setEndDate(e); setPage(1); }
+  function handleRangeChange(s, e) { setStartDate(s); setEndDate(e); }
 
   const filtered = useMemo(() => {
     // For Tech tab use real data; other tabs show empty until wired up
@@ -176,8 +177,13 @@ export default function WeekUtilizationTable() {
     return rows;
   }, [allData, activeTab, search, sortDir]);
 
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
-  const pageRows   = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const {
+    paginatedData: pageRows,
+    page, setPage,
+    totalPages, totalItems,
+    startIndex, endIndex,
+    hasPrev, hasNext, prevPage, nextPage, pageNumbers,
+  } = usePagination({ data: filtered, pageSize: PAGE_SIZE });
 
   function toggleSort(col) {
     if (sortCol === col) setSortDir(d => d === "asc" ? "desc" : "asc");
@@ -186,6 +192,7 @@ export default function WeekUtilizationTable() {
 
   function handleTabChange(tab) { setActiveTab(tab); setPage(1); }
   function handleSearch(e)      { setSearch(e.target.value); setPage(1); }
+
 
   const card   = isDark ? "bg-[#111111] border border-white/5" : "bg-white border border-gray-200";
   const thCls  = `px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider cursor-pointer select-none whitespace-nowrap
@@ -292,39 +299,19 @@ export default function WeekUtilizationTable() {
       </div>
 
       {/* ── Footer ── */}
-      <div className={`px-6 py-3 flex items-center justify-between text-sm border-t ${isDark ? "border-white/5 text-gray-400" : "border-gray-100 text-gray-500"}`}>
-        <span>
-          Showing {filtered.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1} to {Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length} entries
-        </span>
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => setPage(p => Math.max(1, p - 1))}
-            disabled={page === 1}
-            className={`px-3 py-1 rounded-lg transition-colors disabled:opacity-40
-              ${isDark ? "hover:bg-white/10" : "hover:bg-gray-100"}`}
-          >
-            Previous
-          </button>
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-            <button
-              key={p}
-              onClick={() => setPage(p)}
-              className={`w-7 h-7 rounded-lg text-xs font-medium transition-colors
-                ${p === page ? "bg-red-500 text-white" : isDark ? "hover:bg-white/10" : "hover:bg-gray-100"}`}
-            >
-              {p}
-            </button>
-          ))}
-          <button
-            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages || totalPages === 0}
-            className={`px-3 py-1 rounded-lg transition-colors disabled:opacity-40
-              ${isDark ? "hover:bg-white/10" : "hover:bg-gray-100"}`}
-          >
-            Next
-          </button>
-        </div>
-      </div>
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        startIndex={startIndex}
+        endIndex={endIndex}
+        hasPrev={hasPrev}
+        hasNext={hasNext}
+        prevPage={prevPage}
+        nextPage={nextPage}
+        pageNumbers={pageNumbers}
+        setPage={setPage}
+      />
      <EmployeeTaskDetailsModal 
      open={taskPopupOpen} 
      onOpenChange={setTaskPopupOpen} 
