@@ -80,11 +80,11 @@ export default function TicketsPage() {
   return (
     <div className="space-y-4 p-4 sm:p-6">
       <div className={`overflow-visible rounded-xl border border-border ${t.cardBg} ${t.cardShadow}`}>
-        <div className="px-6 pt-6">
+        {/* <div className="px-6 pt-6">
           <h2 className={`text-2xl font-semibold ${t.textPrimary}`}>
             {heading}
           </h2>
-        </div>
+        </div> */}
 
         {role === "Admin" && (
           <TicketTabs

@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpDown, MoreVertical } from "lucide-react";
+import { ChevronUp, ChevronDown } from "lucide-react";
 
 export default function BuyingCenterTable({ buyingCenters, onClone }) {
   return (
@@ -9,31 +9,47 @@ export default function BuyingCenterTable({ buyingCenters, onClone }) {
         <thead className="sticky top-0 z-10 bg-gray-50">
           <tr className="border-b border-gray-200 text-left">
             <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-500">
-              <button className="flex items-center gap-2">
-                Buying Center Name
-                <ArrowUpDown size={14} className="text-gray-400" />
-              </button>
+              <button className="flex w-full items-center justify-between">
+  <span>Buying Center Name</span>
+
+  <div className="flex flex-col text-gray-400">
+    <ChevronUp size={12} />
+    <ChevronDown size={12} className="-mt-1" />
+  </div>
+</button>
             </th>
 
             <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-500">
-              <button className="flex items-center gap-2">
-                Created Date
-                <ArrowUpDown size={14} className="text-gray-400" />
-              </button>
+              <button className="flex w-full items-center justify-between">
+  <span>Created Date</span>
+
+  <div className="flex flex-col text-gray-400">
+    <ChevronUp size={12} />
+    <ChevronDown size={12} className="-mt-1" />
+  </div>
+</button>
             </th>
 
             <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-500">
-              <button className="flex items-center gap-2">
-                Status
-                <ArrowUpDown size={14} className="text-gray-400" />
-              </button>
+              <button className="flex w-full items-center justify-between">
+  <span>Status</span>
+
+  <div className="flex flex-col text-gray-400">
+    <ChevronUp size={12} />
+    <ChevronDown size={12} className="-mt-1" />
+  </div>
+</button>
             </th>
 
             <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-500">
-              <button className="flex items-center gap-2">
-                Created By
-                <ArrowUpDown size={14} className="text-gray-400" />
-              </button>
+              <button className="flex w-full items-center justify-between">
+  <span>Created By</span>
+
+  <div className="flex flex-col text-gray-400">
+    <ChevronUp size={12} />
+    <ChevronDown size={12} className="-mt-1" />
+  </div>
+</button>
             </th>
 
             {/* <th className="w-16 px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider text-gray-500">

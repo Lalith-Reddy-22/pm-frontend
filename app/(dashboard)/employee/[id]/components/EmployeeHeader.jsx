@@ -1,86 +1,52 @@
 "use client";
 
-import { Search, ChevronDown } from "lucide-react";
-
-const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
+import { CalendarDays, Download } from "lucide-react";
 
 export default function EmployeeHeader({
-  pageSize,
-  setPageSize,
-  search,
-  setSearch,
-  setPage,
-  border,
-  isDark,
-  t,
+  employee,
+  dateFilter,
+  setDateFilter,
 }) {
   return (
-    <div
-      className={`flex flex-wrap items-center justify-between gap-4 px-6 py-4 border-b ${border}`}
-    >
-      <h2 className={`text-sm font-semibold ${t.textPrimary}`}>
-        User&apos;s Projects List
-      </h2>
+    <div className="mb-6 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+      {/* Left */}
+      <div>
+        <p className="text-sm text-gray-500">
+          Employee / Dashboard
+        </p>
 
-      <div className="flex flex-wrap items-center gap-4">
+        <h1 className="mt-1 text-3xl font-bold text-gray-900">
+          Dashboard
+        </h1>
 
-        {/* Show Dropdown */}
-        <label className={`flex items-center gap-2 text-sm ${t.textMuted}`}>
-          Show
-
-          <span className="relative inline-block">
-            <select
-              value={pageSize}
-              onChange={(e) => {
-                setPageSize(Number(e.target.value));
-                setPage(1);
-              }}
-              className={`appearance-none rounded-lg border py-1.5 pl-3 pr-8 text-sm font-medium
-              ${
-                isDark
-                  ? "border-white/10 bg-white/5 text-gray-100"
-                  : "border-gray-200 bg-white text-gray-900"
-              }`}
-            >
-              {PAGE_SIZE_OPTIONS.map((n) => (
-                <option key={n}>{n}</option>
-              ))}
-            </select>
-
-            <ChevronDown
-              size={13}
-              className={`pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 ${t.textMuted}`}
-            />
+        <p className="mt-2 text-base text-gray-500">
+          Welcome back,
+          <span className="ml-1 font-semibold text-red-600">
+            {employee?.name}
           </span>
-        </label>
+          👋
+        </p>
+      </div>
 
-        {/* Search */}
-        <label className={`flex items-center gap-2 text-sm ${t.textMuted}`}>
-          Search:
+      {/* Right */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex h-11 items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 shadow-sm">
+          <CalendarDays
+            size={18}
+            className="text-red-600"
+          />
 
-          <span className="relative">
-            <Search
-              size={13}
-              className={`pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 ${t.textMuted}`}
-            />
-
-            <input
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
-              placeholder="Search Project"
-              className={`rounded-lg border py-1.5 pl-7 pr-3 text-sm outline-none
-              ${
-                isDark
-                  ? "border-white/10 bg-white/5 text-gray-100 placeholder:text-gray-500"
-                  : "border-gray-200 bg-white text-gray-900 placeholder:text-gray-400"
-              }`}
-            />
-          </span>
-        </label>
-
+          <select
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
+            className="bg-transparent text-sm font-medium outline-none"
+          >
+            <option value="7">Last 7 Days</option>
+            <option value="15">Last 15 Days</option>
+            <option value="30">Last 30 Days</option>
+            <option value="90">Last 3 Months</option>
+          </select>
+        </div>
       </div>
     </div>
   );

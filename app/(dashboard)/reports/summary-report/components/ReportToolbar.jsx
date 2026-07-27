@@ -11,8 +11,15 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import DateRangePicker from "@/app/components/DateRangePicker";
+import CustomSelect from "@/components/ui/CustomSelect";
 
-const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
+
+const PAGE_SIZE_SELECT_OPTIONS = [
+  { id: "10", name: "10" },
+  { id: "25", name: "25" },
+  { id: "50", name: "50" },
+  { id: "100", name: "100" },
+];
 
 export default function ReportToolbar({
   projects,
@@ -36,19 +43,21 @@ export default function ReportToolbar({
           <span className="hidden text-sm font-medium text-muted-foreground sm:block">
             Project:
           </span>
-          <Select value={selectedProject} onValueChange={setSelectedProject}>
-            <SelectTrigger className="h-8 w-44 text-sm focus-visible:border-[#E12729] focus-visible:ring-[#E12729]/20">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Projects</SelectItem>
-              {projects.map((project) => (
-                <SelectItem key={project.code} value={project.code}>
-                  {project.code} - {project.title.substring(0, 30)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <CustomSelect
+  value={selectedProject}
+  onChange={setSelectedProject}
+  placeholder="All Projects"
+  options={[
+    {
+      value: "all",
+      label: "All Projects",
+    },
+    ...projects.map((project) => ({
+      value: project.code,
+      label: `${project.code} - ${project.title.substring(0, 30)}`,
+    })),
+  ]}
+/>
         </div>
 
         <div className="flex-1" />
@@ -98,32 +107,27 @@ export default function ReportToolbar({
         </Button>
 
         {/* Show Entries */}
-        <div className="flex items-center gap-1.5">
-          <span className="hidden text-sm text-muted-foreground sm:block">
-            Show
-          </span>
-          <Select
-            value={String(pageSize)}
-            onValueChange={(val) => {
-              setPageSize(Number(val));
-              setPage(1);
-            }}
-          >
-            <SelectTrigger className="h-8 w-20 text-sm focus-visible:border-[#E12729] focus-visible:ring-[#E12729]/20">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {PAGE_SIZE_OPTIONS.map((n) => (
-                <SelectItem key={n} value={String(n)}>
-                  {n}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <span className="hidden text-sm text-muted-foreground sm:block">
-            entries
-          </span>
-        </div>
+        <div className="flex items-center gap-2">
+  <span className="hidden text-sm text-muted-foreground sm:block">
+    Show
+  </span>
+
+  <div className="w-20">
+    <CustomSelect
+      value={String(pageSize)}
+      onChange={(value) => {
+        setPageSize(Number(value));
+        setPage(1);
+      }}
+      options={PAGE_SIZE_SELECT_OPTIONS}
+      placeholder="10"
+    />
+  </div>
+
+  <span className="hidden text-sm text-muted-foreground sm:block">
+    entries
+  </span>
+</div> 
       </div>
     </div>
   );

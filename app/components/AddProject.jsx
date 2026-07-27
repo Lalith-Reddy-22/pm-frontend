@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ArrowLeft, Save, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import DatePicker from "./DatePicker";
+import CustomSelect from "@/components/ui/CustomSelect";
 
 export default function AddProject() {
   const router = useRouter();
@@ -27,6 +28,97 @@ export default function AddProject() {
     predictedCost: "",
     outsourcingCost: "",
   });
+
+  const PROJECT_STATUS_OPTIONS = [
+  {
+    value: "",
+    label: "Select Status",
+  },
+  {
+    value: "Active",
+    label: "Active",
+  },
+  {
+    value: "Completed",
+    label: "Completed",
+  },
+  {
+    value: "On Hold",
+    label: "On Hold",
+  },
+];
+
+const CLIENT_OPTIONS = [
+  {
+    value: "",
+    label: "Select Client",
+  },
+  {
+    value: "Pfizer",
+    label: "Pfizer",
+  },
+  {
+    value: "Novartis",
+    label: "Novartis",
+  },
+  {
+    value: "Roche",
+    label: "Roche",
+  },
+];
+
+const TYPE_OPTIONS = [
+  {
+    value: "",
+    label: "Select Type",
+  },
+  {
+    value: "Internal",
+    label: "Internal",
+  },
+  {
+    value: "External",
+    label: "External",
+  },
+];
+
+const BUYING_CENTER_OPTIONS = [
+  {
+    value: "",
+    label: "Select Buying Center",
+  },
+  {
+    value: "Medical",
+    label: "Medical",
+  },
+  {
+    value: "Marketing",
+    label: "Marketing",
+  },
+  {
+    value: "Sales",
+    label: "Sales",
+  },
+];
+
+const FINANCIAL_YEAR_OPTIONS = [
+  {
+    value: "",
+    label: "Select Financial Year",
+  },
+  {
+    value: "2025-2026",
+    label: "2025-2026",
+  },
+  {
+    value: "2026-2027",
+    label: "2026-2027",
+  },
+  {
+    value: "2027-2028",
+    label: "2027-2028",
+  },
+];
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({
@@ -118,24 +210,14 @@ export default function AddProject() {
                   Project Status
                 </label>
 
-                <select
-                  value={formData.projectStatus}
-                  onChange={(e) =>
-                    handleChange("projectStatus", e.target.value)
-                  }
-                  className="h-11 w-full rounded-xl border border-gray-300 px-4 outline-none focus:border-red-500"
-                >
-                  <option value="">
-                    Select Status
-                  </option>
-
-                  <option>Active</option>
-
-                  <option>Completed</option>
-
-                  <option>On Hold</option>
-
-                </select>
+                <CustomSelect
+  value={formData.projectStatus}
+  onChange={(value) =>
+    handleChange("projectStatus", value)
+  }
+  placeholder="Select Status"
+  options={PROJECT_STATUS_OPTIONS}
+/>
 
               </div>
 
@@ -147,15 +229,14 @@ export default function AddProject() {
                   Client
                 </label>
 
-                <select
-                  value={formData.client}
-                  onChange={(e) =>
-                    handleChange("client", e.target.value)
-                  }
-                  className="h-11 w-full rounded-xl border border-gray-300 px-4 outline-none focus:border-red-500"
-                >
-                  <option>Select Client</option>
-                </select>
+                <CustomSelect
+  value={formData.client}
+  onChange={(value) =>
+    handleChange("client", value)
+  }
+  placeholder="Select Client"
+  options={CLIENT_OPTIONS}
+/>
 
               </div>
 
@@ -186,15 +267,14 @@ export default function AddProject() {
                   Type
                 </label>
 
-                <select
-                  value={formData.type}
-                  onChange={(e) =>
-                    handleChange("type", e.target.value)
-                  }
-                  className="h-11 w-full rounded-xl border border-gray-300 px-4 outline-none focus:border-red-500"
-                >
-                  <option>Select Type</option>
-                </select>
+                <CustomSelect
+  value={formData.type}
+  onChange={(value) =>
+    handleChange("type", value)
+  }
+  placeholder="Select Type"
+  options={TYPE_OPTIONS}
+/>
 
               </div>
 
@@ -344,15 +424,14 @@ export default function AddProject() {
           Buying Center
         </label>
 
-        <select
-          value={formData.buyingCenter}
-          onChange={(e) =>
-            handleChange("buyingCenter", e.target.value)
-          }
-          className="h-11 w-full rounded-xl border border-gray-300 px-4 outline-none transition focus:border-red-500"
-        >
-          <option value="">Select Buying Center</option>
-        </select>
+        <CustomSelect
+  value={formData.buyingCenter}
+  onChange={(value) =>
+    handleChange("buyingCenter", value)
+  }
+  placeholder="Select Buying Center"
+  options={BUYING_CENTER_OPTIONS}
+/>
 
       </div>
 
@@ -364,18 +443,14 @@ export default function AddProject() {
           Financial Year
         </label>
 
-        <select
-          value={formData.financialYear}
-          onChange={(e) =>
-            handleChange("financialYear", e.target.value)
-          }
-          className="h-11 w-full rounded-xl border border-gray-300 px-4 outline-none transition focus:border-red-500"
-        >
-          <option value="">Select Financial Year</option>
-          <option>2025-2026</option>
-          <option>2026-2027</option>
-          <option>2027-2028</option>
-        </select>
+        <CustomSelect
+  value={formData.financialYear}
+  onChange={(value) =>
+    handleChange("financialYear", value)
+  }
+  placeholder="Select Financial Year"
+  options={FINANCIAL_YEAR_OPTIONS}
+/>
 
       </div>
 

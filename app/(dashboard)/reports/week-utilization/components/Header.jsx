@@ -13,7 +13,7 @@ export default function Header() {
 
       <button
        onClick={() => router.push("/reports/week-utilization/add-leave")}
-       className="bg-red-700 hover:bg-red-800 text-white px-5 py-2 rounded text-sm shadow">
+       className="bg-[#E12729] hover:bg-[#E12729] text-white px-5 py-2 rounded text-sm shadow cursor-pointer">
        Add Employee Leave Information
       </button>
 

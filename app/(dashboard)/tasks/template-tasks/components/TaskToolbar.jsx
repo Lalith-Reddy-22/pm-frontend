@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import CustomSelect from "@/components/ui/CustomSelect";
 import { Button } from "@/components/ui/button";
 
 export default function TaskToolbar({
@@ -40,23 +41,15 @@ export default function TaskToolbar({
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <div className="min-w-[240px] border border-[#E12729] rounded-lg">
-          <Select
-            value={selectedTemplate === "all" ? "" : selectedTemplate}
-            onValueChange={onTemplateChange}
-          >
-            <SelectTrigger className="h-8 w-full text-sm">
-              <SelectValue placeholder="Select Template" />
-            </SelectTrigger>
-            <SelectContent>
-              {templates.map((template) => (
-                <SelectItem key={template.value} value={template.value}>
-                  {template.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <div className="min-w-[240px]">
+  <CustomSelect
+    value={selectedTemplate === "all" ? "" : selectedTemplate}
+    onChange={onTemplateChange}
+    placeholder="Select Template"
+    options={templates}
+    className="border border-[#E12729] text-[#E12729] rounded-sm"
+  />
+</div>
 
         <Link href="/tasks/template-tasks/new">
           <Button className="gap-2 bg-[#E12729] border border-[#E12729] text-white text-sm hover:bg-[#c81f21] cursor-pointer">

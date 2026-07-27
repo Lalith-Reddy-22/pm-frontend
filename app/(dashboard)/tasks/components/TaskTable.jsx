@@ -8,7 +8,7 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table";
-import { Pencil, Trash2, Plus } from "lucide-react";
+import { Pencil, Trash2, Plus, ChevronDown, ChevronUp,} from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const TABLE_HEADERS = [

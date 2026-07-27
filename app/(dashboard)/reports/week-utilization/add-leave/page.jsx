@@ -1,13 +1,57 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronUp, ChevronDown } from "lucide-react";
+import { ChevronUp, ChevronDown, Pencil, } from "lucide-react";
+import { usePagination } from "@/hooks/usePagination";
+import { Button } from "@/components/ui/button";
+import CustomSelect from "@/components/ui/CustomSelect";
 
 export default function AddLeavePage() {
   const [activeTab, setActiveTab] = useState("add");
 
   const [editingId, setEditingId] = useState(null);
-
+  const TEAM_OPTIONS = [
+  { value: "", label: "Select Team" },
+  { value: "Creative Team", label: "Creative Team" },
+  { value: "Content Team", label: "Content Team" },
+  { value: "Development Team", label: "Development Team" },
+];
+const DESIGNATION_OPTIONS = [
+  {
+    value: "",
+    label: "Select Designation",
+  },
+  {
+    value: "GD",
+    label: "GD",
+  },
+  {
+    value: "Lead-3D",
+    label: "Lead-3D",
+  },
+  {
+    value: "MD2",
+    label: "MD2",
+  },
+  {
+    value: "MW",
+    label: "MW",
+  },
+];
+const PAGE_SIZE_OPTIONS = [
+  {
+    value: "10",
+    label: "10",
+  },
+  {
+    value: "25",
+    label: "25",
+  },
+  {
+    value: "50",
+    label: "50",
+  },
+];
   const [formData, setFormData] = useState({
     team: "",
     designation: "",
@@ -46,6 +90,26 @@ export default function AddLeavePage() {
       endDate: "2025-09-05",
     },
   ]);
+
+  const {
+  paginatedData,
+  page,
+  pageSize,
+  setPageSize,
+  totalPages,
+  totalItems,
+  startIndex,
+  endIndex,
+  hasPrev,
+  hasNext,
+  prevPage,
+  nextPage,
+  goToPage,
+  pageNumbers,
+} = usePagination({
+  data: leaveList,
+  pageSize: 10,
+});
 
   const HeaderCell = ({ children }) => (
     <th className="px-4 py-3 text-left">
@@ -115,7 +179,7 @@ export default function AddLeavePage() {
 
   return (
     <div className="space-y-6 p-5">
-      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-sm border border-gray-200 bg-white shadow-sm">
 
         {/* Tabs */}
 
@@ -123,7 +187,7 @@ export default function AddLeavePage() {
 
           <button
             onClick={() => setActiveTab("add")}
-            className={`py-4 text-base font-semibold ${
+            className={`py-3 text-base font-semibold ${
               activeTab === "add"
                 ? "bg-[#2F2F2F] text-white"
                 : "bg-gray-100 text-gray-700"
@@ -134,7 +198,7 @@ export default function AddLeavePage() {
 
           <button
             onClick={() => setActiveTab("list")}
-            className={`py-4 text-base font-semibold ${
+            className={`py-3 text-base font-semibold ${
               activeTab === "list"
                 ? "bg-[#2F2F2F] text-white"
                 : "bg-gray-100 text-gray-700"
@@ -159,21 +223,17 @@ export default function AddLeavePage() {
                   Team Name
                 </label>
 
-                <select
-                  value={formData.team}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      team: e.target.value,
-                    })
-                  }
-                  className="h-12 w-full rounded-md border px-4"
-                >
-                  <option value="">Select Team</option>
-                  <option>Creative Team</option>
-                  <option>Content Team</option>
-                  <option>Development Team</option>
-                </select>
+                <CustomSelect
+  value={formData.team}
+  onChange={(value) =>
+    setFormData({
+      ...formData,
+      team: value,
+    })
+  }
+  options={TEAM_OPTIONS}
+  placeholder="Select Team"
+/>
               </div>
 
               <div>
@@ -181,22 +241,17 @@ export default function AddLeavePage() {
                   Designation
                 </label>
 
-                <select
-                  value={formData.designation}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      designation: e.target.value,
-                    })
-                  }
-                  className="h-12 w-full rounded-md border px-4"
-                >
-                  <option value="">Select Designation</option>
-                  <option>GD</option>
-                  <option>Lead-3D</option>
-                  <option>MD2</option>
-                  <option>MW</option>
-                </select>
+                <CustomSelect
+  value={formData.designation}
+  onChange={(value) =>
+    setFormData({
+      ...formData,
+      designation: value,
+    })
+  }
+  options={DESIGNATION_OPTIONS}
+  placeholder="Select Designation"
+/>
               </div>
 
               <div>
@@ -275,7 +330,7 @@ export default function AddLeavePage() {
 
                 <button
                   type="submit"
-                  className="w-72 rounded-md bg-gradient-to-r from-[#E12729] to-[#930000] py-3 font-semibold text-white"
+                  className="w-50 rounded-sm bg-[#E12729] py-2 font-semibold text-white"
                 >
                   {editingId ? "Update Leave" : "Add Leave"}
                 </button>
@@ -307,11 +362,12 @@ export default function AddLeavePage() {
         <div className="flex items-center gap-2">
           <span>Show</span>
 
-          <select className="rounded border border-gray-300 px-2 py-1">
-            <option>10</option>
-            <option>25</option>
-            <option>50</option>
-          </select>
+          <CustomSelect
+  value={String(pageSize)}
+  onChange={(value) => setPageSize(Number(value))}
+  options={PAGE_SIZE_OPTIONS}
+  className="w-20"
+/>
 
           <span>entries</span>
         </div>
@@ -339,18 +395,20 @@ export default function AddLeavePage() {
         </thead>
 
         <tbody>
-          {leaveList.map((row) => (
+          {paginatedData.map((row) => (
             <tr
               key={row.id}
               className="border-t transition hover:bg-gray-50"
             >
               <td className="px-4 py-4">
-                <button
-                  onClick={() => handleEdit(row)}
-                  className="rounded p-1 text-blue-600 hover:bg-blue-50 hover:text-blue-800 cursor-pointer"
-                >
-                  ✏️
-                </button>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label="Edit Leave"
+                onClick={() => handleEdit(row)}
+                className="opacity-60 transition-all duration-200  cursor-pointer">
+              <Pencil className="h-4 w-4" />
+              </Button>
               </td>
 
               <td className="px-4 py-4">
@@ -380,6 +438,77 @@ export default function AddLeavePage() {
           ))}
         </tbody>
       </table>
+      <div className="flex flex-col items-center justify-between gap-4 border-t border-gray-200 bg-white px-5 py-4 md:flex-row">
+  {/* Left */}
+  <p className="text-sm text-gray-600">
+    Showing <span className="font-semibold">{startIndex}</span> -{" "}
+    <span className="font-semibold">{endIndex}</span> of{" "}
+    <span className="font-semibold">{totalItems}</span> entries
+  </p>
+
+  {/* Right */}
+  <div className="flex items-center gap-2">
+    {/* First */}
+    <button
+      onClick={() => goToPage(1)}
+      disabled={!hasPrev}
+      className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+    >
+      &laquo;
+    </button>
+
+    {/* Previous */}
+    <button
+      onClick={prevPage}
+      disabled={!hasPrev}
+      className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+    >
+      &lsaquo;
+    </button>
+
+    {/* Page Numbers */}
+    {pageNumbers.map((item, index) =>
+      item === "…" ? (
+        <span
+          key={index}
+          className="px-2 text-gray-400"
+        >
+          ...
+        </span>
+      ) : (
+        <button
+          key={item}
+          onClick={() => goToPage(item)}
+          className={`flex h-8 min-w-8 items-center justify-center rounded-lg px-3 text-sm font-medium transition ${
+            page === item
+              ? "bg-[#E12729] text-white shadow-sm"
+              : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-100"
+          }`}
+        >
+          {item}
+        </button>
+      )
+    )}
+
+    {/* Next */}
+    <button
+      onClick={nextPage}
+      disabled={!hasNext}
+      className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+    >
+      &rsaquo;
+    </button>
+
+    {/* Last */}
+    <button
+      onClick={() => goToPage(totalPages)}
+      disabled={!hasNext}
+      className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+    >
+      &raquo;
+    </button>
+  </div>
+</div>
     </div>
   </div>
 )}

@@ -6,25 +6,32 @@ import { columns } from "../data";
 export default function RateCardTable({ employees, department, search, }) {
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-[1500px] w-full border-separate border-spacing-0">
-
+<table className="min-w-[1500px] w-full border-collapse">
         {/* Header */}
         <thead>
           <tr className="border-b bg-[#FCFCFD]">
 
             {/* Sticky Employee Header */}
             <th
-              className="sticky left-0 z-30 w-[250px] max-w-[250px] bg-[#FCFCFD] shadow-r px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-600"
-            >
-              <div className="flex items-center justify-between">
-                {columns[0].label}
+  className="
+    sticky left-0 z-30
+    w-[250px] max-w-[250px]
+    bg-[#FCFCFD]
+    px-5 py-4
+    text-left text-xs font-semibold uppercase tracking-wide text-gray-600
+    border-r border-b border-gray-200
+    shadow-[8px_0_12px_-8px_rgba(0,0,0,0.18)]
+  "
+>
+  <div className="flex items-center justify-between">
+    {columns[0].label}
 
-                <div className="flex flex-col">
-                  <ChevronUp size={12} />
-                  <ChevronDown size={12} />
-                </div>
-              </div>
-            </th>
+    <div className="flex flex-col">
+      <ChevronUp size={12} />
+      <ChevronDown size={12} />
+    </div>
+  </div>
+</th>
 
             {/* Remaining Headers */}
             {columns.slice(1).map((column) => (
@@ -50,11 +57,20 @@ export default function RateCardTable({ employees, department, search, }) {
           {employees.map((row, index) => (
             <tr
               key={index}
-              className="border-b transition hover:bg-red-50/30"
+              className="border-b border-gray-400 transition hover:bg-red-50/30"
             >
 
               {/* Sticky Employee Column */}
-              <td className="sticky left-0 z-20 w-[250px] max-w-[250px] bg-white px-5 py-5">
+              <td
+  className="
+    sticky left-0 z-20
+    w-[250px] max-w-[250px]
+    bg-white
+    px-5 py-5
+    border-r border-b border-gray-200
+    shadow-[8px_0_12px_-8px_rgba(0,0,0,0.18)]
+  "
+>
   <div className="flex items-center gap-3">
 
     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-100 font-semibold text-[#E12729]">
@@ -87,11 +103,11 @@ export default function RateCardTable({ employees, department, search, }) {
               {/* Remaining Columns */}
               {columns.slice(1).map((column) => (
                 <td
-                  key={column.key}
-                  className="whitespace-nowrap px-5 py-5 text-sm text-gray-700"
-                >
-                  {row[column.key]}
-                </td>
+  key={column.key}
+  className="whitespace-nowrap px-5 py-5 text-sm text-gray-700 border-b border-gray-200"
+>
+  {row[column.key]}
+</td>
               ))}
 
             </tr>
