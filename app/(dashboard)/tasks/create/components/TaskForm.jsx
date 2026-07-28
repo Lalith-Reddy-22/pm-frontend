@@ -1,6 +1,7 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
+import DatePicker from "./DatePicker";
 import {
   Select,
   SelectContent,
@@ -88,34 +89,24 @@ export default function TaskForm({
     Start Date <span className="text-red-500">*</span>
   </label>
 
-  <Input
-  type="date"
-  value={formData.startDate}
-  onChange={(e) =>
-    setFormData({
-      ...formData,
-      startDate: e.target.value,
-    })
-  }
-/>
+  <DatePicker
+    value={formData.startDate}
+    onChange={(val) => setFormData({ ...formData, startDate: val })}
+    placeholder="Select Start Date"
+  />
 </div>
 
 {/* End Date */}
 <div>
-  <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-[#E12729]-600">
+  <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-gray-600">
     End Date <span className="text-red-500">*</span>
   </label>
 
-  <Input
-  type="date"
-  value={formData.endDate}
-  onChange={(e) =>
-    setFormData({
-      ...formData,
-      endDate: e.target.value,
-    })
-  }
-/>
+  <DatePicker
+    value={formData.endDate}
+    onChange={(val) => setFormData({ ...formData, endDate: val })}
+    placeholder="Select End Date"
+  />
 </div>
 
 {/* Resource Name */}
