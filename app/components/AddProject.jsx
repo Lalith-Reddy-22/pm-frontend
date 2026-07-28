@@ -305,7 +305,11 @@ const FINANCIAL_YEAR_OPTIONS = [
                   Start Date
                 </label>
 
-                <DatePicker />
+                <DatePicker
+                  value={formData.startDate ? new Date(formData.startDate) : null}
+                  onChange={(date) => handleChange("startDate", date)}
+                  placeholder="Select Start Date"
+                />
 
               </div>
 
@@ -317,7 +321,11 @@ const FINANCIAL_YEAR_OPTIONS = [
                   End Date
                 </label>
 
-                <DatePicker />
+                <DatePicker
+                  value={formData.endDate ? new Date(formData.endDate) : null}
+                  onChange={(date) => handleChange("endDate", date)}
+                  placeholder="Select End Date"
+                />
 
               </div>
 
