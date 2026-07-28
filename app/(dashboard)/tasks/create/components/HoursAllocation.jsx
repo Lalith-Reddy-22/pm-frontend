@@ -23,8 +23,7 @@ const resources = [
 
 export default function HoursAllocation() {
   return (
-    <div className="mt-8 rounded-xl border border-gray-200 bg-white shadow-sm ">
-
+<div className="rounded-xl border border-gray-200 bg-white shadow-sm">
       {/* Header */}
       <div className="flex items-center justify-between border-b px-4 py-3">
         <h2 className="text-lg font-semibold text-gray-800">

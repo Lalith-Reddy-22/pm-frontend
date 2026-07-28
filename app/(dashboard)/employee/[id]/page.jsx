@@ -86,8 +86,7 @@ export default function EmployeeDetailPage() {
   }
 
 return (
-  <div className="space-y-6 p-6">
-
+  <div className="min-h-screen p-6">
     {/* Header */}
     <EmployeeHeader
       employee={employee}
@@ -95,40 +94,46 @@ return (
       setDateFilter={setDateFilter}
     />
 
-    {/* Top Section */}
-    <div className="grid grid-cols-12 gap-6">
-  <div className="col-span-12 xl:col-span-9">
-    <EmployeeStatsCards />
-  </div>
+    {/* Main Dashboard */}
+    <div className="mt-6 grid grid-cols-12 gap-6">
 
-  <div className="col-span-12 xl:col-span-3">
-<EmployeeInfoCard
-  employee={employee}
-  onEdit={() => setShowEditModal(true)}
-/>  </div>
-</div>
+      {/* LEFT CONTENT */}
+      <div className="col-span-12 xl:col-span-9 space-y-6">
 
-    {/* Middle */}
+        {/* Stats */}
+        <EmployeeStatsCards
+          totalTasks={totalTasks}
+          totalProjects={totalProjects}
+          employee={employee}
+        />
 
-    <div className="grid grid-cols-12 gap-6">
+        {/* Chart + Projects */}
+        <div className="grid grid-cols-12 gap-6">
+          <div className="col-span-12 lg:col-span-7">
+            <EmployeePerformanceChart />
+          </div>
 
-<div className="col-span-12 xl:col-span-7">
-        <EmployeePerformanceChart />
+          <div className="col-span-12 lg:col-span-5">
+            <EmployeeProjects pageRows={pageRows} />
+          </div>
+        </div>
+
+        {/* Summary */}
+        <EmployeeTaskSummary />
 
       </div>
 
-<div className="col-span-12 xl:col-span-5">
-        <EmployeeProjects
-          pageRows={pageRows}
+      {/* RIGHT PROFILE */}
+      <div className="col-span-12 xl:col-span-3">
+        <EmployeeInfoCard
+          employee={employee}
+          totalTasks={totalTasks}
+          totalProjects={totalProjects}
+          onEdit={() => setShowEditModal(true)}
         />
-
       </div>
 
     </div>
-
-    {/* Bottom */}
-
-    <EmployeeTaskSummary />
 
     <EditEmployeeModal
       open={showEditModal}
@@ -136,7 +141,6 @@ return (
       onClose={() => setShowEditModal(false)}
       onUpdate={handleEmployeeUpdate}
     />
-
   </div>
 );
 }

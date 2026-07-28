@@ -14,8 +14,7 @@ export default function TaskForm({
     setFormData,
 }) {
   return (
-    <div className="mt-8 rounded-xl border border-gray-200 bg-white p-6 shadow-sm ">
-      <h2 className="mb-6 text-2xl font-semibold text-gray-800">
+<div className="mt-8 w-full rounded-xl border border-gray-200 bg-white p-6 shadow-sm">  <h2 className="mb-6 text-2xl font-semibold text-gray-800">
         Add Task
       </h2>
 
@@ -45,17 +44,25 @@ export default function TaskForm({
             Task Priority <span className="text-red-500">*</span>
           </label>
 
-          <Select>
-            <SelectTrigger>
-              <SelectValue placeholder="Select Priority" />
-            </SelectTrigger>
+          <Select
+  value={formData.priority}
+  onValueChange={(value) =>
+    setFormData({
+      ...formData,
+      priority: value,
+    })
+  }
+>
+  <SelectTrigger>
+    <SelectValue placeholder="Select Priority" />
+  </SelectTrigger>
 
-            <SelectContent>
-              <SelectItem value="low">Low</SelectItem>
-              <SelectItem value="medium">Medium</SelectItem>
-              <SelectItem value="high">High</SelectItem>
-            </SelectContent>
-          </Select>
+  <SelectContent>
+    <SelectItem value="low">Low</SelectItem>
+    <SelectItem value="medium">Medium</SelectItem>
+    <SelectItem value="high">High</SelectItem>
+  </SelectContent>
+</Select>
         </div>
 
         {/* Client Name */}
@@ -142,18 +149,26 @@ export default function TaskForm({
     Task Status <span className="text-red-500">*</span>
   </label>
 
-  <Select>
-    <SelectTrigger>
-      <SelectValue placeholder="Open" />
-    </SelectTrigger>
+  <Select
+  value={formData.status}
+  onValueChange={(value) =>
+    setFormData({
+      ...formData,
+      status: value,
+    })
+  }
+>
+  <SelectTrigger>
+    <SelectValue placeholder="Open" />
+  </SelectTrigger>
 
-    <SelectContent>
-      <SelectItem value="open">Open</SelectItem>
-      <SelectItem value="inprogress">In Progress</SelectItem>
-      <SelectItem value="completed">Completed</SelectItem>
-      <SelectItem value="hold">On Hold</SelectItem>
-    </SelectContent>
-  </Select>
+  <SelectContent>
+    <SelectItem value="open">Open</SelectItem>
+    <SelectItem value="inprogress">In Progress</SelectItem>
+    <SelectItem value="completed">Completed</SelectItem>
+    <SelectItem value="hold">On Hold</SelectItem>
+  </SelectContent>
+</Select>
 </div>
 
 
