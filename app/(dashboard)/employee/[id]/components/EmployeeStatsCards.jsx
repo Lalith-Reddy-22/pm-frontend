@@ -3,72 +3,110 @@
 import {
   ClipboardList,
   Clock3,
-  CircleCheckBig,
+  CheckCircle2,
   FolderKanban,
+  TrendingUp,
 } from "lucide-react";
 
-const stats = [
+const cards = [
   {
     title: "Total Tasks",
     value: 128,
-    subtitle: "+12% this month",
+    change: "+12%",
+    subtitle: "vs last month",
     icon: ClipboardList,
-    iconBg: "bg-blue-100",
-    iconColor: "text-blue-600",
+    color: "blue",
   },
   {
     title: "In Progress",
     value: 24,
-    subtitle: "18.7% Active",
+    change: "+4%",
+    subtitle: "Active tasks",
     icon: Clock3,
-    iconBg: "bg-orange-100",
-    iconColor: "text-orange-600",
+    color: "amber",
   },
   {
     title: "Completed",
     value: 98,
-    subtitle: "76.5% Completed",
-    icon: CircleCheckBig,
-    iconBg: "bg-green-100",
-    iconColor: "text-green-600",
+    change: "+18%",
+    subtitle: "Completion rate",
+    icon: CheckCircle2,
+    color: "green",
   },
   {
     title: "Projects",
     value: 12,
-    subtitle: "5 Active",
+    change: "+2",
+    subtitle: "Active projects",
     icon: FolderKanban,
-    iconBg: "bg-red-100",
-    iconColor: "text-red-600",
+    color: "red",
   },
 ];
+
+const colors = {
+  blue: {
+    bg: "bg-blue-50",
+    icon: "text-blue-600",
+    badge: "bg-blue-100 text-blue-700",
+  },
+  amber: {
+    bg: "bg-orange-50",
+    icon: "text-orange-600",
+    badge: "bg-orange-100 text-orange-700",
+  },
+  green: {
+    bg: "bg-green-50",
+    icon: "text-green-600",
+    badge: "bg-green-100 text-green-700",
+  },
+  red: {
+    bg: "bg-red-50",
+    icon: "text-red-600",
+    badge: "bg-red-100 text-red-700",
+  },
+};
 
 export default function EmployeeStatsCards() {
   return (
     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-      {stats.map((item, index) => {
-        const Icon = item.icon;
+      {cards.map((card) => {
+        const Icon = card.icon;
+        const c = colors[card.color];
 
         return (
           <div
-            key={index}
-            className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
+            key={card.title}
+            className="group rounded-3xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
           >
-            <div
-              className={`flex h-12 w-12 items-center justify-center rounded-xl ${item.iconBg}`}
-            >
-              <Icon className={`h-6 w-6 ${item.iconColor}`} />
+            {/* Top */}
+            <div className="flex items-start justify-between">
+              <div
+                className={`flex h-14 w-14 items-center justify-center rounded-2xl ${c.bg}`}
+              >
+                <Icon className={`h-7 w-7 ${c.icon}`} />
+              </div>
+
+              <div
+                className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${c.badge}`}
+              >
+                <TrendingUp size={12} />
+                {card.change}
+              </div>
             </div>
 
-            <h2 className="mt-5 text-3xl font-bold text-gray-900">
-              {item.value}
+            {/* Number */}
+            <h2 className="mt-8 text-4xl font-bold text-gray-900">
+              {card.value}
             </h2>
 
-            <p className="mt-1 text-sm font-semibold text-gray-800">
-              {item.title}
+            {/* Title */}
+            <p className="mt-2 text-sm font-semibold text-gray-800">
+              {card.title}
             </p>
 
-            <p className="mt-3 text-xs text-gray-500">
-              {item.subtitle}
+            {/* Subtitle */}
+            <p className="mt-1 text-xs text-gray-500">
+              {card.subtitle}
             </p>
           </div>
         );

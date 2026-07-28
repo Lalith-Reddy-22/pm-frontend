@@ -5,97 +5,207 @@ import {
   Phone,
   MapPin,
   Briefcase,
+  Users,
+  UserCog,
+  BadgeCheck,
+  ArrowLeft,
   Pencil,
+  CreditCard,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function EmployeeInfoCard({
   employee,
   onEdit,
 }) {
+  const router = useRouter();
   return (
-    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+    <div className="sticky top-6 overflow-hidden rounded-[28px] border border-gray-200 bg-white shadow-lg">
+      <div className="relative h-44 bg-gradient-to-br from-red-600 via-red-500 to-pink-500">
 
-      {/* Header */}
-      <div className="h-24 bg-gradient-to-r from-red-600 via-red-500 to-red-400" />
+        <div className="absolute inset-x-0 bottom-0 translate-y-1/2 flex justify-center">
 
-      {/* Avatar */}
-      <div className="-mt-12 flex flex-col items-center px-6">
-        <img
-          src={
-            employee?.profileImage ||
-            "https://ui-avatars.com/api/?name=" +
-              encodeURIComponent(employee?.name || "Employee")
-          }
-          alt={employee?.name}
-          className="h-24 w-24 rounded-full border-4 border-white object-cover shadow-md"
-        />
+          <div className="flex h-28 w-28 items-center justify-center rounded-full border-4 border-white bg-white text-4xl font-bold text-red-600 shadow-xl">
+            {employee?.name?.charAt(0)}
+          </div>
 
-        <h2 className="mt-4 text-xl font-bold text-gray-900">
+        </div>
+
+      </div>
+
+      <div className="px-8 pt-16 pb-8 text-center">
+
+        <h2 className="text-2xl font-bold text-gray-900">
           {employee?.name}
         </h2>
 
-        <p className="text-sm text-gray-500">
-          {employee?.designation || "Software Engineer"}
+        <p className="mt-2 text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">
+          {employee?.designation}
         </p>
 
-        <span className="mt-3 rounded-full bg-red-50 px-4 py-1 text-xs font-semibold text-red-600">
-          {employee?.department || "IT Department"}
-        </span>
+        <div className="mt-5 flex items-center justify-center gap-2">
+
+          <span className="rounded-full bg-red-50 px-4 py-2 text-xs font-semibold text-red-600">
+            {employee?.team}
+          </span>
+
+          <span
+            className={`rounded-full px-4 py-2 text-xs font-semibold ${
+              employee?.status === "Active"
+                ? "bg-green-100 text-green-700"
+                : "bg-gray-200 text-gray-700"
+            }`}
+          >
+            {employee?.status}
+          </span>
+
+        </div>
+
       </div>
 
-      {/* Details */}
-      <div className="mt-6 space-y-4 px-6 pb-6">
 
-        <InfoRow
-          icon={<Mail size={18} />}
-          label="Email"
-          value={employee?.email || "-"}
-        />
+      <div className="border-t border-gray-100 px-8 py-7">
 
-        <InfoRow
-          icon={<Phone size={18} />}
-          label="Phone"
-          value={employee?.phone || "-"}
-        />
+        <h3 className="mb-6 text-xs font-bold uppercase tracking-[0.25em] text-gray-400">
+          Employee Information
+        </h3>
 
-        <InfoRow
-          icon={<MapPin size={18} />}
-          label="Location"
-          value={employee?.location || "-"}
-        />
+        <div className="space-y-5">
 
-        <InfoRow
-          icon={<Briefcase size={18} />}
-          label="Employee ID"
-          value={employee?.employeeCode || "-"}
-        />
+          <InfoRow
+            icon={<Mail size={18} />}
+            label="Email"
+            value={employee?.email}
+          />
+
+          <InfoRow
+            icon={<Phone size={18} />}
+            label="Phone"
+            value={employee?.phone}
+          />
+
+          <InfoRow
+            icon={<Briefcase size={18} />}
+            label="Employee Code"
+            value={employee?.employeeCode}
+          />
+
+          <InfoRow
+            icon={<Users size={18} />}
+            label="Team"
+            value={employee?.team}
+          />
+
+          <InfoRow
+            icon={<UserCog size={18} />}
+            label="Reporting Manager"
+            value={employee?.reportingManager}
+          />
+
+          <InfoRow
+            icon={<MapPin size={18} />}
+            label="Location"
+            value={employee?.location}
+          />
+
+          <div className="flex items-center justify-between rounded-2xl bg-gray-50 p-4">
+
+            <div className="flex items-center gap-3">
+
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-green-100 text-green-600">
+                <BadgeCheck size={18} />
+              </div>
+
+              <div>
+
+                <p className="text-xs text-gray-500">
+                  Employee Type
+                </p>
+
+                <p className="font-medium text-gray-900">
+                  {employee?.type}
+                </p>
+
+              </div>
+
+            </div>
+
+            <span
+              className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                employee?.status === "Active"
+                  ? "bg-green-500 text-white"
+                  : "bg-gray-400 text-white"
+              }`}
+            >
+              {employee?.status}
+            </span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      {/* ================= Actions ================= */}
+
+      <div className="grid grid-cols-2 gap-3 px-8 pb-6">
 
         <button
           onClick={onEdit}
-          className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-red-600 py-3 text-sm font-semibold text-white transition hover:bg-red-700"
+          className="flex items-center justify-center gap-2 rounded-sm border border-red-600 py-3 font-semibold text-[#E12729] transition hover:bg-red-50"
         >
           <Pencil size={16} />
-          Edit Profile
+          Modify
         </button>
 
+        <button
+  onClick={() => router.push(`/employee/${employee.id}/rate-card`)}
+  className="flex items-center justify-center gap-2 rounded-sm bg-[#E12729] font-semibold text-white transition hover:bg-[#E12729]"
+>
+  <CreditCard size={16} />
+  Rate Card
+</button>
+
       </div>
+
+      {/* ================= Footer ================= */}
+
+      <div className="border-t border-gray-100 px-8 py-5">
+  <button
+    onClick={() => router.push("/employee")}
+    className="flex items-center gap-3 text-sm font-medium text-gray-600 transition hover:text-red-600"
+  >
+    <ArrowLeft size={18} />
+    Back To Employees
+  </button>
+</div>
+
     </div>
   );
 }
 
 function InfoRow({ icon, label, value }) {
   return (
-    <div className="flex items-center gap-3">
-      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 text-red-600">
+    <div className="flex items-start gap-4 rounded-2xl border border-gray-100 p-4 transition-all duration-200 hover:border-red-200 hover:bg-red-50/40">
+
+      {/* Icon */}
+      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-600">
         {icon}
       </div>
 
-      <div className="flex-1">
-        <p className="text-xs text-gray-500">{label}</p>
-        <p className="text-sm font-medium text-gray-900">
-          {value}
+      {/* Content */}
+      <div className="min-w-0 flex-1">
+
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+          {label}
         </p>
+
+        <p className="mt-1 break-words text-sm font-semibold text-gray-900">
+          {value || "-"}
+        </p>
+
       </div>
+
     </div>
   );
 }

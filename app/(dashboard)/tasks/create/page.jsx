@@ -20,6 +20,13 @@ const [formData, setFormData] = useState({
 });
 
 const handleAddHours = () => {
+  // If hours are already visible, hide them
+  if (showHours) {
+    setShowHours(false);
+    return;
+  }
+
+  // Validate only when showing hours
   if (
     !formData.taskName ||
     !formData.priority ||
@@ -38,10 +45,12 @@ const handleAddHours = () => {
   return (
     <>
       <CostCards />
-      <TaskForm
-  formData={formData}
-  setFormData={setFormData}
-/>
+      <div className="px-4 sm:px-6">
+  <TaskForm
+    formData={formData}
+    setFormData={setFormData}
+  />
+</div>
 
       <div className="mt-6 flex justify-center">
         <button
@@ -52,7 +61,9 @@ const handleAddHours = () => {
 </button>
       </div>
 
-      {showHours && <HoursAllocation />}
+      <div className="px-4 sm:px-6 mt-4">
+  {showHours && <HoursAllocation />}
+</div>
     </>
   );
 }
