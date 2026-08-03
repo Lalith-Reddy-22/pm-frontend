@@ -13,18 +13,18 @@ export const ICON_MAP = {
 };
 
 export const ASSETS = [
-  { id: 1,  name: "Laptop",                      category: "Laptop",          available: true  },
-  { id: 2,  name: "Macbook",                      category: "MacBook",         available: true  },
-  { id: 3,  name: "IPAD PRO (MHC-004)",           category: "iPad",            available: false },
-  { id: 4,  name: "32GB I Pad 9.7 (MHC-001)",     category: "iPad",            available: true  },
-  { id: 5,  name: "Samsung Galaxy Tab S10 Ultra",  category: "Android Tablets", available: true  },
-  { id: 6,  name: "32GB I Pad Wi-Fi (MHC-005)",   category: "iPad",            available: false },
-  { id: 7,  name: "Samsung Tab S7 (MHC-006)",     category: "Android Tablets", available: true  },
-  { id: 8,  name: "Ipad pro 5G (MHC-007)",        category: "iPad",            available: true  },
-  { id: 9,  name: "Samsung Galaxy J8",            category: "Android Phone",   available: true  },
-  { id: 10, name: "One plus R 5G",                category: "Android Phone",   available: false },
-  { id: 11, name: "Apple iPhone 13",              category: "iPhone",          available: true  },
-  { id: 12, name: "Apple iPhone 15 Plus",         category: "iPhone",          available: true  },
+  { id: 1,  name: "Laptop",                      category: "Laptop",          available: true,  assignedTo: null,              assignedDate: null         },
+  { id: 2,  name: "Macbook",                      category: "MacBook",         available: true,  assignedTo: null,              assignedDate: null         },
+  { id: 3,  name: "IPAD PRO (MHC-004)",           category: "iPad",            available: false, assignedTo: "Abhishek Badiger", assignedDate: "2026-04-10" },
+  { id: 4,  name: "32GB I Pad 9.7 (MHC-001)",     category: "iPad",            available: true,  assignedTo: null,              assignedDate: null         },
+  { id: 5,  name: "Samsung Galaxy Tab S10 Ultra",  category: "Android Tablets", available: true,  assignedTo: null,              assignedDate: null         },
+  { id: 6,  name: "32GB I Pad Wi-Fi (MHC-005)",   category: "iPad",            available: false, assignedTo: "Darshan T",        assignedDate: "2026-03-22" },
+  { id: 7,  name: "Samsung Tab S7 (MHC-006)",     category: "Android Tablets", available: true,  assignedTo: null,              assignedDate: null         },
+  { id: 8,  name: "Ipad pro 5G (MHC-007)",        category: "iPad",            available: true,  assignedTo: null,              assignedDate: null         },
+  { id: 9,  name: "Samsung Galaxy J8",            category: "Android Phone",   available: true,  assignedTo: null,              assignedDate: null         },
+  { id: 10, name: "One plus R 5G",                category: "Android Phone",   available: false, assignedTo: "Priya Sharma",     assignedDate: "2026-05-01" },
+  { id: 11, name: "Apple iPhone 13",              category: "iPhone",          available: true,  assignedTo: null,              assignedDate: null         },
+  { id: 12, name: "Apple iPhone 15 Plus",         category: "iPhone",          available: true,  assignedTo: null,              assignedDate: null         },
 ];
 
 export const MY_REQUESTS = [

@@ -29,10 +29,12 @@ export default function DatePicker({ value, onChange, placeholder = "Select date
     if (value) setCursor(new Date(value.getFullYear(), value.getMonth(), 1));
   }, [value]);
 
+  const POPOVER_HEIGHT = 260;
+
   function handleToggle() {
     if (!open && ref.current) {
       const rect = ref.current.getBoundingClientRect();
-      setPos({ top: rect.bottom + 4, left: rect.left });
+      setPos({ top: rect.top - POPOVER_HEIGHT - 4, left: rect.left });
     }
     setOpen(o => !o);
   }

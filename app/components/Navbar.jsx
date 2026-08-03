@@ -8,7 +8,6 @@ export default function Navbar({ onMenuClick }) {
   const { isDark, toggle, t } = useTheme();
   const pathname = usePathname();
   const pageTitles = {
-  "/dashboard": "Dashboard",
   "/employee": "Employee Details",
   "/timesheet": "Task Time Sheet",
   "/finance": "Finance Dashboard",
@@ -19,7 +18,14 @@ export default function Navbar({ onMenuClick }) {
   "/calendar": "Calendar",
   "/tasks": "Tasks",
   "/tasks/template-tasks": "Template Tasks",
-  "/reports/resource-allocation": "Resource Allocation"
+  "/reports/resource-allocation": "Resource Allocation",
+  "/it/tickets": "IT Tickets",
+  "/it/claim-assets": "Claim Assets",
+  "/reports/summary-report": "Summary Report",
+  "/reports/daily-report": "Daily Report",
+  "/reports/weekly-report": "Weekly Report",
+  "/finance/project-lists": "Project Lists",
+  "/finance/rate-cards": "Rate Cards"
 };
 
 let pageTitle = "Dashboard";

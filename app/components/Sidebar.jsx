@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -12,57 +12,65 @@ import {
 } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 
-// ── Menu config ───────────────────────────────────────────────────────────────
+// ── Menu config ──────────────────────────────────────────────────────────────
 
-const NAV_ITEMS = [
+const ALL_NAV_ITEMS = [
   {
     id: "reports", label: "Reports", icon: BarChart2,
+    roles: ["admin", "employee", "sys_admin", "pm_employee"],
     children: [
-      { id: "daily-report",        href: "/reports/daily-report",        label: "Daily Report",                icon: FileText  },
-      { id: "week-utilization",    href: "/reports/week-utilization",    label: "Week Utilization",            icon: PieChart  },
-      { id: "summary-report",      href: "/reports/summary-report",      label: "Summary Report",              icon: BarChart2 },
-      { id: "resource-allocation", href: "/reports/resource-allocation", label: "Resource Allocation Reports", icon: Users     },
+      { id: "daily-report",        href: "/reports/daily-report",        label: "Daily Report",                icon: FileText,  roles: ["admin", "pm_employee"]                          },
+      { id: "week-utilization",    href: "/reports/week-utilization",    label: "Week Utilization",            icon: PieChart,  roles: ["admin", "pm_employee"]                          },
+      { id: "summary-report",      href: "/reports/summary-report",      label: "Summary Report",              icon: BarChart2, roles: ["admin", "pm_employee"]                          },
+      { id: "resource-allocation", href: "/reports/resource-allocation", label: "Resource Allocation Reports", icon: Users,     roles: ["admin", "employee", "sys_admin", "pm_employee"] },
     ],
   },
   {
     id: "tasks", label: "Tasks Section", icon: CheckSquare,
+    roles: ["admin", "pm_employee"],
     children: [
-      { id: "tasks",          href: "/tasks",                label: "Tasks",          icon: CheckSquare },
-      { id: "template-tasks", href: "/tasks/template-tasks", label: "Template Tasks", icon: Layout      },
+      { id: "tasks",          href: "/tasks",                label: "Tasks",          icon: CheckSquare, roles: ["admin", "pm_employee"] },
+      { id: "template-tasks", href: "/tasks/template-tasks", label: "Template Tasks", icon: Layout,      roles: ["admin", "pm_employee"] },
     ],
   },
   {
     id: "it", label: "IT Section", icon: Ticket,
+    roles: ["admin", "employee", "sys_admin", "pm_employee"],
     children: [
-      { id: "tickets",      href: "/it/tickets",      label: "Tickets",      icon: Ticket  },
-      { id: "claim-assets", href: "/it/claim-assets", label: "Claim Assets", icon: Package },
+      { id: "tickets",      href: "/it/tickets",      label: "Tickets",      icon: Ticket,  roles: ["admin", "employee", "sys_admin", "pm_employee"] },
+      { id: "claim-assets", href: "/it/claim-assets", label: "Claim Assets", icon: Package, roles: ["admin", "employee", "sys_admin", "pm_employee"] },
     ],
   },
-  { id: "calendar",  href: "/calendar",  label: "Calendar View", icon: Calendar   },
-  { id: "clients",   href: "/clients",   label: "Clients",       icon: Briefcase  },
-  { id: "project",   href: "/project",   label: "Project",       icon: FolderOpen },
-  { id: "employee",  href: "/employee",  label: "Employee",      icon: UserCheck  },
-  { id: "timesheet", href: "/timesheet", label: "Time Sheet",    icon: Clock      },
+  { id: "calendar",  href: "/calendar",  label: "Calendar View", icon: Calendar,   roles: ["admin", "employee", "sys_admin", "pm_employee"] },
+  { id: "clients",   href: "/clients",   label: "Clients",       icon: Briefcase,  roles: ["admin", "pm_employee"] },
+  { id: "project",   href: "/project",   label: "Project",       icon: FolderOpen, roles: ["admin", "pm_employee"] },
+  { id: "employee",  href: "/employee",  label: "Employee",      icon: UserCheck,  roles: ["admin", "pm_employee"] },
+  { id: "timesheet", href: "/timesheet", label: "Time Sheet",    icon: Clock,      roles: ["admin", "employee", "sys_admin", "pm_employee"] },
   {
     id: "finance", label: "Finance Module", icon: DollarSign,
+    roles: ["admin"],
     children: [
-      { id: "finance-clients", href: "/finance/clients",       label: "Clients",       icon: Briefcase  },
-      { id: "project-lists",   href: "/finance/project-lists", label: "Project Lists", icon: List       },
-      { id: "rate-cards",      href: "/finance/rate-cards",    label: "Rate Cards",    icon: CreditCard },
+      { id: "finance-clients", href: "/finance/clients",       label: "Clients",       icon: Briefcase,  roles: ["admin"] },
+      { id: "project-lists",   href: "/finance/project-lists", label: "Project Lists", icon: List,       roles: ["admin"] },
+      { id: "rate-cards",      href: "/finance/rate-cards",    label: "Rate Cards",    icon: CreditCard, roles: ["admin"] },
     ],
   },
 ];
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+function getNavItems(role) {
+  return ALL_NAV_ITEMS
+    .filter(item => item.roles.includes(role))
+    .map(item => ({
+      ...item,
+      children: item.children?.filter(c => c.roles.includes(role)),
+    }));
+}
 
-// Pre-compute which group IDs should be open by default based on current path
-function getDefaultOpenGroups(pathname) {
+function computeOpenGroups(pathname, items) {
   const open = {};
-  for (const item of NAV_ITEMS) {
-    if (item.children) {
-      if (item.children.some(c => pathname.startsWith(c.href))) {
-        open[item.id] = true;
-      }
+  for (const item of items) {
+    if (item.children?.some(c => pathname.startsWith(c.href))) {
+      open[item.id] = true;
     }
   }
   return open;
@@ -75,10 +83,21 @@ export default function Sidebar({ onClose, collapsed = false }) {
   const router = useRouter();
   const { t, isDark } = useTheme();
 
-  const [openGroups, setOpenGroups] = useState(() => getDefaultOpenGroups(pathname));
+  // role is read client-side only (sessionStorage unavailable on server)
+  const [role, setRole] = useState("admin");
+  const [openGroups, setOpenGroups] = useState({});
+
+  useEffect(() => {
+    const r = sessionStorage.getItem("role") || "admin";
+    setRole(r);
+    setOpenGroups(computeOpenGroups(pathname, getNavItems(r)));
+  }, []);
+
+  const navItems = getNavItems(role);
 
   function handleLogout() {
     sessionStorage.removeItem("auth");
+    sessionStorage.removeItem("role");
     router.push("/login");
   }
 
@@ -128,7 +147,7 @@ export default function Sidebar({ onClose, collapsed = false }) {
       <nav className={`sidebar-scroll flex-1 py-3 px-2 flex flex-col gap-px
         ${collapsed ? "overflow-visible" : "overflow-y-auto overflow-x-hidden"}
       `}>
-        {NAV_ITEMS.map(item => {
+        {navItems.map(item => {
           const Icon      = item.icon;
           const hasKids   = !!item.children?.length;
           const grpActive = isGroupActive(item);
