@@ -17,12 +17,12 @@ import { useTheme } from "../context/ThemeContext";
 const ALL_NAV_ITEMS = [
   {
     id: "reports", label: "Reports", icon: BarChart2,
-    roles: ["admin", "employee", "pm_employee"],
+    roles: ["admin", "employee", "sys_admin", "pm_employee"],
     children: [
-      { id: "daily-report",        href: "/reports/daily-report",        label: "Daily Report",                icon: FileText,  roles: ["admin", "pm_employee"]             },
-      { id: "week-utilization",    href: "/reports/week-utilization",    label: "Week Utilization",            icon: PieChart,  roles: ["admin", "pm_employee"]             },
-      { id: "summary-report",      href: "/reports/summary-report",      label: "Summary Report",              icon: BarChart2, roles: ["admin", "pm_employee"]             },
-      { id: "resource-allocation", href: "/reports/resource-allocation", label: "Resource Allocation Reports", icon: Users,     roles: ["admin", "employee", "pm_employee"] },
+      { id: "daily-report",        href: "/reports/daily-report",        label: "Daily Report",                icon: FileText,  roles: ["admin", "pm_employee"]                          },
+      { id: "week-utilization",    href: "/reports/week-utilization",    label: "Week Utilization",            icon: PieChart,  roles: ["admin", "pm_employee"]                          },
+      { id: "summary-report",      href: "/reports/summary-report",      label: "Summary Report",              icon: BarChart2, roles: ["admin", "pm_employee"]                          },
+      { id: "resource-allocation", href: "/reports/resource-allocation", label: "Resource Allocation Reports", icon: Users,     roles: ["admin", "employee", "sys_admin", "pm_employee"] },
     ],
   },
   {
@@ -35,17 +35,17 @@ const ALL_NAV_ITEMS = [
   },
   {
     id: "it", label: "IT Section", icon: Ticket,
-    roles: ["admin", "employee", "pm_employee"],
+    roles: ["admin", "employee", "sys_admin", "pm_employee"],
     children: [
-      { id: "tickets",      href: "/it/tickets",      label: "Tickets",      icon: Ticket,  roles: ["admin", "employee", "pm_employee"] },
-      { id: "claim-assets", href: "/it/claim-assets", label: "Claim Assets", icon: Package, roles: ["admin", "employee", "pm_employee"] },
+      { id: "tickets",      href: "/it/tickets",      label: "Tickets",      icon: Ticket,  roles: ["admin", "employee", "sys_admin", "pm_employee"] },
+      { id: "claim-assets", href: "/it/claim-assets", label: "Claim Assets", icon: Package, roles: ["admin", "employee", "sys_admin", "pm_employee"] },
     ],
   },
-  { id: "calendar",  href: "/calendar",  label: "Calendar View", icon: Calendar,   roles: ["admin", "employee", "pm_employee"] },
+  { id: "calendar",  href: "/calendar",  label: "Calendar View", icon: Calendar,   roles: ["admin", "employee", "sys_admin", "pm_employee"] },
   { id: "clients",   href: "/clients",   label: "Clients",       icon: Briefcase,  roles: ["admin", "pm_employee"] },
   { id: "project",   href: "/project",   label: "Project",       icon: FolderOpen, roles: ["admin", "pm_employee"] },
   { id: "employee",  href: "/employee",  label: "Employee",      icon: UserCheck,  roles: ["admin", "pm_employee"] },
-  { id: "timesheet", href: "/timesheet", label: "Time Sheet",    icon: Clock,      roles: ["admin", "employee", "pm_employee"] },
+  { id: "timesheet", href: "/timesheet", label: "Time Sheet",    icon: Clock,      roles: ["admin", "employee", "sys_admin", "pm_employee"] },
   {
     id: "finance", label: "Finance Module", icon: DollarSign,
     roles: ["admin"],

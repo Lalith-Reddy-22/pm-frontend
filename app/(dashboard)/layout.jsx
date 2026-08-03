@@ -26,7 +26,7 @@ function LayoutInner({ children }) {
 
   useEffect(() => {
     const role = sessionStorage.getItem("role");
-    if (role === "employee") {
+    if (role === "employee" || role === "sys_admin") {
       const allowed = EMPLOYEE_ALLOWED.some(p => pathname === p || pathname.startsWith(p + "/"));
       if (!allowed) router.replace("/reports/resource-allocation");
     }

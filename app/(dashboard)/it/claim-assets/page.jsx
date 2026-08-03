@@ -1,17 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, ShoppingCart, CheckCircle, LayoutGrid, List } from "lucide-react";
 import { ASSETS } from "./assetData";
 import AssetGridCard from "./AssetGridCard";
 import AssetListRow  from "./AssetListRow";
 import MyRequests    from "./MyRequests";
 import MaxSelectionModal from "./MaxSelectionModal";
+import AssetListAdmin from "./AssetListAdmin";
 import { useTheme } from "../../../context/ThemeContext";
 
 export default function ClaimAssetsPage() {
   const { t } = useTheme();
   const [activeTab, setActiveTab] = useState("assets");
+  const [isSysAdmin, setIsSysAdmin] = useState(false);
+
+  useEffect(() => {
+    setIsSysAdmin(sessionStorage.getItem("role") === "sys_admin");
+  }, []);
   const [viewMode,  setViewMode]  = useState("grid");
   const [selected,  setSelected]  = useState([]);
   const [search,    setSearch]    = useState("");
@@ -48,20 +54,26 @@ export default function ClaimAssetsPage() {
     <div className="space-y-4 p-4 sm:p-6">
 
       {/* Tabs */}
-      <div className={`flex items-center gap-1 p-1 rounded-xl w-fit ${t.iconBg}`}>
-        {[{ key: "assets", label: "Assets Management" }, { key: "requests", label: "My Request" }].map(tab => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === tab.key
-                ? `${t.cardBg} ${t.textPrimary} shadow-sm`
-                : `${t.textSecondary} ${t.navRowHover}`
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+      <div className="flex items-center justify-between">
+        <div className={`flex items-center gap-1 p-1 rounded-xl w-fit ${t.iconBg}`}>
+          {[
+            { key: "assets", label: "Assets Management" },
+            { key: "requests", label: "My Request" },
+            ...(isSysAdmin ? [{ key: "asset-list", label: "Asset List" }] : []),
+          ].map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === tab.key
+                  ? `${t.cardBg} ${t.textPrimary} shadow-sm`
+                  : `${t.textSecondary} ${t.navRowHover}`
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Assets tab */}
@@ -145,6 +157,9 @@ export default function ClaimAssetsPage() {
 
       {/* Requests tab */}
       {activeTab === "requests" && <MyRequests />}
+
+      {/* Asset List tab — sys_admin only */}
+      {activeTab === "asset-list" && <AssetListAdmin />}
 
       {/* Max selection modal */}
       {showLimit && (
