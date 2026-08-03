@@ -91,7 +91,7 @@ export default function CustomSelect({
         ref={buttonRef}
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="flex h-11 w-full items-center justify-between rounded-md border border-gray-300 bg-white px-3 text-sm transition hover:border-[#E12729] focus:outline-none focus:ring-2 focus:ring-[#E12729]/20"
+        className="flex h-8 w-full items-center justify-between rounded-md border border-gray-300 bg-white px-3 text-sm transition hover:border-[#E12729] focus:outline-none focus:ring-2 focus:ring-[#E12729]/20"
       >
         <span className={selectedItem ? "text-gray-900" : "text-gray-400"}>
           {selectedItem
@@ -117,7 +117,7 @@ export default function CustomSelect({
             className="max-h-72 overflow-y-auto rounded-md border border-gray-200 bg-white shadow-xl custom-scrollbar"
           >
             {options.length === 0 ? (
-              <div className="px-4 py-3 text-sm text-gray-500">
+              <div className="px-4 py-2 text-sm text-gray-500">
                 No options found
               </div>
             ) : (
@@ -134,7 +134,7 @@ export default function CustomSelect({
                       onChange(itemValue);
                       setOpen(false);
                     }}
-                    className={`block w-full px-4 py-3 text-left text-sm transition
+                    className={`block w-full px-4 py-2 text-left text-sm transition
                       ${
                         selected
                           ? "bg-red-50 text-[#E12729] font-medium"

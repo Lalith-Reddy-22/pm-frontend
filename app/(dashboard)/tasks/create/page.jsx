@@ -20,22 +20,25 @@ const [formData, setFormData] = useState({
 });
 
 const handleAddHours = () => {
-  // If hours are already visible, hide them
-  if (showHours) {
-    setShowHours(false);
-    return;
-  }
+  console.log("Form Data:", formData);
 
-  // Validate only when showing hours
-  if (
-    !formData.taskName ||
-    !formData.priority ||
-    !formData.startDate ||
-    !formData.endDate ||
-    !formData.resource ||
-    !formData.status
-  ) {
-    alert("Please fill all the required fields before adding hours.");
+  const requiredFields = [
+    "taskName",
+    "priority",
+    "startDate",
+    "endDate",
+    "resource",
+    "status",
+  ];
+
+  const emptyFields = requiredFields.filter(
+    (field) =>
+      !formData[field] ||
+      formData[field].toString().trim() === ""
+  );
+
+  if (emptyFields.length > 0) {
+    alert(`Missing fields: ${emptyFields.join(", ")}`);
     return;
   }
 
