@@ -1,15 +1,40 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 import { ThemeProvider, useTheme } from "../context/ThemeContext";
 
+const EMPLOYEE_ALLOWED = [
+  "/reports/resource-allocation",
+  "/it/tickets",
+  "/it/claim-assets",
+  "/calendar",
+  "/timesheet",
+];
+
+const PM_EMPLOYEE_BLOCKED = ["/finance"];
+
 function LayoutInner({ children }) {
   const { t, isDark } = useTheme();
-  const [sidebarOpen, setSidebarOpen] = useState(false);  // mobile overlay
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);  // desktop collapse
+  const pathname = usePathname();
+  const router = useRouter();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  useEffect(() => {
+    const role = sessionStorage.getItem("role");
+    if (role === "employee") {
+      const allowed = EMPLOYEE_ALLOWED.some(p => pathname === p || pathname.startsWith(p + "/"));
+      if (!allowed) router.replace("/reports/resource-allocation");
+    }
+    if (role === "pm_employee") {
+      const blocked = PM_EMPLOYEE_BLOCKED.some(p => pathname === p || pathname.startsWith(p + "/"));
+      if (blocked) router.replace("/reports/daily-report");
+    }
+  }, [pathname]);
 
   return (
     <div className={`flex h-screen w-screen overflow-hidden ${t.pageBg} transition-colors duration-300`}>

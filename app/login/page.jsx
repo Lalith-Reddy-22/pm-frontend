@@ -5,7 +5,11 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Eye, EyeOff, Lock, User } from "lucide-react";
 
-const DEMO = { email: "admin@medtrix.com", password: "medtrix@123" };
+const USERS = [
+  { email: "admin@medtrix.com",      password: "medtrix@123",    role: "admin"       },
+  { email: "employee@medtrix.com",   password: "employee@123",   role: "employee"    },
+  { email: "pmemployee@medtrix.com", password: "pmemployee@123", role: "pm_employee" },
+];
 
 export default function LoginPage() {
   const router = useRouter();
@@ -24,9 +28,11 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setTimeout(() => {
-      if (form.email === DEMO.email && form.password === DEMO.password) {
+      const user = USERS.find(u => u.email === form.email && u.password === form.password);
+      if (user) {
         sessionStorage.setItem("auth", "true");
-        router.push("/reports/daily-report");
+        sessionStorage.setItem("role", user.role);
+        router.push(user.role === "employee" ? "/reports/resource-allocation" : "/reports/daily-report");
       } else {
         setError("Invalid email or password.");
         setLoading(false);

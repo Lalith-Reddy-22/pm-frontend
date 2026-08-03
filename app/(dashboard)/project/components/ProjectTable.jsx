@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   Table,
   TableBody,
@@ -63,6 +64,11 @@ export default function ProjectTable({ rows = [] }) {
 
 function ProjectTableRow({ project }) {
   const router = useRouter();
+  const [role, setRole] = useState("admin");
+
+  useEffect(() => {
+    setRole(sessionStorage.getItem("role") || "admin");
+  }, []);
   return (
     <TableRow className="group border-b border-border transition-colors hover:bg-accent/30 ">
 
@@ -123,24 +129,26 @@ function ProjectTableRow({ project }) {
 
       {/* Actions */}
       <TableCell className="px-4 py-3">
-        <div className="flex items-center justify-center gap-1.5">
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label="Edit project"
-            className="opacity-60 group-hover:opacity-100 hover:text-[#E12729]"
-          >
-            <Pencil />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label="Delete project"
-            className="opacity-60 group-hover:opacity-100 hover:text-destructive"
-          >
-            <Trash2 />
-          </Button>
-        </div>
+        {role !== "pm_employee" && (
+          <div className="flex items-center justify-center gap-1.5">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Edit project"
+              className="opacity-60 group-hover:opacity-100 hover:text-[#E12729]"
+            >
+              <Pencil />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Delete project"
+              className="opacity-60 group-hover:opacity-100 hover:text-destructive"
+            >
+              <Trash2 />
+            </Button>
+          </div>
+        )}
       </TableCell>
     </TableRow>
 
