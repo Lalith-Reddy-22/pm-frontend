@@ -23,6 +23,8 @@ export default function ClaimAssetsPage() {
   const [search,    setSearch]    = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [showLimit, setShowLimit] = useState(false);
+  const [showReason, setShowReason] = useState(false);
+  const [reason, setReason] = useState("");
 
   const MAX = 5;
 
@@ -107,7 +109,7 @@ export default function ClaimAssetsPage() {
               </div>
               {selected.length > 0 && (
                 <button
-                  onClick={() => { setSubmitted(true); setSelected([]); setTimeout(() => setSubmitted(false), 3000); }}
+                  onClick={() => setShowReason(true)}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#E12729] hover:bg-[#c81f21] text-white text-sm font-medium transition-colors"
                 >
                   <ShoppingCart size={14} />
@@ -160,6 +162,40 @@ export default function ClaimAssetsPage() {
 
       {/* Asset List tab — sys_admin only */}
       {activeTab === "asset-list" && <AssetListAdmin />}
+
+      {/* Reason modal */}
+      {showReason && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className={`w-full max-w-md rounded-2xl p-6 shadow-xl ${t.cardBg}`}>
+            <h3 className={`text-base font-semibold mb-1 ${t.textPrimary}`}>Reason for Request</h3>
+            <p className={`text-xs mb-4 ${t.textSecondary}`}>Please provide a reason for requesting {selected.length} asset{selected.length > 1 ? "s" : ""}.</p>
+            <textarea
+              value={reason}
+              onChange={e => setReason(e.target.value)}
+              placeholder="Enter your reason..."
+              rows={4}
+              className={`w-full rounded-lg border border-border px-3 py-2 text-sm resize-none outline-none focus:border-[#E12729] focus:ring-2 focus:ring-[#E12729]/20 transition-colors ${t.cardBg} ${t.textPrimary}`}
+            />
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                onClick={() => { setShowReason(false); setReason(""); }}
+                className={`px-4 py-2 rounded-lg text-sm border border-border ${t.textSecondary} ${t.navRowHover}`}
+              >Cancel</button>
+              <button
+                disabled={!reason.trim()}
+                onClick={() => {
+                  setShowReason(false);
+                  setReason("");
+                  setSubmitted(true);
+                  setSelected([]);
+                  setTimeout(() => setSubmitted(false), 3000);
+                }}
+                className="px-4 py-2 rounded-lg text-sm bg-[#E12729] hover:bg-[#c81f21] text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >Submit Request</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Max selection modal */}
       {showLimit && (
