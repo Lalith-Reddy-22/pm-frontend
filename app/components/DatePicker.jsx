@@ -29,15 +29,21 @@ export default function DatePicker({ value, onChange, placeholder = "Select date
     if (value) setCursor(new Date(value.getFullYear(), value.getMonth(), 1));
   }, [value]);
 
-  const POPOVER_HEIGHT = 260;
-
   function handleToggle() {
-    if (!open && ref.current) {
-      const rect = ref.current.getBoundingClientRect();
-      setPos({ top: rect.top - POPOVER_HEIGHT - 4, left: rect.left });
-    }
     setOpen(o => !o);
   }
+
+  useEffect(() => {
+    if (!open || !ref.current) return;
+    function updatePos() {
+      const rect = ref.current.getBoundingClientRect();
+      const popH = 280;
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const top = spaceBelow >= popH ? rect.bottom + 4 : rect.top - popH - 4;
+      setPos({ top, left: rect.left });
+    }
+    updatePos();
+  }, [open]);
 
   const year        = cursor.getFullYear();
   const month       = cursor.getMonth();
