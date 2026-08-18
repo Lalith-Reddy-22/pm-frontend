@@ -4,13 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Eye, EyeOff, Lock, User } from "lucide-react";
-
-const USERS = [
-  { email: "admin@medtrix.com",      password: "medtrix@123",    role: "admin"       },
-  { email: "employee@medtrix.com",   password: "employee@123",   role: "employee"    },
-  { email: "pmemployee@medtrix.com", password: "pmemployee@123", role: "pm_employee" },
-  { email: "sysadmin@medtrix.com",   password: "sysadmin@123",   role: "sys_admin"   },
-];
+import { authApi } from "@/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -25,20 +19,26 @@ export default function LoginPage() {
     setError("");
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
-      const user = USERS.find(u => u.email === form.email && u.password === form.password);
-      if (user) {
-        sessionStorage.setItem("auth", "true");
-        sessionStorage.setItem("role", user.role);
-        router.push(["employee", "sys_admin"].includes(user.role) ? "/reports/resource-allocation" : "/reports/daily-report");
-      } else {
-        setError("Invalid email or password.");
-        setLoading(false);
-      }
-    }, 600);
+    setError("");
+    try {
+      const data = await authApi.login(form.email, form.password);
+      sessionStorage.setItem("auth", "true");
+      sessionStorage.setItem("token", data.token);
+      sessionStorage.setItem("refreshToken", data.refreshToken);
+      sessionStorage.setItem("role", data.role);
+      sessionStorage.setItem("empId", data.empId);
+      sessionStorage.setItem("empName", data.empName);
+      sessionStorage.setItem("empNumber", data.empNumber);
+      sessionStorage.setItem("designation", data.designation);
+      sessionStorage.setItem("emailId", data.emailId);
+      router.push(["employee", "sys_admin"].includes(data.role) ? "/reports/resource-allocation" : "/reports/daily-report");
+    } catch (err) {
+      setError(err.message || "Invalid email or password.");
+      setLoading(false);
+    }
   }
 
   return (

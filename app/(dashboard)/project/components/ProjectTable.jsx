@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import {
   Table,
   TableBody,
@@ -25,6 +25,11 @@ const TABLE_HEADERS = [
 ];
 
 export default function ProjectTable({ rows = [] }) {
+  const role = useMemo(() => {
+    if (typeof window === "undefined") return "admin";
+    return sessionStorage.getItem("role") || "admin";
+  }, []);
+
   return (
     <div className="overflow-auto relative max-h-[60vh] sm:max-h-[70vh] lg:max-h-[70vh] custom-scrollbar">
       <table className="w-full caption-bottom text-sm min-w-[960px]">
@@ -53,7 +58,7 @@ export default function ProjectTable({ rows = [] }) {
             </TableRow>
           ) : (
             rows.map((project, idx) => (
-              <ProjectTableRow key={project.id ?? idx} project={project} />
+              <ProjectTableRow key={project.id ?? idx} project={project} role={role} />
             ))
           )}
         </TableBody>
@@ -62,13 +67,9 @@ export default function ProjectTable({ rows = [] }) {
   );
 }
 
-function ProjectTableRow({ project }) {
+function ProjectTableRow({ project, role }) {
   const router = useRouter();
-  const [role, setRole] = useState("admin");
 
-  useEffect(() => {
-    setRole(sessionStorage.getItem("role") || "admin");
-  }, []);
   return (
     <TableRow className="group border-b border-border transition-colors hover:bg-accent/30 ">
 
