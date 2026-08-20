@@ -1,43 +1,105 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+
+import {
+  fetchLeaveTeams,
+  fetchLeaveDesignations,
+  fetchLeaves,
+  addLeave,
+  fetchLeaveById,
+  editLeave,
+} from "@/store/slices/leaveSlice";
 import { ChevronUp, ChevronDown, Pencil, } from "lucide-react";
 import { usePagination } from "@/hooks/usePagination";
 import { Button } from "@/components/ui/button";
 import CustomSelect from "@/components/ui/CustomSelect";
+import ExportDropdown from "@/app/(dashboard)/employee/components/ExportDropdown";
 
 export default function AddLeavePage() {
   const [activeTab, setActiveTab] = useState("add");
+  const [showExport, setShowExport] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
 
-  const [editingId, setEditingId] = useState(null);
-  const TEAM_OPTIONS = [
-  { value: "", label: "Select Team" },
-  { value: "Creative Team", label: "Creative Team" },
-  { value: "Content Team", label: "Content Team" },
-  { value: "Development Team", label: "Development Team" },
+  const initialForm = {
+  team: "",
+  designation: "",
+  billableHours: "",
+  nonBillableHours: "",
+  startDate: "",
+  endDate: "",
+};
+
+  const dispatch = useDispatch();
+
+const {
+  teams,
+  designations,
+  leaves,
+  loadingTeams,
+  loadingDesignations,
+  loadingLeaves,
+  submitting,
+  loadingLeave,
+  error,
+  success,
+} = useSelector((state) => state.leave);
+
+const teamOptions = [
+  {
+    value: "",
+    label: "Select Team",
+  },
+  ...teams.map((team) => ({
+    value: String(team.id),
+    label: team.teams_Name,
+  })),
 ];
-const DESIGNATION_OPTIONS = [
+
+const designationOptions = [
   {
     value: "",
     label: "Select Designation",
   },
-  {
-    value: "GD",
-    label: "GD",
-  },
-  {
-    value: "Lead-3D",
-    label: "Lead-3D",
-  },
-  {
-    value: "MD2",
-    label: "MD2",
-  },
-  {
-    value: "MW",
-    label: "MW",
-  },
+  ...designations.map((item) => ({
+    value: item.empDesignation,
+    label: item.empDesignation,
+  })),
 ];
+  
+  const handleCopy = () => {
+  console.log("Copy");
+};
+
+const handlePrint = () => {
+  window.print();
+};
+
+const handlePDF = () => {
+  console.log("Export PDF");
+};
+
+const handleCSV = () => {
+  console.log("Export CSV");
+};
+
+  const [editingId, setEditingId] = useState(null);
+
+  const [selectedTeamId, setSelectedTeamId] = useState("");
+
+useEffect(() => {
+  dispatch(fetchLeaveTeams());
+
+  dispatch(
+    fetchLeaves({
+      pageNumber: 1,
+      pageSize: 10000,
+    })
+  );
+}, [dispatch]);
+
+
 const PAGE_SIZE_OPTIONS = [
   {
     value: "10",
@@ -52,44 +114,32 @@ const PAGE_SIZE_OPTIONS = [
     label: "50",
   },
 ];
-  const [formData, setFormData] = useState({
-    team: "",
-    designation: "",
-    billableHours: "",
-    nonBillableHours: "",
-    startDate: "",
-    endDate: "",
-  });
+  const [formData, setFormData] = useState(initialForm);
 
-  const [leaveList, setLeaveList] = useState([
-    {
-      id: 1,
-      team: "Creative Team",
-      designation: "GD",
-      billableHours: 9,
-      nonBillableHours: 9,
-      startDate: "2025-09-01",
-      endDate: "2025-09-05",
-    },
-    {
-      id: 2,
-      team: "Creative Team",
-      designation: "Lead-3D",
-      billableHours: 0,
-      nonBillableHours: 0,
-      startDate: "2025-09-01",
-      endDate: "2025-09-04",
-    },
-    {
-      id: 3,
-      team: "Content Team",
-      designation: "MD2",
-      billableHours: 0,
-      nonBillableHours: 0,
-      startDate: "2025-09-01",
-      endDate: "2025-09-05",
-    },
-  ]);
+  const [searchTerm, setSearchTerm] = useState("");
+
+const mappedLeaveList = leaves.map((item) => ({
+  id: item.id,
+  teamId: item.team_Id,
+  team: item.teams_Name,
+  designation: item.designation,
+  billableHours: item.design_Billablevalue,
+  nonBillableHours: item.design_NonBillablevalue,
+  startDate: item.start_date,
+  endDate: item.end_date,
+}));
+
+const filteredLeaveList = mappedLeaveList.filter((row) => {
+  const search = searchTerm.trim().toLowerCase();
+
+  if (!search) return true;
+
+  return Object.values(row).some((value) =>
+    String(value ?? "")
+      .toLowerCase()
+      .includes(search)
+  );
+});
 
   const {
   paginatedData,
@@ -107,9 +157,10 @@ const PAGE_SIZE_OPTIONS = [
   goToPage,
   pageNumbers,
 } = usePagination({
-  data: leaveList,
+  data: filteredLeaveList,
   pageSize: 10,
 });
+
 
   const HeaderCell = ({ children }) => (
     <th className="px-4 py-3 text-left">
@@ -124,58 +175,168 @@ const PAGE_SIZE_OPTIONS = [
     </th>
   );
 
-  const handleEdit = (row) => {
-    setEditingId(row.id);
+  const handleEdit = async (row) => {
+  try {
+    const data = await dispatch(
+      fetchLeaveById(row.id)
+    ).unwrap();
+
+    console.log("EDIT LEAVE RESPONSE:", data);
 
     setFormData({
-      team: row.team,
-      designation: row.designation,
-      billableHours: row.billableHours,
-      nonBillableHours: row.nonBillableHours,
-      startDate: row.startDate,
-      endDate: row.endDate,
+      team: String(data.team_Id ?? row.teamId ?? ""),
+      designation:
+        data.designation ?? row.designation ?? "",
+      billableHours:
+        data.design_Billablevalue ??
+        row.billableHours ??
+        "",
+      nonBillableHours:
+        data.design_NonBillablevalue ??
+        row.nonBillableHours ??
+        "",
+      startDate:
+        data.start_date ?? row.startDate ?? "",
+      endDate:
+        data.end_date ?? row.endDate ?? "",
     });
 
-    setActiveTab("add");
-  };
+    const teamId = String(
+      data.team_Id ?? row.teamId ?? ""
+    );
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+    setSelectedTeamId(teamId);
 
-    if (editingId) {
-      setLeaveList((prev) =>
-        prev.map((item) =>
-          item.id === editingId
-            ? {
-                ...item,
-                ...formData,
-              }
-            : item
-        )
-      );
-    } else {
-      setLeaveList((prev) => [
-        ...prev,
-        {
-          id: Date.now(),
-          ...formData,
-        },
-      ]);
+    if (teamId) {
+      await dispatch(
+        fetchLeaveDesignations(Number(teamId))
+      ).unwrap();
     }
 
+    setEditingId(row.id);
+
+    // Switch to Add/Edit tab
+    setActiveTab("add");
+
+  } catch (error) {
+    console.error(
+      "GET LEAVE BY ID ERROR:",
+      error
+    );
+  }
+};
+
+const validateForm = () => {
+  const errors = {};
+
+  if (!formData.team) {
+    errors.team = "Please select a team.";
+  }
+
+  if (!formData.designation) {
+    errors.designation = "Please select a designation.";
+  }
+
+  if (!formData.billableHours && !formData.nonBillableHours) {
+    errors.hours = "Please enter billable or non-billable hours.";
+  }
+
+  if (!formData.startDate) {
+    errors.startDate = "Please select a start date.";
+  }
+
+  if (!formData.endDate) {
+    errors.endDate = "Please select an end date.";
+  }
+
+  return errors;
+};
+
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  setFormErrors({});
+
+  const errors = validateForm();
+
+  if (Object.keys(errors).length > 0) {
+    setFormErrors(errors);
+    return;
+  }
+
+  const payload = {
+    team_Id: Number(formData.team),
+    designation: formData.designation,
+    design_Billablevalue:
+      Number(formData.billableHours) || 0,
+    design_NonBillablevalue:
+      Number(formData.nonBillableHours) || 0,
+    start_date: formData.startDate,
+    end_date: formData.endDate,
+  };
+
+  try {
+    if (editingId) {
+      // UPDATE
+      await dispatch(
+        editLeave({
+          id: editingId,
+          data: payload,
+        })
+      ).unwrap();
+
+      console.log("Leave updated successfully");
+    } else {
+      // ADD
+      await dispatch(
+        addLeave(payload)
+      ).unwrap();
+
+      console.log("Leave added successfully");
+    }
+
+    // Refresh list
+    await dispatch(
+      fetchLeaves({
+        pageNumber: 1,
+        pageSize: 10000,
+      })
+    ).unwrap();
+
+    // Reset form
+    setFormData(initialForm);
+    setSelectedTeamId("");
     setEditingId(null);
 
-    setFormData({
-      team: "",
-      designation: "",
-      billableHours: "",
-      nonBillableHours: "",
-      startDate: "",
-      endDate: "",
-    });
-
+    // Go to list
     setActiveTab("list");
-  };
+
+  } catch (error) {
+    console.error(
+      "SAVE LEAVE ERROR:",
+      error
+    );
+  }
+};
+
+  const handleTeamChange = (teamId) => {
+  setSelectedTeamId(teamId);
+
+  setFormData((prev) => ({
+    ...prev,
+    team: teamId,
+    designation: "",
+  }));
+
+  if (!teamId) {
+    return;
+  }
+
+  dispatch(
+    fetchLeaveDesignations(Number(teamId))
+  );
+};
+
 
   return (
     <div className="space-y-6 p-5">
@@ -225,13 +386,8 @@ const PAGE_SIZE_OPTIONS = [
 
                 <CustomSelect
   value={formData.team}
-  onChange={(value) =>
-    setFormData({
-      ...formData,
-      team: value,
-    })
-  }
-  options={TEAM_OPTIONS}
+  onChange={handleTeamChange}
+  options={teamOptions}
   placeholder="Select Team"
 />
               </div>
@@ -244,12 +400,12 @@ const PAGE_SIZE_OPTIONS = [
                 <CustomSelect
   value={formData.designation}
   onChange={(value) =>
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       designation: value,
-    })
+    }))
   }
-  options={DESIGNATION_OPTIONS}
+  options={designationOptions}
   placeholder="Select Designation"
 />
               </div>
@@ -268,7 +424,7 @@ const PAGE_SIZE_OPTIONS = [
                       billableHours: e.target.value,
                     })
                   }
-                  className="h-12 w-full rounded-md border px-4"
+                  className="h-8 w-full rounded-md border border-gray-300 px-4"
                 />
               </div>
 
@@ -286,7 +442,7 @@ const PAGE_SIZE_OPTIONS = [
                       nonBillableHours: e.target.value,
                     })
                   }
-                  className="h-12 w-full rounded-md border px-4"
+                  className="h-8 w-full rounded-md border border-gray-300 px-4"
                 />
               </div>
 
@@ -304,7 +460,7 @@ const PAGE_SIZE_OPTIONS = [
                       startDate: e.target.value,
                     })
                   }
-                  className="h-12 w-full rounded-md border px-4"
+                  className="h-8 w-full rounded-md border border-gray-300 px-4"
                 />
               </div>
 
@@ -322,18 +478,25 @@ const PAGE_SIZE_OPTIONS = [
                       endDate: e.target.value,
                     })
                   }
-                  className="h-12 w-full rounded-md border px-4"
+                  className="h-8 w-full rounded-md border border-gray-300 px-4"
                 />
               </div>
 
               <div className="col-span-2 flex justify-center">
 
                 <button
-                  type="submit"
-                  className="w-50 rounded-sm bg-[#E12729] py-2 font-semibold text-white"
-                >
-                  {editingId ? "Update Leave" : "Add Leave"}
-                </button>
+  type="submit"
+  disabled={submitting}
+  className="w-50 rounded-sm bg-[#E12729] py-2 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+>
+  {submitting
+    ? editingId
+      ? "Updating..."
+      : "Adding..."
+    : editingId
+      ? "Update Leave"
+      : "Add Leave"}
+</button>
 
               </div>
 
@@ -353,9 +516,12 @@ const PAGE_SIZE_OPTIONS = [
         <span className="text-sm">Search:</span>
 
         <input
-          placeholder="Project Name or Code"
-          className="h-10 rounded-md border border-gray-300 px-4 outline-none"
-        />
+  type="text"
+  value={searchTerm}
+  onChange={(e) => setSearchTerm(e.target.value)}
+  placeholder="Search..."
+  className="h-8 rounded-md border border-gray-300 px-4 outline-none"
+/>
       </div>
 
       <div className="flex items-center gap-4">
@@ -372,9 +538,22 @@ const PAGE_SIZE_OPTIONS = [
           <span>entries</span>
         </div>
 
-        <button className="rounded-md border border-gray-300 px-4 py-2 text-sm hover:bg-gray-100">
-          Export
-        </button>
+        <div className="relative">
+  <ExportDropdown
+    showExport={showExport}
+    setShowExport={setShowExport}
+    handleCopy={handleCopy}
+    handlePrint={handlePrint}
+    handlePDF={handlePDF}
+    handleCSV={handleCSV}
+    border="border-gray-200"
+    t={{
+      cardBg: "bg-white",
+      textPrimary: "text-gray-700",
+    }}
+    isDark={false}
+  />
+</div>
       </div>
     </div>
 
@@ -395,48 +574,76 @@ const PAGE_SIZE_OPTIONS = [
         </thead>
 
         <tbody>
-          {paginatedData.map((row) => (
-            <tr
-              key={row.id}
-              className="border-t transition hover:bg-gray-50"
-            >
-              <td className="px-4 py-4">
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label="Edit Leave"
-                onClick={() => handleEdit(row)}
-                className="opacity-60 transition-all duration-200  cursor-pointer">
-              <Pencil className="h-4 w-4" />
-              </Button>
-              </td>
+  {loadingLeaves ? (
+    <tr>
+      <td
+        colSpan={7}
+        className="py-8 text-center text-sm text-gray-500"
+      >
+        Loading leaves...
+      </td>
+    </tr>
+  ) : paginatedData.length === 0 ? (
+    <tr>
+      <td
+        colSpan={7}
+        className="py-8 text-center text-sm text-gray-500"
+      >
+        No leave records found.
+      </td>
+    </tr>
+  ) : (
+    paginatedData.map((row) => (
+      <tr
+        key={row.id}
+        className="border-t transition hover:bg-gray-50"
+      >
+        {/* Edit */}
+        <td className="px-4 py-4">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label="Edit Leave"
+            onClick={() => handleEdit(row)}
+            className="cursor-pointer opacity-60 transition-all duration-200"
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
+        </td>
 
-              <td className="px-4 py-4">
-                {row.team}
-              </td>
+        {/* Team */}
+        <td className="px-4 py-4">
+          {row.team}
+        </td>
 
-              <td className="px-4 py-4">
-                {row.designation}
-              </td>
+        {/* Designation */}
+        <td className="px-4 py-4">
+          {row.designation}
+        </td>
 
-              <td className="px-4 py-4">
-                {row.billableHours}
-              </td>
+        {/* Billable Hours */}
+        <td className="px-4 py-4">
+          {row.billableHours}
+        </td>
 
-              <td className="px-4 py-4">
-                {row.nonBillableHours}
-              </td>
+        {/* Non Billable Hours */}
+        <td className="px-4 py-4">
+          {row.nonBillableHours}
+        </td>
 
-              <td className="px-4 py-4">
-                {row.startDate}
-              </td>
+        {/* Start Date */}
+        <td className="px-4 py-4">
+          {row.startDate}
+        </td>
 
-              <td className="px-4 py-4">
-                {row.endDate}
-              </td>
-            </tr>
-          ))}
-        </tbody>
+        {/* End Date */}
+        <td className="px-4 py-4">
+          {row.endDate}
+        </td>
+      </tr>
+    ))
+  )}
+</tbody>
       </table>
       <div className="flex flex-col items-center justify-between gap-4 border-t border-gray-200 bg-white px-5 py-4 md:flex-row">
   {/* Left */}
@@ -468,27 +675,27 @@ const PAGE_SIZE_OPTIONS = [
 
     {/* Page Numbers */}
     {pageNumbers.map((item, index) =>
-      item === "…" ? (
-        <span
-          key={index}
-          className="px-2 text-gray-400"
-        >
-          ...
-        </span>
-      ) : (
-        <button
-          key={item}
-          onClick={() => goToPage(item)}
-          className={`flex h-8 min-w-8 items-center justify-center rounded-lg px-3 text-sm font-medium transition ${
-            page === item
-              ? "bg-[#E12729] text-white shadow-sm"
-              : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-100"
-          }`}
-        >
-          {item}
-        </button>
-      )
-    )}
+  item === "…" ? (
+    <span
+      key={`ellipsis-${index}`}
+      className="px-2 text-gray-400"
+    >
+      ...
+    </span>
+  ) : (
+    <button
+      key={`page-${index}`}
+      onClick={() => goToPage(item)}
+      className={`flex h-8 min-w-8 items-center justify-center rounded-lg px-3 text-sm font-medium transition ${
+        page === item
+          ? "bg-[#E12729] text-white shadow-sm"
+          : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-100"
+      }`}
+    >
+      {item}
+    </button>
+  )
+)}
 
     {/* Next */}
     <button

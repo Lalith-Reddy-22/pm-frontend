@@ -49,9 +49,11 @@ export default function TaskForm({
       })
     }
     options={[
+      { label: "Select Priority", value: "" },
       { label: "Low", value: "low" },
       { label: "Medium", value: "medium" },
       { label: "High", value: "high" },
+      { label: "Tentative", value: "Tentative" },
     ]}
   />
 </div>
@@ -140,10 +142,10 @@ export default function TaskForm({
       })
     }
     options={[
+      { label: "Select Status", value: "" },
       { id: "open", name: "Open" },
+      { id: "closed", name: "Closed" },
       { id: "inprogress", name: "In Progress" },
-      { id: "completed", name: "Completed" },
-      { id: "hold", name: "On Hold" },
     ]}
   />
 </div>

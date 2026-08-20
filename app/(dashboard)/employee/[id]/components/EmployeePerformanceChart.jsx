@@ -9,6 +9,8 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import CustomSelect from "@/components/ui/CustomSelect";
+import { useState } from "react";
 
 const data = [
   { name: "Mon", completed: 8, assigned: 10 },
@@ -21,6 +23,7 @@ const data = [
 ];
 
 export default function EmployeePerformanceChart() {
+  const [selectedPeriod, setSelectedPeriod] = useState("7days");
   return (
     <div className="rounded-3xl border border-gray-200 bg-white shadow-sm">
 
@@ -35,11 +38,21 @@ export default function EmployeePerformanceChart() {
           </p>
         </div>
 
-        <select className="rounded-xl border border-gray-200 px-3 py-2 text-sm">
-          <option>Last 7 Days</option>
-          <option>Last Month</option>
-          <option>Last Year</option>
-        </select>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground flex-shrink-0">
+
+  <div className="w-30">
+    <CustomSelect
+      value={selectedPeriod}
+      onChange={setSelectedPeriod}
+      placeholder="Last 7 Days"
+      options={[
+        { value: "7days", label: "Last 7 Days" },
+        { value: "month", label: "Last Month" },
+        { value: "year", label: "Last Year" },
+      ]}
+    />
+  </div>
+</div>
       </div>
 
       {/* Stats */}

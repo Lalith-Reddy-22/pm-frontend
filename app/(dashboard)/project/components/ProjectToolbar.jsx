@@ -5,6 +5,7 @@ import { Search, Upload, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import ExportDropdown from "@/app/(dashboard)/employee/components/ExportDropdown";
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 
@@ -19,6 +20,7 @@ export default function ProjectToolbar({
 }) {
   const router = useRouter();
   const [role, setRole] = useState("admin");
+  const [showExport, setShowExport] = useState(false);
 
   useEffect(() => {
     setRole(sessionStorage.getItem("role") || "admin");
@@ -51,11 +53,22 @@ export default function ProjectToolbar({
 
       {/* ── Right: Export + Add Project ── */}
       <div className="flex flex-wrap items-center gap-2">
-        <Button variant="outline" className="gap-1.5 text-sm border-[#E12729] cursor-pointer">
-          <Upload size={14} />
-          <span>Export</span>
-          <ChevronDown size={13} />
-        </Button>
+        <div className="relative">
+  <ExportDropdown
+    showExport={showExport}
+    setShowExport={setShowExport}
+    handleCopy={() => console.log("Copy")}
+    handlePrint={() => window.print()}
+    handlePDF={() => console.log("Export PDF")}
+    handleCSV={() => console.log("Export CSV")}
+    border="border-gray-200"
+    t={{
+      cardBg: "bg-white",
+      textPrimary: "text-gray-700",
+    }}
+    isDark={false}
+  />
+</div>
 
         {role !== "pm_employee" && (
           <Button

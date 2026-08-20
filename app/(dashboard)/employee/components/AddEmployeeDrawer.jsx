@@ -1,71 +1,103 @@
 "use client";
 
 import CustomSelect from "@/components/ui/CustomSelect";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { createEmployee, getEmployeeTypes } from "@/services/employeeService";
 
 export default function AddEmployeeDrawer({
   showDrawer,
   setShowDrawer,
 }) {
-  if (!showDrawer) return null;
+  
   const TEAM_OPTIONS = [
   {
     value: "",
     label: "Select Team",
   },
   {
-    value: "Tech Team",
+    value: 1,
     label: "Tech Team",
   },
   {
-    value: "Creative Team",
+    value: 2,
     label: "Creative Team",
   },
   {
-    value: "Content Team",
+    value: 3,
     label: "Content Team",
   },
   {
-    value: "QA Team",
-    label: "QA Team",
+    value: 4,
+    label: "PM Team",
+  },
+  {
+    value: 5,
+    label: "Finance Team",
+  },
+  {
+    value: 6,
+    label: "HR",
+  },
+  {
+    value: 7,
+    label: "Operations",
+  },
+  {
+    value: 8,
+    label: "Account Manager",
   },
 ];
 
-const SUB_TEAM_OPTIONS = [
+const DESIGNATION_OPTIONS = [
   {
-    value: "",
-    label: "Select Sub Team",
+    id: 1,
+    name: "Junior Medical Writer",
+    teamId: 3,
   },
   {
-    value: "Frontend",
-    label: "Frontend",
+    id: 2,
+    name: "Medical Writer",
+    teamId: 3,
   },
   {
-    value: "Backend",
-    label: "Backend",
+    id: 3,
+    name: "Reviewers",
+    teamId: 3,
   },
   {
-    value: "UI/UX",
-    label: "UI/UX",
-  },
-];
-
-const TYPE_OPTIONS = [
-  {
-    value: "",
-    label: "Select Type",
+    id: 4,
+    name: "Proof Reading/Copy Editor",
+    teamId: 3,
   },
   {
-    value: "Permanent",
-    label: "Permanent",
+    id: 5,
+    name: "Creative Copywriter",
+    teamId: 3,
   },
   {
-    value: "Contract",
-    label: "Contract",
+    id: 6,
+    name: "Junior Graphic Designer",
+    teamId: 2,
   },
   {
-    value: "Intern",
-    label: "Intern",
+    id: 7,
+    name: "Graphic Designer",
+    teamId: 2,
+  },
+  {
+    id: 8,
+    name: "Video/3D/E-module",
+    teamId: 2,
+  },
+  {
+    id: 9,
+    name: "Reviwers",
+    teamId: 2,
+  },
+  {
+    id: 10,
+    name: "QA/QC",
+    teamId: 3,
   },
 ];
 
@@ -75,19 +107,116 @@ const UTILIZATION_OPTIONS = [
     label: "Select Required",
   },
   {
-    value: "Yes",
+    value: "1",
     label: "Yes",
   },
   {
-    value: "No",
+    value: "0",
     label: "No",
   },
 ];
 
+const [username, setUsername] = useState("");
+const [emailId, setEmailId] = useState("");
+const [designation, setDesignation] = useState("");
+const [shortDesignation, setShortDesignation] = useState("");
+const [empHours, setEmpHours] = useState("");
+
 const [team, setTeam] = useState("");
 const [subTeam, setSubTeam] = useState("");
 const [type, setType] = useState("");
+const [typeOptions, setTypeOptions] = useState([
+  {
+    value: "",
+    label: "Select Type",
+  },
+]);
 const [utilization, setUtilization] = useState("");
+const subTeamOptions = useMemo(() => {
+  if (!team) {
+    return [
+      {
+        value: "",
+        label: "Select Sub Team",
+      },
+    ];
+  }
+
+  return [
+    {
+      value: "",
+      label: "Select Sub Team",
+    },
+    ...DESIGNATION_OPTIONS
+      .filter((item) => item.teamId === Number(team))
+      .map((item) => ({
+        value: item.id,
+        label: item.name,
+      })),
+  ];
+}, [team]);
+
+useEffect(() => {
+  const loadEmployeeTypes = async () => {
+    try {
+      const data = await getEmployeeTypes();
+
+      const options = [
+        {
+          value: "",
+          label: "Select Type",
+        },
+        ...data.map((item) => ({
+          value: item.id,
+          label: item.user_Type,
+        })),
+      ];
+
+      setTypeOptions(options);
+    } catch (error) {
+      console.error("Failed to load employee types:", error);
+    }
+  };
+
+  loadEmployeeTypes();
+}, []);
+
+const handleAddEmployee = async () => {
+  try {
+    const employeeData = {
+      empNo: username,
+      teamId: Number(team),
+      username: username,
+      emailId: emailId,
+      password: "Temp@123",
+      designation: designation,
+      userType: Number(type),
+      empDesigType: Number(subTeam),
+      empHours: Number(empHours),
+      shortDesignation: shortDesignation,
+      isUtilRequired: Number(utilization),
+    };
+
+    console.log("Sending Employee Data:", employeeData);
+
+    const result = await createEmployee(employeeData);
+
+    console.log("Employee Created Successfully:", result);
+
+    alert("Employee added successfully!");
+
+    setShowDrawer(false);
+  } catch (error) {
+    console.error("Failed to add employee:", error);
+
+    alert(error.message);
+  }
+};
+
+
+console.log("Selected Team ID:", team);
+
+if (!showDrawer) return null;
 
   return (
     <div className="fixed inset-0 z-50">
@@ -130,6 +259,8 @@ const [utilization, setUtilization] = useState("");
             </label>
 
             <input
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               placeholder="Enter Employee Name"
               className="w-full rounded-lg border border-gray-300 px-4 py-2 text-xs outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200"
             />
@@ -145,6 +276,9 @@ const [utilization, setUtilization] = useState("");
             </label>
 
             <input
+              type="email"
+              value={emailId}
+              onChange={(e) => setEmailId(e.target.value)}
               placeholder="Enter Employee Email Address"
               className="w-full rounded-lg border border-gray-300 px-4 py-2 text-xs outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200"
             />
@@ -160,6 +294,8 @@ const [utilization, setUtilization] = useState("");
             </label>
 
             <input
+              value={designation}
+              onChange={(e) => setDesignation(e.target.value)}
               placeholder="Enter Employee Designation"
               className="w-full rounded-lg border border-gray-300 px-4 py-2 text-xs outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200"
             />
@@ -175,6 +311,8 @@ const [utilization, setUtilization] = useState("");
             </label>
 
             <input
+              value={shortDesignation}
+              onChange={(e) => setShortDesignation(e.target.value)}
               placeholder="Enter Employee Short Form"
               className="w-full rounded-lg border border-gray-300 px-4 py-2 text-xs outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200"
             />
@@ -191,6 +329,8 @@ const [utilization, setUtilization] = useState("");
 
             <input
               type="number"
+              value={empHours}
+              onChange={(e) => setEmpHours(e.target.value)}
               placeholder="Enter Employee Hours"
               className="w-full rounded-lg border border-gray-300 px-4 py-2 text-xs outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200"
             />
@@ -207,7 +347,10 @@ const [utilization, setUtilization] = useState("");
 
             <CustomSelect
   value={team}
-  onChange={setTeam}
+  onChange={(value) => {
+    setTeam(value);
+    setSubTeam("");
+  }}
   options={TEAM_OPTIONS}
   placeholder="Select Team"
 />
@@ -225,7 +368,7 @@ const [utilization, setUtilization] = useState("");
             <CustomSelect
   value={subTeam}
   onChange={setSubTeam}
-  options={SUB_TEAM_OPTIONS}
+  options={subTeamOptions}
   placeholder="Select Sub Team"
 />
 
@@ -242,7 +385,7 @@ const [utilization, setUtilization] = useState("");
             <CustomSelect
   value={type}
   onChange={setType}
-  options={TYPE_OPTIONS}
+  options={typeOptions}
   placeholder="Select Type"
 />
 
@@ -267,9 +410,10 @@ const [utilization, setUtilization] = useState("");
 
           {/* Buttons */}
 
-          <div className="flex gap-4">
+          <div className="flex gap-4 mb-4">
 
             <button
+              onClick={handleAddEmployee}
               className="flex-1 rounded-lg bg-[#E12729] py-2 font-semibold text-white hover:bg-red-700"
             >
               Add New User

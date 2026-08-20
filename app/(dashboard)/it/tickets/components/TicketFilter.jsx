@@ -136,7 +136,7 @@ export default function TicketFilters({
   return (
     <div className="border-0">
       {/* Filters */}
-      <div className="grid grid-cols-1 gap-6 px-6 py-8 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 px-6 py-4 md:grid-cols-3">
         {filters.map((filter) => (
           <CustomSelect
             key={filter.key}

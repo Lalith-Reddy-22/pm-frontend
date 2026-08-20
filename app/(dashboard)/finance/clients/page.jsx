@@ -8,23 +8,41 @@ import StatCards     from "./components/StatCards";
 import GPBarChart    from "./components/GPBarChart";
 import TopPerformers from "./components/TopPerformers";
 import ClientTable   from "./components/ClientTable";
+import CustomSelect from "@/components/ui/CustomSelect";
 
 export default function FinanceClientsPage() {
   const { t } = useTheme();
   const router = useRouter();
   const [topN, setTopN] = useState(10);
+  const [financialYear, setFinancialYear] = useState("2026-2027");
 
   return (
     <div className={`${t.mainBg} min-h-screen`}>
 
       <div className={`sticky top-0 z-10 px-6 py-4 bg-inherit border-b ${t.clientBorder} flex items-end justify-between`}>
         <div>
-          <p className={`text-xs ${t.textSecondary} mb-1`}>Financial Year</p>
-          <select className={`border ${t.clientBorder} rounded-lg px-3 py-1.5 text-sm ${t.clientInputText} ${t.clientInputBg}`}>
-            <option>2026 - 2027</option>
-            <option>2025 - 2026</option>
-          </select>
-        </div>
+  <p className={`text-xs ${t.textSecondary} mb-1`}>
+    Financial Year
+  </p>
+
+  <div className="w-40">
+    <CustomSelect
+      value={financialYear}
+      onChange={setFinancialYear}
+      placeholder="Select Year"
+      options={[
+        {
+          value: "2026-2027",
+          label: "2026 - 2027",
+        },
+        {
+          value: "2025-2026",
+          label: "2025 - 2026",
+        },
+      ]}
+    />
+  </div>
+</div>
         <div className="flex gap-2">
           <button
             onClick={() => router.push("/finance/clients/new")}
