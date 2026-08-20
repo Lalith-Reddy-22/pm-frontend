@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Pencil, Trash2, Plus, ChevronDown, ChevronUp,} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 const TABLE_HEADERS = [
   { label: "Task ID", className: "w-20 text-center" },
@@ -58,6 +59,8 @@ export default function TaskTable({ rows = [] }) {
 }
 
 function TaskTableRow({ task }) {
+  const router = useRouter();
+
   return (
     <TableRow className="group border-b border-border transition-colors hover:bg-accent/30">
       <TableCell className="px-4 py-3 text-center text-sm font-medium text-foreground">
@@ -98,10 +101,22 @@ function TaskTableRow({ task }) {
       <TableCell className="px-4 py-3 text-center text-sm text-muted-foreground">{task.endDate}</TableCell>
       <TableCell className="px-4 py-3 text-center">
         <div className="flex items-center justify-center gap-1.5">
-          <Button variant="ghost" size="icon-sm" aria-label="View task" className="opacity-60 group-hover:opacity-100 hover:text-[#E12729]">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label="Create task"
+            onClick={() => router.push("/tasks/create")}
+            className="opacity-60 group-hover:opacity-100 hover:text-[#E12729]"
+          >
             <Plus />
           </Button>
-          <Button variant="ghost" size="icon-sm" aria-label="Edit task" className="opacity-60 group-hover:opacity-100 hover:text-[#E12729]">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label="Update task"
+            onClick={() => router.push(`/tasks/create?taskId=${task.id}`)}
+            className="opacity-60 group-hover:opacity-100 hover:text-[#E12729]"
+          >
             <Pencil />
           </Button>
           <Button variant="ghost" size="icon-sm" aria-label="Delete task" className="opacity-60 group-hover:opacity-100 hover:text-destructive">

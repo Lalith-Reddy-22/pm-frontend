@@ -21,7 +21,26 @@ import EmployeeTaskModal from "./components/EmployeeTaskModal";
 import ProjectTable from "./components/ProjectTable";
 import ProjectDetailsModal from "./components/ProjectDetailsModal";
 
+const getEmpIdFromToken = () => {
+  try {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      return null;
+    }
+
+    const payload = JSON.parse(atob(token.split(".")[1]));
+
+    return payload.empId || payload.EmpId || payload.emp_id || null;
+  } catch (error) {
+    console.error("Error reading empId from token:", error);
+    return null;
+  }
+};
+
 export default function SummaryReportPage() {
+
+  const [empId, setEmpId] = useState(null);
   // Tab state
   const [activeTab, setActiveTab] = useState("task-allocation");
 
@@ -75,6 +94,7 @@ const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
       setError(null);
 
       const filters = {
+        empId,
         projectId: selectedProject,
         startDate: startDate ? format(startDate, "yyyy-MM-dd") : null,
         endDate: endDate ? format(endDate, "yyyy-MM-dd") : null,
@@ -112,6 +132,14 @@ const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
     fetchProjects();
   }, []);
 
+  useEffect(() => {
+  const id = getEmpIdFromToken();
+
+  console.log("LOGGED IN EMP ID:", id);
+
+  setEmpId(id);
+}, []);
+
   /**
    * Fetch report data whenever filters change
    */
@@ -148,8 +176,10 @@ const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
    * Fetch report data whenever pagination changes
    */
   useEffect(() => {
-    fetchReportData();
-  }, [fetchReportData]);
+  if (!empId) return;
+
+  fetchReportData();
+}, [fetchReportData, empId]);
 
   /**
    * Fetch employee list
@@ -198,6 +228,7 @@ const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
     try {
       // Fetch all data for export without pagination
       const filters = {
+        empId,
         projectId: selectedProject,
         startDate: startDate ? format(startDate, "yyyy-MM-dd") : null,
         endDate: endDate ? format(endDate, "yyyy-MM-dd") : null,

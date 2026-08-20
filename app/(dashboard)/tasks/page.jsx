@@ -1,200 +1,115 @@
 "use client";
 
-import TaskList from "./TaskList";
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
-const SAMPLE_TASKS = [
-  {
-    id: 356,
-    title: "QA signoff and go live",
-    projectTitle: "AMI LATAM 3D Face Ageing Module",
-    projectCode: "0737",
-    priority: "High",
-    employees: ["Keerthi MS", "Avinash Ranchagi", "Prasanth K"],
-    startDate: "04/13/2026",
-    endDate: "04/13/2026",
-  },
-  {
-    id: 355,
-    title: "Addressing QA feedback",
-    projectTitle: "AMI LATAM 3D Face Ageing Module",
-    projectCode: "0737",
-    priority: "Medium",
-    employees: ["Keerthi MS"],
-    startDate: "04/13/2026",
-    endDate: "04/13/2026",
-  },
-  {
-    id: 354,
-    title: "QA of the final build",
-    projectTitle: "AMI LATAM 3D Face Ageing Module",
-    projectCode: "0737",
-    priority: "High",
-    employees: ["Avinash Ranchagi"],
-    startDate: "04/13/2026",
-    endDate: "04/13/2026",
-  },
-  {
-    id: 353,
-    title: "Tech team updating model in build",
-    projectTitle: "AMI LATAM LATAM 3D Face Ageing Module",
-    projectCode: "0737",
-    priority: "Medium",
-    employees: ["Keerthi MS"],
-    startDate: "04/12/2026",
-    endDate: "04/12/2026",
-  },
-  {
-    id: 352,
-    title: "Incorporating the Fat Pad Ageing changes",
-    projectTitle: "AMI LATAM 3D Face Ageing Module",
-    projectCode: "0737",
-    priority: "Low",
-    employees: ["Prasanth K"],
-    startDate: "04/06/2026",
-    endDate: "04/11/2026",
-  },
-  {
-    id: 351,
-    title: "Final regression testing",
-    projectTitle: "AMI LATAM 3D Face Ageing Module",
-    projectCode: "0737",
-    priority: "Medium",
-    employees: ["Keerthi MS"],
-    startDate: "04/10/2026",
-    endDate: "04/12/2026",
-  },
-  {
-    id: 350,
-    title: "Prepare release notes",
-    projectTitle: "AMI LATAM 3D Face Ageing Module",
-    projectCode: "0737",
-    priority: "Low",
-    employees: ["Avinash Ranchagi"],
-    startDate: "04/08/2026",
-    endDate: "04/09/2026",
-  },
-  {
-    id: 349,
-    title: "Client review meeting",
-    projectTitle: "AMI LATAM 3D Face Ageing Module",
-    projectCode: "0737",
-    priority: "High",
-    employees: ["Keerthi MS"],
-    startDate: "04/07/2026",
-    endDate: "04/07/2026",
-  },
-  {
-    id: 348,
-    title: "Update asset library",
-    projectTitle: "AMI LATAM 3D Face Ageing Module",
-    projectCode: "0737",
-    priority: "Low",
-    employees: ["Prasanth K"],
-    startDate: "04/05/2026",
-    endDate: "04/05/2026",
-  },
-  {
-    id: 347,
-    title: "Monitor build stability",
-    projectTitle: "AMI LATAM 3D Face Ageing Module",
-    projectCode: "0737",
-    priority: "Medium",
-    employees: ["Avinash Ranchagi"],
-    startDate: "04/04/2026",
-    endDate: "04/06/2026",
-  },
-  {
-    id: 356,
-    title: "QA signoff and go live",
-    projectTitle: "AMI LATAM 3D Face Ageing Module",
-    projectCode: "0737",
-    priority: "High",
-    employees: ["Keerthi MS", "Avinash Ranchagi"],
-    startDate: "04/13/2026",
-    endDate: "04/13/2026",
-  },
-  {
-    id: 355,
-    title: "Addressing QA feedback",
-    projectTitle: "AMI LATAM 3D Face Ageing Module",
-    projectCode: "0737",
-    priority: "Medium",
-    employees: ["Keerthi MS"],
-    startDate: "04/13/2026",
-    endDate: "04/13/2026",
-  },
-  {
-    id: 354,
-    title: "QA of the final build",
-    projectTitle: "AMI LATAM 3D Face Ageing Module",
-    projectCode: "0737",
-    priority: "High",
-    employees: ["Avinash Ranchagi"],
-    startDate: "04/13/2026",
-    endDate: "04/13/2026",
-  },
-  {
-    id: 353,
-    title: "Tech team updating model in build",
-    projectTitle: "AMI LATAM LATAM 3D Face Ageing Module",
-    projectCode: "0737",
-    priority: "Medium",
-    employees: ["Keerthi MS"],
-    startDate: "04/12/2026",
-    endDate: "04/12/2026",
-  },
-  {
-    id: 352,
-    title: "Incorporating the Fat Pad Ageing changes",
-    projectTitle: "AMI LATAM 3D Face Ageing Module",
-    projectCode: "0737",
-    priority: "Low",
-    employees: ["Prasanth K"],
-    startDate: "04/06/2026",
-    endDate: "04/11/2026",
-  },
-  {
-    id: 351,
-    title: "Final regression testing",
-    projectTitle: "AMI LATAM 3D Face Ageing Module",
-    projectCode: "0737",
-    priority: "Medium",
-    employees: ["Keerthi MS"],
-    startDate: "04/10/2026",
-    endDate: "04/12/2026",
-  },
-  {
-    id: 350,
-    title: "Prepare release notes",
-    projectTitle: "AMI LATAM 3D Face Ageing Module",
-    projectCode: "0737",
-    priority: "Low",
-    employees: ["Avinash Ranchagi"],
-    startDate: "04/08/2026",
-    endDate: "04/09/2026",
-  },
-  {
-    id: 349,
-    title: "Client review meeting",
-    projectTitle: "AMI LATAM 3D Face Ageing Module",
-    projectCode: "0737",
-    priority: "High",
-    employees: ["Keerthi MS"],
-    startDate: "04/07/2026",
-    endDate: "04/07/2026",
-  },
-  {
-    id: 348,
-    title: "Update asset library",
-    projectTitle: "AMI LATAM 3D Face Ageing Module",
-    projectCode: "0737",
-    priority: "Low",
-    employees: ["Prasanth K"],
-    startDate: "04/05/2026",
-    endDate: "04/05/2026",
-  },
-];
+import TaskList from "./TaskList";
+import { fetchTasks } from "@/store/slices/taskSlice";
 
 export default function TasksPage() {
-  return <TaskList tasks={SAMPLE_TASKS} />;
+  const dispatch = useDispatch();
+
+  const [dateRange, setDateRange] = useState({
+    from: new Date(2026, 0, 1),
+    to: new Date(2026, 11, 31),
+  });
+
+  const [search, setSearch] = useState("");
+
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  const {
+    tasks,
+    loading,
+    error,
+    totalCount,
+    totalPages,
+    pageNumber,
+    pageSize,
+  } = useSelector((state) => state.task);
+
+  function formatDate(date) {
+    if (!date) return "";
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+  }
+
+  useEffect(() => {
+  const timer = setTimeout(() => {
+    setDebouncedSearch(search);
+  }, 500);
+
+  return () => clearTimeout(timer);
+}, [search]);
+
+  useEffect(() => {
+  const empId = Number(
+    sessionStorage.getItem("empId") || 0
+  );
+
+  const userType = Number(
+    sessionStorage.getItem("userType") || 0
+  );
+
+  const startDate = formatDate(dateRange.from);
+  const endDate = formatDate(dateRange.to);
+
+  dispatch(
+    fetchTasks({
+      empId,
+      userType,
+      startDate,
+      endDate,
+      searchText: debouncedSearch,
+      projectId: null,
+      pageNumber: 1,
+      pageSize: 10,
+    })
+  );
+}, [
+  dispatch,
+  dateRange.from,
+  dateRange.to,
+  debouncedSearch,
+]);
+
+  if (loading) {
+    return (
+      <div className="p-6 text-center text-gray-500">
+        Loading tasks...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 text-center text-red-500">
+        Failed to load tasks.
+
+        <p className="mt-1 text-sm">
+          {error}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <TaskList
+      tasks={tasks}
+      totalCount={totalCount}
+      totalPages={totalPages}
+      pageNumber={pageNumber}
+      pageSize={pageSize}
+
+      dateRange={dateRange}
+      setDateRange={setDateRange}
+
+      search={search}
+      setSearch={setSearch}
+    />
+  );
 }

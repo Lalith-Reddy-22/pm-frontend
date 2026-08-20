@@ -4,42 +4,137 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Eye, EyeOff, Lock, User } from "lucide-react";
-import { authApi } from "@/lib/api";
+import { useDispatch, useSelector } from "react-redux";
+import { login, forgotPassword, verifyOtp, resetPassword } from "@/store/slices/authSlice";
 
 export default function LoginPage() {
   const router = useRouter();
+  const dispatch = useDispatch();
+
+const {
+  loading,
+  error: reduxError,
+
+  forgotPasswordLoading,
+  forgotPasswordError,
+
+  otpLoading,
+  otpError,
+
+  resetPasswordLoading,
+  resetPasswordError,
+} = useSelector((state) => state.auth);
   const [form, setForm]         = useState({ email: "", password: "" });
   const [showPw, setShowPw]     = useState(false);
   const [remember, setRemember] = useState(false);
-  const [error, setError]       = useState("");
-  const [loading, setLoading]   = useState(false);
+
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+
+const [forgotStep, setForgotStep] = useState("email");
+
+const [forgotEmail, setForgotEmail] = useState("");
+const [otp, setOtp] = useState("");
+const [newPassword, setNewPassword] = useState("");
+const [confirmPassword, setConfirmPassword] = useState("");
+  
 
   function handleChange(e) {
-    setForm(f => ({ ...f, [e.target.name]: e.target.value }));
-    setError("");
-  }
+  setForm(f => ({
+    ...f,
+    [e.target.name]: e.target.value,
+  }));
+}
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    try {
-      const data = await authApi.login(form.email, form.password);
-      sessionStorage.setItem("auth", "true");
-      sessionStorage.setItem("token", data.token);
-      sessionStorage.setItem("refreshToken", data.refreshToken);
-      sessionStorage.setItem("role", data.role);
-      sessionStorage.setItem("empId", data.empId);
-      sessionStorage.setItem("empName", data.empName);
-      sessionStorage.setItem("empNumber", data.empNumber);
-      sessionStorage.setItem("designation", data.designation);
-      sessionStorage.setItem("emailId", data.emailId);
-      router.push(["employee", "sys_admin"].includes(data.role) ? "/reports/resource-allocation" : "/reports/daily-report");
-    } catch (err) {
-      setError(err.message || "Invalid email or password.");
-      setLoading(false);
+ async function handleSubmit(e) {
+  e.preventDefault();
+
+  const result = await dispatch(
+    login({
+      email: form.email,
+      password: form.password,
+    })
+  );
+
+  if (login.fulfilled.match(result)) {
+    const data = result.payload;
+
+    // Store authentication information
+    
+
+    const roleMap = {
+      1: "admin",
+      2: "pm",
+      3: "employee",
+      4: "pm_employee",
+      5: "sys_admin",
+      6: "management_admin",
+    };
+
+    const role =
+      roleMap[data.user_Type] || "employee";
+
+    sessionStorage.setItem("role", role);
+
+    if (
+      ["employee", "sys_admin"].includes(role)
+    ) {
+      router.push(
+        "/reports/resource-allocation"
+      );
+    } else {
+      router.push("/reports/daily-report");
     }
   }
+}
+
+async function handleForgotPassword(e) {
+  e.preventDefault();
+
+  const result = await dispatch(
+    forgotPassword({
+      email: forgotEmail,
+    })
+  );
+
+  if (forgotPassword.fulfilled.match(result)) {
+    setForgotStep("otp");
+  }
+}
+
+async function handleVerifyOtp(e) {
+  e.preventDefault();
+
+  const result = await dispatch(
+    verifyOtp({
+      email: forgotEmail,
+      otp,
+    })
+  );
+
+  if (verifyOtp.fulfilled.match(result)) {
+    setForgotStep("reset");
+  }
+}
+
+async function handleResetPassword(e) {
+  e.preventDefault();
+
+  if (newPassword !== confirmPassword) {
+    return;
+  }
+
+  const result = await dispatch(
+    resetPassword({
+      email: forgotEmail,
+      newPassword,
+      otp,
+    })
+  );
+
+  if (resetPassword.fulfilled.match(result)) {
+    setForgotStep("success");
+  }
+}
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden"
@@ -88,7 +183,7 @@ export default function LoginPage() {
 
       {/* Left branding */}
       <div className="hidden lg:flex flex-col items-start justify-center flex-1 pl-24 z-10 gap-3">
-        <Image src="/login.png" alt="Medtrix" width={600} height={400} loading="eager" className="object-contain drop-shadow-[2px_4px_6px_black] h-auto" />
+        <Image src="/login.png" alt="Medtrix" width={500} height={400} loading="eager" className="object-contain drop-shadow-[2px_4px_6px_black] h-auto pl-24" />
       </div>
 
       {/* Login card */}
@@ -101,87 +196,368 @@ export default function LoginPage() {
           boxShadow: "0 8px 32px rgba(100,110,160,0.12), 0 2px 8px rgba(100,110,160,0.08)",
         }}
       >
-        {/* Lock icon */}
-        <div className="flex justify-center mb-4">
-          <div className="w-14 h-14 rounded-full flex items-center justify-center"
-            style={{ background: "rgba(255,255,255,0.7)", border: "1px solid rgba(200,205,225,0.8)", boxShadow: "0 2px 12px rgba(100,110,160,0.12)" }}
-          >
-            <Lock size={22} className="text-red-500" />
-          </div>
+        {showForgotPassword ? (
+  <div>
+
+    {/* Lock icon */}
+    <div className="flex justify-center mb-4">
+      <div
+        className="w-14 h-14 rounded-full flex items-center justify-center"
+        style={{
+          background: "rgba(255,255,255,0.7)",
+          border: "1px solid rgba(200,205,225,0.8)",
+          boxShadow:
+            "0 2px 12px rgba(100,110,160,0.12)",
+        }}
+      >
+        <Lock size={22} className="text-red-500" />
+      </div>
+    </div>
+
+    <h1 className="text-center text-[22px] font-bold text-slate-800 mb-1">
+      Forgot Password?
+    </h1>
+
+    <p className="text-center text-sm text-slate-400 mb-6">
+      Enter your email to reset your password
+    </p>
+
+    <form
+      onSubmit={handleForgotPassword}
+      className="flex flex-col gap-4"
+    >
+
+      {/* Email */}
+      <div>
+        <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest mb-1.5 block">
+          Email
+        </label>
+
+        <div
+          className="flex items-center gap-2.5 rounded-xl px-3.5 py-3"
+          style={{
+            background: "rgba(255,255,255,0.6)",
+            border: "1px solid rgba(200,205,225,0.7)",
+          }}
+        >
+          <User
+            size={15}
+            className="text-slate-400 flex-shrink-0"
+          />
+
+          <input
+            type="email"
+            placeholder="Enter your email"
+            value={forgotEmail}
+            onChange={(e) =>
+              setForgotEmail(e.target.value)
+            }
+            className="flex-1 bg-transparent text-sm text-slate-700 placeholder-slate-400 outline-none"
+            required
+          />
         </div>
+      </div>
 
-        <h1 className="text-center text-[22px] font-bold text-slate-800 mb-1">Project Management Portal</h1>
-        <p className="text-center text-sm text-slate-400 mb-6">Welcome back! Please sign in to continue</p>
+      {/* API Error */}
+      {forgotPasswordError && (
+        <p className="text-xs text-red-500 text-center">
+          {forgotPasswordError}
+        </p>
+      )}
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      {/* Send Reset Link */}
+      <button
+        type="submit"
+        disabled={forgotPasswordLoading}
+        className="w-full py-3.5 rounded-xl text-white font-semibold text-sm disabled:opacity-60"
+        style={{
+          background: "#303030",
+          boxShadow:
+            "0 4px 12px rgba(0,0,0,0.2)",
+        }}
+      >
+        {forgotPasswordLoading
+          ? "Sending..."
+          : "Send Reset Link"}
+      </button>
 
-          {/* Email */}
-          <div>
-            <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest mb-1.5 block">Email</label>
-            <div className="flex items-center gap-2.5 rounded-xl px-3.5 py-3"
-              style={{ background: "rgba(255,255,255,0.6)", border: "1px solid rgba(200,205,225,0.7)" }}
-            >
-              <User size={15} className="text-slate-400 flex-shrink-0" />
-              <input
-                name="email"
-                type="text"
-                placeholder="Enter your email or username"
-                value={form.email}
-                onChange={handleChange}
-                className="flex-1 bg-transparent text-sm text-slate-700 placeholder-slate-400 outline-none"
-                required
-              />
-            </div>
-          </div>
+      {/* Back to Login */}
+      <button
+        type="button"
+        onClick={() => {
+          setShowForgotPassword(false);
+          setForgotStep("email");
+        }}
+        className="text-sm text-red-500 hover:text-red-600"
+      >
+        ‹ Back to login
+      </button>
 
-          {/* Password */}
-          <div>
-            <div className="flex justify-between items-center mb-1.5">
-              <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest">Password</label>
-              <button type="button" className="text-xs text-red-500 hover:text-red-600 font-medium transition-colors">Forgot Password?</button>
-            </div>
-            <div className="flex items-center gap-2.5 rounded-xl px-3.5 py-3"
-              style={{ background: "rgba(255,255,255,0.6)", border: "1px solid rgba(200,205,225,0.7)" }}
-            >
-              <Lock size={15} className="text-slate-400 flex-shrink-0" />
-              <input
-                name="password"
-                type={showPw ? "text" : "password"}
-                placeholder="••••••••••"
-                value={form.password}
-                onChange={handleChange}
-                className="flex-1 bg-transparent text-sm text-slate-700 placeholder-slate-400 outline-none"
-                required
-              />
-              <button type="button" onClick={() => setShowPw(v => !v)} className="text-slate-400 hover:text-slate-600 transition-colors">
-                {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
-              </button>
-            </div>
-          </div>
+    </form>
 
-          {/* Remember me */}
-          <label className="flex items-center gap-2.5 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={remember}
-              onChange={e => setRemember(e.target.checked)}
-              className="w-4 h-4 rounded border-slate-300 accent-red-500 cursor-pointer"
-            />
-            <span className="text-sm text-slate-500">Remember Me</span>
+
+{/* OTP SCREEN */}
+{forgotStep === "otp" && (
+  <div className="mt-4">
+
+    <div className="flex justify-center mb-4">
+      <div
+        className="w-14 h-14 rounded-full flex items-center justify-center"
+        style={{
+          background: "rgba(255,255,255,0.7)",
+          border: "1px solid rgba(200,205,225,0.8)",
+          boxShadow:
+            "0 2px 12px rgba(100,110,160,0.12)",
+        }}
+      >
+        <Lock
+          size={22}
+          className="text-red-500"
+        />
+      </div>
+    </div>
+
+    <h1 className="text-center text-[22px] font-bold text-slate-800 mb-1">
+      Verify OTP
+    </h1>
+
+    <p className="text-center text-sm text-slate-400 mb-6">
+      Enter the OTP sent to your email
+    </p>
+
+    <form
+      onSubmit={handleVerifyOtp}
+      className="flex flex-col gap-4"
+    >
+
+      <div>
+        <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest mb-1.5 block">
+          OTP
+        </label>
+
+        <input
+          type="text"
+          inputMode="numeric"
+          maxLength={6}
+          placeholder="Enter OTP"
+          value={otp}
+          onChange={(e) => setOtp(e.target.value)}
+          className="w-full rounded-xl px-4 py-3 text-sm text-slate-700 outline-none"
+          style={{
+            background: "rgba(255,255,255,0.6)",
+            border:
+              "1px solid rgba(200,205,225,0.7)",
+          }}
+          required
+        />
+      </div>
+
+      {otpError && (
+        <p className="text-xs text-red-500 text-center">
+          {otpError}
+        </p>
+      )}
+
+      <button
+        type="submit"
+        disabled={otpLoading}
+        className="w-full py-3.5 rounded-xl text-white font-semibold text-sm disabled:opacity-60"
+        style={{
+          background: "#303030",
+          boxShadow:
+            "0 4px 12px rgba(0,0,0,0.2)",
+        }}
+      >
+        {otpLoading
+          ? "Verifying..."
+          : "Verify OTP"}
+      </button>
+
+      <button
+        type="button"
+        onClick={() => {
+          setForgotStep("email");
+          setOtp("");
+        }}
+        className="text-sm text-red-500 hover:text-red-600"
+      >
+        ‹ Back
+      </button>
+
+    </form>
+
+  </div>
+)}
+
+  </div>
+) : (
+  <>
+    {/* Lock icon */}
+    <div className="flex justify-center mb-4">
+      <div
+        className="w-14 h-14 rounded-full flex items-center justify-center"
+        style={{
+          background: "rgba(255,255,255,0.7)",
+          border: "1px solid rgba(200,205,225,0.8)",
+          boxShadow:
+            "0 2px 12px rgba(100,110,160,0.12)",
+        }}
+      >
+        <Lock size={22} className="text-red-500" />
+      </div>
+    </div>
+
+    <h1 className="text-center text-[22px] font-bold text-slate-800 mb-1">
+      Project Management Portal
+    </h1>
+
+    <p className="text-center text-sm text-slate-400 mb-6">
+      Welcome back! Please sign in to continue
+    </p>
+
+    <form
+      onSubmit={handleSubmit}
+      className="flex flex-col gap-4"
+    >
+
+      {/* Email */}
+      <div>
+        <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest mb-1.5 block">
+          Email
+        </label>
+
+        <div
+          className="flex items-center gap-2.5 rounded-xl px-3.5 py-3"
+          style={{
+            background: "rgba(255,255,255,0.6)",
+            border:
+              "1px solid rgba(200,205,225,0.7)",
+          }}
+        >
+          <User
+            size={15}
+            className="text-slate-400 flex-shrink-0"
+          />
+
+          <input
+            name="email"
+            type="text"
+            placeholder="Enter your email or username"
+            value={form.email}
+            onChange={handleChange}
+            className="flex-1 bg-transparent text-sm text-slate-700 placeholder-slate-400 outline-none"
+            required
+          />
+        </div>
+      </div>
+
+      {/* Password */}
+      <div>
+        <div className="flex justify-between items-center mb-1.5">
+
+          <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest">
+            Password
           </label>
 
-          {error && <p className="text-xs text-red-500 text-center -mt-1">{error}</p>}
-
-          {/* Sign in button */}
           <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3.5 rounded-xl text-white font-semibold text-sm tracking-wide transition-all disabled:opacity-60"
-            style={{ background: "linear-gradient(90deg, #e53935 0%, #c2185b 100%)", boxShadow: "0 4px 20px rgba(220,50,80,0.35)" }}
+            type="button"
+            onClick={() => {
+              setShowForgotPassword(true);
+              setForgotStep("email");
+              setForgotEmail(form.email);
+            }}
+            className="text-xs text-red-500 hover:text-red-600 font-medium transition-colors"
           >
-            {loading ? "Signing in…" : "Sign in"}
+            Forgot Password?
           </button>
-        </form>
+
+        </div>
+
+        <div
+          className="flex items-center gap-2.5 rounded-xl px-3.5 py-3"
+          style={{
+            background: "rgba(255,255,255,0.6)",
+            border:
+              "1px solid rgba(200,205,225,0.7)",
+          }}
+        >
+          <Lock
+            size={15}
+            className="text-slate-400 flex-shrink-0"
+          />
+
+          <input
+            name="password"
+            type={showPw ? "text" : "password"}
+            placeholder="••••••••••"
+            value={form.password}
+            onChange={handleChange}
+            className="flex-1 bg-transparent text-sm text-slate-700 placeholder-slate-400 outline-none"
+            required
+          />
+
+          <button
+            type="button"
+            onClick={() =>
+              setShowPw((v) => !v)
+            }
+            className="text-slate-400 hover:text-slate-600 transition-colors"
+          >
+            {showPw ? (
+              <EyeOff size={15} />
+            ) : (
+              <Eye size={15} />
+            )}
+          </button>
+
+        </div>
+      </div>
+
+      {/* Remember me */}
+      <label className="flex items-center gap-2.5 cursor-pointer select-none">
+
+        <input
+          type="checkbox"
+          checked={remember}
+          onChange={(e) =>
+            setRemember(e.target.checked)
+          }
+          className="w-4 h-4 rounded border-slate-300 accent-red-500 cursor-pointer"
+        />
+
+        <span className="text-sm text-slate-500">
+          Remember Me
+        </span>
+
+      </label>
+
+      {/* Login error */}
+      {reduxError && (
+        <p className="text-xs text-red-500 text-center -mt-1">
+          {reduxError}
+        </p>
+      )}
+
+      {/* Sign in */}
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full py-3.5 rounded-xl text-white font-semibold text-sm tracking-wide transition-all disabled:opacity-60"
+        style={{
+          background:
+            "linear-gradient(90deg, #e53935 0%, #c2185b 100%)",
+          boxShadow:
+            "0 4px 20px rgba(220,50,80,0.35)",
+        }}
+      >
+        {loading
+          ? "Signing in…"
+          : "Sign in"}
+      </button>
+
+    </form>
+  </>
+)}
       </div>
     </div>
   );

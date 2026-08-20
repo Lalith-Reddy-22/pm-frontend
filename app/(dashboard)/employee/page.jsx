@@ -1,13 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTheme } from "../../context/ThemeContext";
 import {
-  EMPLOYEES,
   AVATAR_STYLES,
   parseMDY,
 } from "./data";
 import EmployeeToolbar from "./components/EmployeeToolbar";
+import { getEmployeeList } from "@/services/employeeService";
 import AddEmployeeDrawer from "./components/AddEmployeeDrawer";
 import {
   handleCopy,
@@ -26,13 +26,33 @@ import EditEmployeeModal from "./components/EditEmployeeModal";
 
 
 export default function EmployeePage() {
+
+  useEffect(() => {
+  const loadEmployees = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const employees = await getEmployeeList();
+      setData(employees);
+    } catch (error) {
+      console.error("Failed to load employees:", error);
+      setError("Failed to load employees");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  loadEmployees();
+}, []);
   const { t, isDark } = useTheme();
 
   const [pageSize, setPageSize] = useState(50);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState({ key: "name", dir: "asc" });
-  const [data] = useState(EMPLOYEES);
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [showDrawer, setShowDrawer] = useState(false);
   const [showExport, setShowExport] = useState(false);
 
@@ -78,6 +98,22 @@ export default function EmployeePage() {
   const [showEditModal, setShowEditModal] = useState(false);
 
 const [selectedEmployee, setSelectedEmployee] = useState(null);
+
+if (loading) {
+  return (
+    <div className="p-6">
+      Loading employees...
+    </div>
+  );
+}
+
+if (error) {
+  return (
+    <div className="p-6 text-red-500">
+      {error}
+    </div>
+  );
+}
 
   return (
     <>

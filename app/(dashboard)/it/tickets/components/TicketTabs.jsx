@@ -16,7 +16,7 @@ export default function TicketTabs({
 
         <button
           onClick={() => setActiveTab("raise")}
-          className={`w-80 py-3 text-sm font-semibold border-[#E12729] transition-all duration-200 cursor-pointer
+          className={`w-50 py-2 text-md font-semibold border-[#E12729] transition-all duration-200 cursor-pointer
             ${
               activeTab === "raise"
                 ? "bg-[#E12729] text-white"
@@ -28,7 +28,7 @@ export default function TicketTabs({
 
         <button
           onClick={() => setActiveTab("tracker")}
-          className={`w-80 py-3 text-sm font-semibold transition-all duration-200 cursor-pointer
+          className={`w-50 py-2 text-md font-semibold transition-all duration-200 cursor-pointer
             ${
               activeTab === "tracker"
                 ? "bg-[#E12729] text-white"

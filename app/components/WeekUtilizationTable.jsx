@@ -1,50 +1,93 @@
 "use client";
 
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import WeekRangePicker from "./WeekRangePicker";
 import { useTheme } from "../context/ThemeContext";
 import EmployeeTaskDetailsModal from "./EmployeeTaskDetailsModal";
 import Pagination from "./pagination";
 import { usePagination } from "../../hooks/usePagination";
+import { useDispatch, useSelector } from "react-redux";
 
-const SEED_START = new Date("2026-02-04");
-const SEED_END   = new Date("2026-02-10");
+import {
+  fetchResourceAllocation,
+  fetchTaskDetails,
+} from "@/store/slices/resourceAllocationSlice";
 
-// ── Real backend data (Tech team) ─────────────────────────────────────────────
-const TECH_API_DATA = {"employees":[{"empId":121,"employee_Name":"Abhishek Badiger","total_planned":19.5,"total_logged":19,"dates":[{"date":"02/04/2026","planned":4.5,"logged":4,"available":4.5},{"date":"02/05/2026","planned":0,"logged":0,"available":9},{"date":"02/06/2026","planned":1,"logged":1,"available":8},{"date":"02/09/2026","planned":7,"logged":7,"available":2},{"date":"02/10/2026","planned":7,"logged":7,"available":2}]},{"empId":169,"employee_Name":"Ananya M","total_planned":0,"total_logged":24,"dates":[{"date":"02/04/2026","planned":0,"logged":8,"available":9},{"date":"02/05/2026","planned":0,"logged":0,"available":9},{"date":"02/06/2026","planned":0,"logged":0,"available":9},{"date":"02/09/2026","planned":0,"logged":8,"available":9},{"date":"02/10/2026","planned":0,"logged":8,"available":9}]},{"empId":27,"employee_Name":"Avinash Ranchagi","total_planned":24,"total_logged":35,"dates":[{"date":"02/04/2026","planned":2,"logged":6,"available":7},{"date":"02/05/2026","planned":6,"logged":8,"available":3},{"date":"02/06/2026","planned":9,"logged":9,"available":0},{"date":"02/09/2026","planned":2,"logged":5,"available":7},{"date":"02/10/2026","planned":5,"logged":7,"available":4}]},{"empId":69,"employee_Name":"Bharathkumar Duragappa","total_planned":25,"total_logged":32,"dates":[{"date":"02/04/2026","planned":4,"logged":8,"available":5},{"date":"02/05/2026","planned":6,"logged":7,"available":3},{"date":"02/06/2026","planned":1,"logged":4,"available":8},{"date":"02/09/2026","planned":7,"logged":6,"available":2},{"date":"02/10/2026","planned":7,"logged":7,"available":2}]},{"empId":73,"employee_Name":"Darshan T","total_planned":12.5,"total_logged":15,"dates":[{"date":"02/04/2026","planned":0.5,"logged":0.5,"available":8.5},{"date":"02/05/2026","planned":5.5,"logged":7,"available":3.5},{"date":"02/06/2026","planned":2,"logged":3,"available":7},{"date":"02/09/2026","planned":2,"logged":2,"available":7},{"date":"02/10/2026","planned":2.5,"logged":2.5,"available":6.5}]},{"empId":92,"employee_Name":"Jayashree k","total_planned":21,"total_logged":21,"dates":[{"date":"02/04/2026","planned":0,"logged":0,"available":9},{"date":"02/05/2026","planned":0,"logged":0,"available":9},{"date":"02/06/2026","planned":7,"logged":7,"available":2},{"date":"02/09/2026","planned":7,"logged":7,"available":2},{"date":"02/10/2026","planned":7,"logged":7,"available":2}]},{"empId":1179,"employee_Name":"Lalith Kumar Reddy K","total_planned":0,"total_logged":0,"dates":[{"date":"02/04/2026","planned":0,"logged":0,"available":9},{"date":"02/05/2026","planned":0,"logged":0,"available":9},{"date":"02/06/2026","planned":0,"logged":0,"available":9},{"date":"02/09/2026","planned":0,"logged":0,"available":9},{"date":"02/10/2026","planned":0,"logged":0,"available":9}]},{"empId":124,"employee_Name":"Manish BK","total_planned":22,"total_logged":29,"dates":[{"date":"02/04/2026","planned":7,"logged":5,"available":2},{"date":"02/05/2026","planned":2,"logged":7,"available":7},{"date":"02/06/2026","planned":3,"logged":3,"available":6},{"date":"02/09/2026","planned":7,"logged":7,"available":2},{"date":"02/10/2026","planned":3,"logged":7,"available":6}]},{"empId":1176,"employee_Name":"Monika H M","total_planned":0,"total_logged":0,"dates":[{"date":"02/04/2026","planned":0,"logged":0,"available":9},{"date":"02/05/2026","planned":0,"logged":0,"available":9},{"date":"02/06/2026","planned":0,"logged":0,"available":9},{"date":"02/09/2026","planned":0,"logged":0,"available":9},{"date":"02/10/2026","planned":0,"logged":0,"available":9}]},{"empId":1178,"employee_Name":"Poorvik K M","total_planned":0,"total_logged":0,"dates":[{"date":"02/04/2026","planned":0,"logged":0,"available":9},{"date":"02/05/2026","planned":0,"logged":0,"available":9},{"date":"02/06/2026","planned":0,"logged":0,"available":9},{"date":"02/09/2026","planned":0,"logged":0,"available":9},{"date":"02/10/2026","planned":0,"logged":0,"available":9}]},{"empId":42,"employee_Name":"Rahul Konka","total_planned":3,"total_logged":8,"dates":[{"date":"02/04/2026","planned":1,"logged":1,"available":8},{"date":"02/05/2026","planned":2,"logged":4,"available":7},{"date":"02/06/2026","planned":0,"logged":1,"available":9},{"date":"02/09/2026","planned":0,"logged":1,"available":9},{"date":"02/10/2026","planned":0,"logged":1,"available":9}]},{"empId":154,"employee_Name":"Ramakanth Rao R","total_planned":24,"total_logged":24,"dates":[{"date":"02/04/2026","planned":7,"logged":7,"available":2},{"date":"02/05/2026","planned":4,"logged":4,"available":5},{"date":"02/06/2026","planned":7,"logged":7,"available":2},{"date":"02/09/2026","planned":0,"logged":0,"available":9},{"date":"02/10/2026","planned":6,"logged":6,"available":3}]},{"empId":123,"employee_Name":"Sanjay Devarjankar","total_planned":32,"total_logged":32,"dates":[{"date":"02/04/2026","planned":4,"logged":4,"available":5},{"date":"02/05/2026","planned":5,"logged":5,"available":4},{"date":"02/06/2026","planned":8,"logged":8,"available":1},{"date":"02/09/2026","planned":8,"logged":8,"available":1},{"date":"02/10/2026","planned":7,"logged":7,"available":2}]},{"empId":122,"employee_Name":"Souvik Das","total_planned":13,"total_logged":13,"dates":[{"date":"02/04/2026","planned":9,"logged":9,"available":0},{"date":"02/05/2026","planned":0,"logged":0,"available":9},{"date":"02/06/2026","planned":0,"logged":0,"available":9},{"date":"02/09/2026","planned":0,"logged":0,"available":9},{"date":"02/10/2026","planned":4,"logged":4,"available":5}]},{"empId":1,"employee_Name":"Stalin Blazy","total_planned":33.5,"total_logged":33.5,"dates":[{"date":"02/04/2026","planned":4.5,"logged":4.5,"available":4.5},{"date":"02/05/2026","planned":5,"logged":5,"available":4},{"date":"02/06/2026","planned":7.5,"logged":10,"available":1.5},{"date":"02/09/2026","planned":9,"logged":7.5,"available":0},{"date":"02/10/2026","planned":7.5,"logged":6.5,"available":1.5}]},{"empId":1177,"employee_Name":"Yogesh Periyasami","total_planned":0,"total_logged":0,"dates":[{"date":"02/04/2026","planned":0,"logged":0,"available":9},{"date":"02/05/2026","planned":0,"logged":0,"available":9},{"date":"02/06/2026","planned":0,"logged":0,"available":9},{"date":"02/09/2026","planned":0,"logged":0,"available":9},{"date":"02/10/2026","planned":0,"logged":0,"available":9}]}]};
+const SEED_START = new Date("2026-08-10");
+const SEED_END = new Date("2026-08-14");
+
 
 // Parse date string to ISO key YYYY-MM-DD (handles both MM/DD/YYYY and YYYY-MM-DD)
-function parseDateKey(dateStr) {
-  if (dateStr.includes("-")) return dateStr; // already YYYY-MM-DD
-  const [mm, dd, yyyy] = dateStr.split("/");
-  return `${yyyy}-${mm}-${dd}`;
+function parseDateKey(dateString) {
+  if (!dateString) return "";
+
+  if (dateString.includes("-")) {
+    return dateString;
+  }
+
+  const [month, day, year] = dateString.split("/");
+
+  return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
 }
 
-// Format a Date object to YYYY-MM-DD for API requests
 function fmtApiDate(date) {
   const yyyy = date.getFullYear();
   const mm = String(date.getMonth() + 1).padStart(2, "0");
   const dd = String(date.getDate()).padStart(2, "0");
+
   return `${yyyy}-${mm}-${dd}`;
 }
 
+function getLocalDateKey(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
 // Transform backend response into the internal row format
-function transformApiData(apiData, dept) {
-  return apiData.employees.map(emp => {
+function transformApiData(employees, dept) {
+  if (!Array.isArray(employees)) {
+    return [];
+  }
+
+  return employees.map((emp) => {
     const dailyData = {};
-    emp.dates.forEach(({ date, planned, logged, available }) => {
-      const key = parseDateKey(date);
-      if (planned === 0 && logged === 0 && available === 0) {
-        // no capacity (e.g. test/inactive employee)
-        dailyData[key] = { type: "dot" };
-      } else if (planned === 0 && logged === 0) {
-        dailyData[key] = { type: "available" };
-      } else {
-        dailyData[key] = { type: "data", p: planned, a: available, l: logged };
-      }
-    });
-    return { id: emp.empId, name: emp.employee_Name, dept, dailyData, total_planned: emp.total_planned, total_logged: emp.total_logged };
+
+    if (Array.isArray(emp.dates)) {
+      emp.dates.forEach(({ date, planned, logged, available }) => {
+        const key = parseDateKey(date);
+
+        if (planned === 0 && logged === 0 && available === 0) {
+          dailyData[key] = {
+            type: "dot",
+          };
+        } else if (planned === 0 && logged === 0) {
+          dailyData[key] = {
+            type: "available",
+            available: Number(available ?? 0),
+          };
+        } else {
+          dailyData[key] = {
+            type: "data",
+            p: Number(planned ?? 0),
+            a: Number(available ?? 0),
+            l: Number(logged ?? 0),
+          };
+        }
+      });
+    }
+
+    return {
+      id: emp.empId,
+      name: emp.employee_Name || "Unknown",
+      dept,
+      dailyData,
+      total_planned: Number(emp.total_planned ?? 0),
+      total_logged: Number(emp.total_logged ?? 0),
+    };
   });
 }
 
@@ -76,13 +119,32 @@ function DayCell({
 }) {
   if (!entry) return <td className={`px-4 py-3 text-center ${t.textMuted}`}>—</td>;
 
-  if (entry.type === "dot" || entry.type === "available") {
-    return (
-      <td className="px-4 py-3 text-center">
-        <span className="text-blue-500 font-semibold text-sm">A</span>
-      </td>
-    );
-  }
+  if (entry.type === "available") {
+  return (
+    <td className="px-4 py-3">
+      <div
+  onClick={onCellClick}
+  className="flex cursor-pointer items-center justify-center gap-1 rounded-md px-2 py-1 text-xs hover:bg-red-50"
+>
+        <span className={`font-medium ${t.textPrimary}`}>
+          P:0
+        </span>
+
+        <span className={t.textMuted}>|</span>
+
+        <span className="font-medium text-blue-500">
+          A:{entry.available}
+        </span>
+
+        <span className={t.textMuted}>|</span>
+
+        <span className={t.textMuted}>
+          L:0
+        </span>
+      </div>
+    </td>
+  );
+}
 
   const { p, a, l } = entry;
   const pPct = Math.min((p / 9) * 100, 100);
@@ -92,7 +154,7 @@ function DayCell({
   return (
     <td className="px-4 py-3">
       <div
-  onClick={() => onCellClick(entry)}
+  onClick={onCellClick}
   className="mb-1 flex cursor-pointer items-center justify-center gap-1 rounded-md px-2 py-1 text-xs transition hover:bg-red-50 hover:text-red-600"
 >
   <span className={`font-medium ${t.textPrimary}`}>P:{p}</span>
@@ -134,8 +196,15 @@ function SortIcon({ col, sortCol, sortDir }) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-const TABS  = ["Content", "Creative", "Tech", "PM's", "AM's"];
-const TAB_IDS = { "Content": 1, "Creative": 2, "Tech": 3, "PM's": 4, "AM's": 5 };
+const TABS  = ["Content", "Editorial", "Creative", "Tech", "PM's", "AM's"];
+const TAB_IDS = {
+  Content: 3,
+  Editorial: null,
+  Creative: 2,
+  Tech: 1,
+  "PM's": 4,
+  "AM's": 8,
+};
 const PAGE_SIZE = 10;
 
 export default function WeekUtilizationTable() {
@@ -143,6 +212,15 @@ export default function WeekUtilizationTable() {
 
   const [startDate,  setStartDate]  = useState(SEED_START);
   const [endDate,    setEndDate]    = useState(SEED_END);
+  const dispatch = useDispatch();
+
+const {
+  employees: apiData,
+  loading,
+  error,
+  taskDetails,
+  taskDetailsLoading,
+} = useSelector((state) => state.resourceAllocation);
   const [activeTab,  setActiveTab]  = useState("Content");
   const [search,     setSearch]     = useState("");
   const [sortCol,    setSortCol]    = useState("name");
@@ -152,30 +230,62 @@ export default function WeekUtilizationTable() {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedEntry, setSelectedEntry] = useState(null);
+  
 
-
-  const allData  = useRef(transformApiData(TECH_API_DATA, "Tech")).current;
   const weekDays = useMemo(() => getDatesInRange(startDate, endDate), [startDate, endDate]);
 
   function handleTaskPopup(employee, date, entry) {
-    setSelectedEmployee(employee);
-    setSelectedDate(date);
-    setSelectedEntry(entry);
-    setTaskPopupOpen(true);
+  setSelectedEmployee(employee);
+  setSelectedDate(date);
+  setSelectedEntry(entry);
+
+  setTaskPopupOpen(true);
+
+  const dateVal = fmtApiDate(date);
+
+  console.log("TASK DETAIL REQUEST:", {
+    empId: employee.id,
+    dateVal,
+  });
+
+  dispatch(
+    fetchTaskDetails({
+      empId: employee.id,
+      dateVal,
+    })
+  );
 }
 
   function handleRangeChange(s, e) { setStartDate(s); setEndDate(e); }
 
-  const filtered = useMemo(() => {
-    // For Tech tab use real data; other tabs show empty until wired up
-    let rows = activeTab === "Tech" ? allData : [];
-    if (search.trim()) rows = rows.filter(r => r.name.toLowerCase().includes(search.toLowerCase()));
-    rows = [...rows].sort((a, b) => {
-      const av = a.name.toLowerCase(), bv = b.name.toLowerCase();
-      return sortDir === "asc" ? av.localeCompare(bv) : bv.localeCompare(av);
-    });
-    return rows;
-  }, [allData, activeTab, search, sortDir]);
+  const allData = useMemo(() => {
+  if (!apiData.length) {
+    return [];
+  }
+
+  return transformApiData(apiData, activeTab);
+}, [apiData, activeTab]);
+
+const filtered = useMemo(() => {
+  let rows = [...allData];
+
+  if (search.trim()) {
+    rows = rows.filter((r) =>
+      r.name.toLowerCase().includes(search.toLowerCase())
+    );
+  }
+
+  rows.sort((a, b) => {
+    const av = a.name.toLowerCase();
+    const bv = b.name.toLowerCase();
+
+    return sortDir === "asc"
+      ? av.localeCompare(bv)
+      : bv.localeCompare(av);
+  });
+
+  return rows;
+}, [allData, search, sortDir]);
 
   const {
     paginatedData: pageRows,
@@ -198,6 +308,26 @@ export default function WeekUtilizationTable() {
   const thCls  = `px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider cursor-pointer select-none whitespace-nowrap
     ${isDark ? "text-gray-400 bg-[#1a1a1a]" : "text-gray-500 bg-gray-50"}`;
   const trCls  = `border-t transition-colors ${isDark ? "border-white/5 hover:bg-white/3" : "border-gray-100 hover:bg-gray-50"}`;
+
+  useEffect(() => {
+  loadResourceAllocation();
+}, [startDate, endDate, activeTab]);
+
+function loadResourceAllocation() {
+  const teamId = TAB_IDS[activeTab];
+
+  if (!teamId) {
+    return;
+  }
+
+  dispatch(
+    fetchResourceAllocation({
+      startDate: fmtApiDate(startDate),
+      endDate: fmtApiDate(endDate),
+      teamId,
+    })
+  );
+}
 
   return (
     <div className={`rounded-xl overflow-hidden flex flex-col min-h-[calc(100vh-6rem)] ${card}`}>
@@ -277,12 +407,25 @@ export default function WeekUtilizationTable() {
                     </div>
                   </td>
                   {/* Day cells */}
-                  {weekDays.map(day => {
-                    const key = day.toISOString().slice(0, 10);
-                    return <DayCell key={key} entry={row.dailyData[key]} isDark={isDark} t={t}
-                    onCellClick={() => handleTaskPopup(row,day,
-                    row.dailyData[key])}/>;
-                  })}
+                  {weekDays.map((day) => {
+  const key = getLocalDateKey(day);
+
+  return (
+    <DayCell
+      key={key}
+      entry={row.dailyData[key]}
+      isDark={isDark}
+      t={t}
+      onCellClick={() =>
+        handleTaskPopup(
+          row,
+          day,
+          row.dailyData[key]
+        )
+      }
+    />
+  );
+})}
                 </tr>
               );
             })}
@@ -312,12 +455,15 @@ export default function WeekUtilizationTable() {
         pageNumbers={pageNumbers}
         setPage={setPage}
       />
-     <EmployeeTaskDetailsModal 
-     open={taskPopupOpen} 
-     onOpenChange={setTaskPopupOpen} 
-     employee={selectedEmployee} 
-     date={selectedDate} 
-     entry={selectedEntry} />
+     <EmployeeTaskDetailsModal
+  open={taskPopupOpen}
+  onOpenChange={setTaskPopupOpen}
+  employee={selectedEmployee}
+  date={selectedDate}
+  entry={selectedEntry}
+  taskDetails={taskDetails}
+  loading={taskDetailsLoading}
+/>
     </div>
   );
 }

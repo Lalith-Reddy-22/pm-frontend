@@ -1,19 +1,54 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import CustomSelect from "@/components/ui/CustomSelect";
-
-const projects = [
-  { id: 502, name: "ELZONRIS_Dr erba video-Update" },
-  { id: 503, name: "AMI LATAM 3D Face Ageing Module" },
-];
+import { fetchTaskProjects } from "@/store/slices/taskSlice";
 
 export default function AddTaskDrawer({ open, onClose }) {
   const router = useRouter();
+  const dispatch = useDispatch();
+
   const [selectedProject, setSelectedProject] = useState("");
 
-  if (!open) return null;
+  // Get projects from Redux
+  const {
+    projects,
+    projectsLoading,
+    projectsError,
+  } = useSelector((state) => state.task);
+
+  // Fetch projects when drawer opens
+  useEffect(() => {
+    if (!open) return;
+
+    const empId = Number(
+      sessionStorage.getItem("empId") || 0
+    );
+
+    const userType = Number(
+      sessionStorage.getItem("userType") || 0
+    );
+
+    console.log("PROJECT DROPDOWN REQUEST:", {
+      empId,
+      userType,
+    });
+
+    dispatch(
+      fetchTaskProjects({
+        empId,
+        userType,
+      })
+    );
+  }, [open, dispatch]);
+
+  // Convert API response to CustomSelect format
+  const projectOptions = projects.map((project) => ({
+    id: project.project_ID,
+    name: project.project_Title?.trim() || "",
+  }));
 
   const handleAddTask = () => {
     if (!selectedProject) {
@@ -23,8 +58,13 @@ export default function AddTaskDrawer({ open, onClose }) {
 
     onClose();
 
-    router.push(`/tasks/create?projectId=${selectedProject}`);
+    router.push(
+      `/tasks/create?projectId=${selectedProject}`
+    );
   };
+
+  // Now it is safe to return
+  if (!open) return null;
 
   return (
     <>
@@ -39,7 +79,9 @@ export default function AddTaskDrawer({ open, onClose }) {
 
         {/* Header */}
         <div className="flex items-center justify-between border-b p-5">
-          <h2 className="text-xl font-semibold">Add New Task</h2>
+          <h2 className="text-xl font-semibold">
+            Add New Task
+          </h2>
 
           <button
             onClick={onClose}
@@ -57,27 +99,41 @@ export default function AddTaskDrawer({ open, onClose }) {
           </label>
 
           <CustomSelect
-  options={projects}
-  value={selectedProject}
-  onChange={setSelectedProject}
-  placeholder="Select Project"
-/>
-   
+            options={projectOptions}
+            value={selectedProject}
+            onChange={setSelectedProject}
+            placeholder={
+              projectsLoading
+                ? "Loading projects..."
+                : "Select Project"
+            }
+          />
+
+          {/* API error */}
+          {projectsError && (
+            <p className="mt-2 text-sm text-red-500">
+              {projectsError}
+            </p>
+          )}
+
           <button
             onClick={handleAddTask}
-            className="rounded-lg bg-[#E12729] px-3 py-1 text-white hover:bg-red-700 mt-2"
+            disabled={projectsLoading}
+            className="mt-2 rounded-lg bg-[#E12729] px-3 py-1 text-white hover:bg-red-700 disabled:opacity-50"
           >
             Add New Task
           </button>
+
           <span>&nbsp;&nbsp;</span>
-          
+
           <button
             onClick={onClose}
-            className="rounded-lg border border-[#E12729] px-3 py-1 mt-2  "
+            className="mt-2 rounded-lg border border-[#E12729] px-3 py-1"
           >
             Cancel
           </button>
-        </div>        
+
+        </div>
       </div>
     </>
   );

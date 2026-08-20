@@ -1,6 +1,19 @@
-import { teamData } from "../data";
+export default function SummaryTable({ title, data = [] }) {
+  const totalHours = data.reduce(
+    (sum, item) => sum + Number(item.hours || 0),
+    0
+  );
 
-export default function SummaryTable({ title }) {
+  const totalAvailable = data.reduce(
+    (sum, item) => sum + Number(item.available || 0),
+    0
+  );
+
+  const totalRevenue = data.reduce(
+    (sum, item) => sum + Number(item.revenue || 0),
+    0
+  );
+
   return (
     <div className="border">
 
@@ -11,29 +24,37 @@ export default function SummaryTable({ title }) {
       <table className="w-full text-sm">
 
         <thead>
-
           <tr className="bg-[#c8f1b9]">
+            <th className="border p-2 text-left">
+              TEAM
+            </th>
 
-            <th className="border p-2 text-left">TEAM</th>
+            <th className="border p-2">
+              PLANNED HOURS
+            </th>
 
-            <th className="border p-2">PLANNED HOURS</th>
+            <th className="border p-2">
+              AVAILABILITY HOURS
+            </th>
 
-            <th className="border p-2">AVAILABILITY HOURS</th>
+            <th className="border p-2">
+              UTILIZATION (%)
+            </th>
 
-            <th className="border p-2">UTILIZATION (%)</th>
-
-            <th className="border p-2">PLANNED REVENUE</th>
-
+            <th className="border p-2">
+              PLANNED REVENUE
+            </th>
           </tr>
-
         </thead>
 
         <tbody>
 
-          {teamData.map((item) => (
+          {data.map((item) => (
             <tr key={item.team}>
 
-              <td className="border p-2">{item.team}</td>
+              <td className="border p-2">
+                {item.team}
+              </td>
 
               <td className="border text-center">
                 {item.hours}
@@ -56,15 +77,24 @@ export default function SummaryTable({ title }) {
 
           <tr className="bg-[#2d79c7] text-white font-semibold">
 
-            <td className="border p-2">Total</td>
+            <td className="border p-2">
+              Total
+            </td>
 
-            <td className="border text-center">374.5</td>
+            <td className="border text-center">
+              {totalHours}
+            </td>
 
-            <td className="border text-center">3728</td>
+            <td className="border text-center">
+              {totalAvailable}
+            </td>
 
-            <td className="border"></td>
+            <td className="border">
+            </td>
 
-            <td className="border text-center">22802.59</td>
+            <td className="border text-center">
+              {totalRevenue.toFixed(2)}
+            </td>
 
           </tr>
 

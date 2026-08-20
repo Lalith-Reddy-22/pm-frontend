@@ -1,6 +1,7 @@
 "use client";
 
 import { Search, Upload, ChevronDown } from "lucide-react";
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -10,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import ExportDropdown from "@/app/(dashboard)/employee/components/ExportDropdown";
 import WeekRangePicker from "@/app/components/WeekRangePicker";
 import CustomSelect from "@/components/ui/CustomSelect";
 
@@ -20,6 +22,7 @@ const PAGE_SIZE_SELECT_OPTIONS = [
   { id: "50", name: "50" },
   { id: "100", name: "100" },
 ];
+
 
 export default function ReportToolbar({
   projects,
@@ -35,6 +38,7 @@ export default function ReportToolbar({
   setPage,
   onExport,
 }) {
+  const [showExport, setShowExport] = useState(false);
   return (
     <div className="flex flex-col gap-4 px-5 py-4">
       {/* First row: Project Filter, Date Range */}
@@ -98,15 +102,22 @@ export default function ReportToolbar({
         <div className="flex-1" />
 
         {/* Export Button */}
-        <Button
-          variant="outline"
-          className="gap-1.5 text-sm border-[#E12729] text-[#E12729] hover:bg-red-50 cursor-pointer h-8"
-          onClick={onExport}
-        >
-          <Upload size={14} />
-          <span>Export</span>
-          <ChevronDown size={13} />
-        </Button>
+        <div className="relative">
+  <ExportDropdown
+    showExport={showExport}
+    setShowExport={setShowExport}
+    handleCopy={() => onExport("copy")}
+    handlePrint={() => onExport("print")}
+    handlePDF={() => onExport("pdf")}
+    handleCSV={() => onExport("csv")}
+    border="border-gray-200"
+    t={{
+      cardBg: "bg-white",
+      textPrimary: "text-gray-700",
+    }}
+    isDark={false}
+  />
+</div>
 
         {/* Show Entries */}
         <div className="flex items-center gap-2">
