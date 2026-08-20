@@ -8,23 +8,21 @@ const axiosClient = axios.create({
   },
 });
 
-// Add JWT token to every request
+// JWT
 axiosClient.interceptors.request.use(
   (config) => {
     if (typeof window !== "undefined") {
       const token = sessionStorage.getItem("accessToken");
-
-      console.log("AXIOS TOKEN EXISTS:", !!token);
+       
+      console.log("ACCESS TOKEN EXISTS:", !!token);
+      console.log("ACCESS TOKEN:", token);
 
       if (token) {
-        config.headers = config.headers || {};
+        config.headers = config.headers || {};        
         config.headers.Authorization = `Bearer ${token}`;
-      }
 
-      console.log(
-        "AUTH HEADER:",
-        config.headers?.Authorization
-      );
+        console.log("AUTH HEADER:", config.headers.Authorization);
+      }
     }
 
     return config;
@@ -32,23 +30,10 @@ axiosClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Handle API errors
+// Errors
 axiosClient.interceptors.response.use(
   (response) => response,
-
-  (error) => {
-    console.error("AXIOS API ERROR");
-
-    if (error.response) {
-      console.error("STATUS:", error.response.status);
-      console.error("URL:", error.config?.url);
-      console.error("DATA:", error.response.data);
-    } else {
-      console.error("ERROR:", error.message);
-    }
-
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 export default axiosClient;

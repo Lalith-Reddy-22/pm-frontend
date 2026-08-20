@@ -49,20 +49,24 @@ export default function ReportToolbar({
             Project:
           </span>
           <CustomSelect
-            value={selectedProject}
-            onChange={setSelectedProject}
-            placeholder="All Projects"
-            options={[
-              {
-                value: "all",
-                label: "All Projects",
-              },
-              ...projects.map((project) => ({
-                value: project.code,
-                label: `${project.code} - ${project.title.substring(0, 30)}`,
-              })),
-            ]}
-          />
+  value={selectedProject}
+  onChange={setSelectedProject}
+  placeholder="All Projects"
+  options={[
+    {
+      value: "all",
+      label: "All Projects",
+    },
+    ...projects
+      .filter((project) => project.project_ID != null)
+      .map((project) => ({
+        value: String(project.project_ID),
+        label: `${project.project_ID} - ${
+          project.project_Title || "Unnamed Project"
+        }`.substring(0, 50),
+      })),
+  ]}
+/>
         </div>
 
         <div className="flex-1" />

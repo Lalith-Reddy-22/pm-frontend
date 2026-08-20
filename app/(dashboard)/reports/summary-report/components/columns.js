@@ -1,114 +1,148 @@
 /**
  * Report Table Columns Configuration
- *
- * Defines all columns for the task allocation report table
  */
 
 export const REPORT_COLUMNS = [
   {
-    key: "project",
-    label: "Project",
+    key: "projectCode",
+    label: "Project Code",
     sortable: true,
-    className: "min-w-[320px]",
+    className: "w-28 min-w-[100px]",
   },
+
+  {
+    key: "projectTitle",
+    label: "Project Title",
+    sortable: true,
+    className: "min-w-[280px]",
+  },
+
+  {
+    key: "client",
+    label: "Client",
+    sortable: true,
+    className: "min-w-[160px]",
+  },
+
   {
     key: "subClient",
     label: "Sub Client",
     sortable: true,
-    className: "w-32 min-w-[120px]",
+    className: "min-w-[160px]",
   },
+
   {
-  key: "task",
-  label: "Task",
-  sortable: true,
-  className: "min-w-[320px]",
-},
-{
-  key: "type",
-  label: "Type",
-  sortable: true,
-  className: "w-[140px]",
-},
+    key: "taskId",
+    label: "Task ID",
+    sortable: true,
+    className: "w-28 min-w-[100px]",
+  },
+
+  {
+    key: "taskTitle",
+    label: "Task Title",
+    sortable: true,
+    className: "min-w-[280px]",
+  },
+
+  {
+    key: "type",
+    label: "Type",
+    sortable: true,
+    className: "w-[140px]",
+  },
+
   {
     key: "startDate",
     label: "Start Date",
     sortable: true,
-    className: "w-28 min-w-[100px] text-center",
-    render: (value) => new Date(value).toLocaleDateString(),
+    className: "w-28 min-w-[100px]",
   },
+
   {
     key: "endDate",
     label: "End Date",
     sortable: true,
-    className: "w-28 min-w-[100px] text-center",
-    render: (value) => new Date(value).toLocaleDateString(),
+    className: "w-28 min-w-[100px]",
   },
- {
-  key: "employee",
-  label: "Employee",
-  sortable: true,
-  className: "min-w-[250px]",
-},
+
   {
-    key: "function",
+    key: "employeeName",
+    label: "Employee Name",
+    sortable: true,
+    className: "min-w-[220px]",
+  },
+
+  {
+    key: "designation",
+    label: "Designation",
+    sortable: true,
+    className: "min-w-[180px]",
+  },
+
+  {
+    key: "team",
     label: "Function",
     sortable: true,
-    className: "w-32 min-w-[100px]",
+    className: "min-w-[160px]",
   },
+
   {
     key: "plannedHours",
     label: "Planned Hours",
     sortable: true,
-    className: "w-28 min-w-[100px] text-right",
+    className: "w-32 min-w-[110px] text-right",
     render: (value) => (
-      <span className="font-medium">{value}h</span>
+      <span className="font-medium">
+        {Number(value || 0).toFixed(2)}h
+      </span>
     ),
   },
+
   {
     key: "actualHours",
     label: "Actual Hours",
     sortable: true,
-    className: "w-28 min-w-[100px] text-right",
+    className: "w-32 min-w-[110px] text-right",
     render: (value) => (
-      <span className="font-medium">{value}h</span>
+      <span className="font-medium">
+        {Number(value || 0).toFixed(2)}h
+      </span>
     ),
   },
-  {
-    key: "unitCost",
-    label: "Unit Cost",
-    sortable: true,
-    className: "w-28 min-w-[100px] text-right",
-    render: (value) => `$${value}`,
-  },
+
   {
     key: "plannedCost",
     label: "Planned Cost",
     sortable: true,
-    className: "w-32 min-w-[110px] text-right",
+    className: "w-32 min-w-[120px] text-right",
     render: (value) => (
       <span className="font-medium">
-        ${Number(value).toLocaleString()}
+        ${Number(value || 0).toLocaleString()}
       </span>
     ),
   },
+
   {
     key: "actualCost",
     label: "Actual Cost",
     sortable: true,
-    className: "w-32 min-w-[110px] text-right",
+    className: "w-32 min-w-[120px] text-right",
     render: (value) => (
       <span className="font-medium">
-        ${Number(value).toLocaleString()}
+        ${Number(value || 0).toLocaleString()}
       </span>
     ),
   },
+
   {
     key: "difference",
     label: "Difference",
     sortable: true,
-    className: "w-28 min-w-[100px] text-right",
+    className: "w-32 min-w-[120px] text-right",
     render: (value) => {
-      const isPositive = value > 0;
+      const numberValue = Number(value || 0);
+      const isPositive = numberValue > 0;
 
       return (
         <span
@@ -117,24 +151,20 @@ export const REPORT_COLUMNS = [
           }`}
         >
           {isPositive ? "+" : "-"}$
-          {Math.abs(Number(value)).toLocaleString()}
+          {Math.abs(numberValue).toLocaleString()}
         </span>
       );
     },
   },
 ];
 
-/**
- * Get column label by key
- */
 export function getColumnLabel(key) {
   const column = REPORT_COLUMNS.find((col) => col.key === key);
   return column ? column.label : key;
 }
 
-/**
- * Get sortable columns
- */
 export function getSortableColumns() {
-  return REPORT_COLUMNS.filter((col) => col.sortable).map((col) => col.key);
+  return REPORT_COLUMNS
+    .filter((col) => col.sortable)
+    .map((col) => col.key);
 }

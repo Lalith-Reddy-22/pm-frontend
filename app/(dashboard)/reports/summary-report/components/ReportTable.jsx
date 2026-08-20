@@ -26,6 +26,8 @@ export default function ReportTable({
   emptyMessage = "No records found",
   isLoading = false,
 }) {
+
+  console.log("REPORT TABLE FIRST ROW:", rows[0]);
   if (isLoading) {
     return (
       <div className="relative max-h-[70vh] overflow-auto">
@@ -115,85 +117,104 @@ export default function ReportTable({
 }
 
 function ReportTableRow({ row }) {
+  const tableRow = {
+    projectCode:
+      row.projectCode ??
+      row.project_Code ??
+      "",
+
+    projectTitle:
+      row.project_Title ??
+      row.projectTitle ??
+      "",
+
+    client:
+      row.Client_Title ??
+      row.client ??
+      "",
+
+    subClient:
+      row.Sub_Client_Name ??
+      row.subClient ??
+      "",
+
+    taskId:
+      row.Task_ID ??
+      row.Task_id ??
+      row.taskId ??
+      "",
+
+    taskTitle:
+      row.Task_Title ??
+      row.taskTitle ??
+      "",
+
+    type:
+      Number(row.Billing_type) === 0
+        ? "Non-Billable"
+        : "Billable",
+
+    startDate:
+      row.StartDate ??
+      row.startDate ??
+      "",
+
+    endDate:
+      row.EndDate ??
+      row.endDate ??
+      "",
+
+    employeeName:
+      row.Employee_Name ??
+      row.employeeName ??
+      "",
+
+    designation:
+      row.EmpDesignation ??
+      row.designation ??
+      "",
+
+    team:
+      row.Teams_Name ??
+      row.team ??
+      "",
+
+    plannedHours:
+      row.planneHours ??
+      row.Planned_hours ??
+      0,
+
+    actualHours:
+      row.logHours ??
+      row.ActualHours ??
+      0,
+
+    plannedCost:
+      row.Planned_Cost ??
+      0,
+
+    actualCost:
+      row.Actual_Cost ??
+      0,
+
+    difference:
+      (Number(row.Actual_Cost ?? 0) -
+        Number(row.Planned_Cost ?? 0)),
+  };
+
   return (
     <TableRow className="border-b transition-colors hover:bg-accent/30">
       {REPORT_COLUMNS.map((column) => {
-        switch (column.key) {
-          case "project":
-            return (
-              <TableCell
-                key={column.key}
-                className={`px-6 py-3 align-middle ${column.className}`}
-              >
-                <div className="min-w-0">
-                  <p className="truncate font-semibold text-gray-900">
-                    {row.projectTitle}
-                  </p>
-
-                  <div className="mt-1 flex items-center gap-2 text-xs">
-
-                    <span className="truncate text-gray-500">
-                      {row.client}
-                    </span>
-
-                    <span className="inline-flex items-center rounded-md bg-white px-2 py-1 text-[11px] font-semibold text-[#E12729] border border-[#E12729]">
-                      #{row.projectCode}
-                    </span>
-                  </div>
-                </div>
-              </TableCell>
-            );
-
-          case "task":
-            return (
-              <TableCell
-                key={column.key}
-                className={`px-6 py-3 align-middle ${column.className}`}
-              >
-                <div className="min-w-0">
-                  <p className="truncate font-semibold text-gray-900">
-                    {row.taskTitle}
-                  </p>
-
-                  <div className="mt-2">
-  <span className="inline-flex items-center rounded-md border border-[#E12729] bg-white px-2 py-1 text-[11px] font-semibold text-[#E12729]">
-    #{row.taskId}
-  </span>
-</div>
-                </div>
-              </TableCell>
-            );
-
-          case "employee":
-            return (
-              <TableCell
-                key={column.key}
-                className={`px-6 py-3 align-middle ${column.className}`}
-              >
-                <div className="min-w-0">
-                  <p className="truncate font-semibold text-gray-900">
-                    {row.employeeName}
-                  </p>
-
-                  <p className="mt-1 text-xs text-gray-500">
-                    {row.designation}
-                  </p>
-                </div>
-              </TableCell>
-            );
-
-          default:
-            return (
-              <TableCell
-                key={column.key}
-                className={`px-6 py-3 align-middle ${column.className}`}
-              >
-                {column.render
-                  ? column.render(row[column.key])
-                  : row[column.key] ?? "—"}
-              </TableCell>
-            );
-        }
+        return (
+          <TableCell
+            key={column.key}
+            className={`px-6 py-3 align-middle ${column.className}`}
+          >
+            {column.render
+              ? column.render(tableRow[column.key])
+              : tableRow[column.key] ?? "—"}
+          </TableCell>
+        );
       })}
     </TableRow>
   );
