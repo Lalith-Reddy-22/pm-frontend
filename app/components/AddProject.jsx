@@ -178,7 +178,7 @@ const FINANCIAL_YEAR_OPTIONS = [
                     handleChange("projectName", e.target.value)
                   }
                   placeholder="Enter Project Name"
-                  className="h-11 w-full rounded-xl border border-gray-300 px-4 outline-none focus:border-red-500"
+                  className="h-8 w-full rounded-md border border-gray-300 px-4 outline-none focus:border-red-500"
                 />
 
               </div>
@@ -197,7 +197,7 @@ const FINANCIAL_YEAR_OPTIONS = [
                     handleChange("region", e.target.value)
                   }
                   placeholder="Enter Region"
-                  className="h-11 w-full rounded-xl border border-gray-300 px-4 outline-none focus:border-red-500"
+                  className="h-8 w-full rounded-md border border-gray-300 px-4 outline-none focus:border-red-500"
                 />
 
               </div>
@@ -254,7 +254,7 @@ const FINANCIAL_YEAR_OPTIONS = [
                     handleChange("projectCode", e.target.value)
                   }
                   placeholder="Enter Project Code"
-                  className="h-11 w-full rounded-xl border border-gray-300 px-4 outline-none focus:border-red-500"
+                  className="h-8 w-full rounded-md border border-gray-300 px-4 outline-none focus:border-red-500"
                 />
 
               </div>
@@ -292,7 +292,7 @@ const FINANCIAL_YEAR_OPTIONS = [
                     handleChange("subClient", e.target.value)
                   }
                   placeholder="Enter Sub Client"
-                  className="h-11 w-full rounded-xl border border-gray-300 px-4 outline-none focus:border-red-500"
+                  className="h-8 w-full rounded-md border border-gray-300 px-4 outline-none focus:border-red-500"
                 />
 
               </div>
@@ -343,7 +343,7 @@ const FINANCIAL_YEAR_OPTIONS = [
                     handleChange("projectOwner", e.target.value)
                   }
                   placeholder="Enter Project Owner"
-                  className="h-11 w-full rounded-xl border border-gray-300 px-4 outline-none focus:border-red-500"
+                  className="h-8 w-full rounded-md border border-gray-300 px-4 outline-none focus:border-red-500"
                 />
 
               </div>
@@ -477,7 +477,7 @@ const FINANCIAL_YEAR_OPTIONS = [
           onChange={(e) =>
             handleChange("purchaseOrderValue", e.target.value)
           }
-          className="h-11 w-full rounded-xl border border-gray-300 px-4 outline-none transition focus:border-red-500"
+          className="h-8 w-full rounded-md border border-gray-300 px-4 outline-none transition focus:border-red-500"
         />
 
       </div>
@@ -497,7 +497,7 @@ const FINANCIAL_YEAR_OPTIONS = [
           onChange={(e) =>
             handleChange("predictedCost", e.target.value)
           }
-          className="h-11 w-full rounded-xl border border-gray-300 px-4 outline-none transition focus:border-red-500"
+          className="h-8 w-full rounded-md border border-gray-300 px-4 outline-none transition focus:border-red-500"
         />
 
       </div>
@@ -517,7 +517,7 @@ const FINANCIAL_YEAR_OPTIONS = [
           onChange={(e) =>
             handleChange("outsourcingCost", e.target.value)
           }
-          className="h-11 w-full rounded-xl border border-gray-300 px-4 outline-none transition focus:border-red-500"
+          className="h-8 w-full rounded-md border border-gray-300 px-4 outline-none transition focus:border-red-500"
         />
 
       </div>

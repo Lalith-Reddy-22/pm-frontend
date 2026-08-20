@@ -4,8 +4,12 @@ import { Search, Upload, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import WeekRangePicker from "@/app/components/WeekRangePicker";
+import { useState } from "react";
+import ExportDropdown from "@/app/(dashboard)/employee/components/ExportDropdown";
 
 export default function TaskToolbar({ search, setSearch, setPage, onAddTask, dateRange, setDateRange }) {
+
+  const [showExport, setShowExport] = useState(false);
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
@@ -39,11 +43,22 @@ export default function TaskToolbar({ search, setSearch, setPage, onAddTask, dat
 
       {/* ── Right: Export + Add Task ── */}
       <div className="flex flex-wrap items-center gap-2">
-        <Button variant="outline" className="gap-1.5 text-sm border-[#E12729] cursor-pointer">
-          <Upload size={14} />
-          <span>Export</span>
-          <ChevronDown size={13} />
-        </Button>
+        <div className="relative">
+  <ExportDropdown
+    showExport={showExport}
+    setShowExport={setShowExport}
+    handleCopy={() => console.log("Copy")}
+    handlePrint={() => window.print()}
+    handlePDF={() => console.log("Export PDF")}
+    handleCSV={() => console.log("Export CSV")}
+    border="border-gray-200"
+    t={{
+      cardBg: "bg-white",
+      textPrimary: "text-gray-700",
+    }}
+    isDark={false}
+  />
+</div>
         <Button className="bg-[#E12729] hover:bg-[#E12729] cursor-pointer" onClick={onAddTask}>
           + Add Task
         </Button>

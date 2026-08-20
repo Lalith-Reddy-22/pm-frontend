@@ -1,4 +1,12 @@
-export default function FilterSection() {
+"use client";
+
+export default function FilterSection({
+  startDate,
+  endDate,
+  onStartDateChange,
+  onEndDateChange,
+  onGenerate,
+}) {
   return (
     <div className="flex items-end gap-4 border-t pt-5">
 
@@ -9,7 +17,8 @@ export default function FilterSection() {
 
         <input
           type="date"
-          defaultValue="2026-07-13"
+          value={startDate}
+          onChange={(e) => onStartDateChange(e.target.value)}
           className="border w-60 h-10 rounded px-3 mt-1"
         />
       </div>
@@ -21,12 +30,16 @@ export default function FilterSection() {
 
         <input
           type="date"
-          defaultValue="2026-07-17"
+          value={endDate}
+          onChange={(e) => onEndDateChange(e.target.value)}
           className="border w-60 h-10 rounded px-3 mt-1"
         />
       </div>
 
-      <button className="bg-[#3b3b3b] text-white px-6 h-10 rounded">
+      <button
+        onClick={onGenerate}
+        className="bg-[#3b3b3b] text-white px-6 h-10 rounded"
+      >
         Generate Report
       </button>
 

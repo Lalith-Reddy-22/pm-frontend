@@ -1,14 +1,8 @@
 "use client";
+import CustomSelect from "@/components/ui/CustomSelect";
 
 import { Input } from "@/components/ui/input";
 import DatePicker from "./DatePicker";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 export default function TaskForm({
     formData,
@@ -41,30 +35,28 @@ export default function TaskForm({
 
         {/* Task Priority */}
         <div>
-          <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-gray-600">
-            Task Priority <span className="text-red-500">*</span>
-          </label>
+  <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-gray-600">
+    Task Priority <span className="text-red-500">*</span>
+  </label>
 
-          <Select
-  value={formData.priority}
-  onValueChange={(value) =>
-    setFormData({
-      ...formData,
-      priority: value,
-    })
-  }
->
-  <SelectTrigger>
-    <SelectValue placeholder="Select Priority" />
-  </SelectTrigger>
-
-  <SelectContent>
-    <SelectItem value="low">Low</SelectItem>
-    <SelectItem value="medium">Medium</SelectItem>
-    <SelectItem value="high">High</SelectItem>
-  </SelectContent>
-</Select>
-        </div>
+  <CustomSelect
+    placeholder="Select Priority"
+    value={formData.priority}
+    onChange={(value) =>
+      setFormData({
+        ...formData,
+        priority: value,
+      })
+    }
+    options={[
+      { label: "Select Priority", value: "" },
+      { label: "Low", value: "low" },
+      { label: "Medium", value: "medium" },
+      { label: "High", value: "high" },
+      { label: "Tentative", value: "Tentative" },
+    ]}
+  />
+</div>
 
         {/* Client Name */}
 <div>
@@ -140,26 +132,22 @@ export default function TaskForm({
     Task Status <span className="text-red-500">*</span>
   </label>
 
-  <Select
-  value={formData.status}
-  onValueChange={(value) =>
-    setFormData({
-      ...formData,
-      status: value,
-    })
-  }
->
-  <SelectTrigger>
-    <SelectValue placeholder="Open" />
-  </SelectTrigger>
-
-  <SelectContent>
-    <SelectItem value="open">Open</SelectItem>
-    <SelectItem value="inprogress">In Progress</SelectItem>
-    <SelectItem value="completed">Completed</SelectItem>
-    <SelectItem value="hold">On Hold</SelectItem>
-  </SelectContent>
-</Select>
+  <CustomSelect
+    placeholder="Select Status"
+    value={formData.status}
+    onChange={(value) =>
+      setFormData({
+        ...formData,
+        status: value,
+      })
+    }
+    options={[
+      { label: "Select Status", value: "" },
+      { id: "open", name: "Open" },
+      { id: "closed", name: "Closed" },
+      { id: "inprogress", name: "In Progress" },
+    ]}
+  />
 </div>
 
 

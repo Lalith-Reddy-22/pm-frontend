@@ -76,7 +76,7 @@ export default function EmployeeStatsCards() {
         return (
           <div
             key={card.title}
-            className="group rounded-3xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+            className="group rounded-md border border-gray-200 bg-white p-3 w-full shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl "
           >
             {/* Top */}
             <div className="flex items-start justify-between">
@@ -95,17 +95,17 @@ export default function EmployeeStatsCards() {
             </div>
 
             {/* Number */}
-            <h2 className="mt-8 text-4xl font-bold text-gray-900">
+            <h2 className="mt-4 text-2xl font-bold text-gray-900 text-center">
               {card.value}
             </h2>
 
             {/* Title */}
-            <p className="mt-2 text-sm font-semibold text-gray-800">
+            <p className="mt-2 text-sm font-semibold text-gray-800 text-center">
               {card.title}
             </p>
 
             {/* Subtitle */}
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-xs text-gray-500 text-center">
               {card.subtitle}
             </p>
           </div>

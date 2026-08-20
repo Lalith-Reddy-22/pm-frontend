@@ -4,6 +4,8 @@ import { Search, ChevronDown, Upload, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import DateRangePicker from "@/components/DateRangePicker";
+import { useState } from "react";
+import ExportDropdown from "@/app/(dashboard)/employee/components/ExportDropdown";
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 
@@ -18,8 +20,11 @@ export default function TicketToolbar({
   dateRange,
   setDateRange,
 }) {
+
+  const [showExport, setShowExport] = useState(false);
+
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+    <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3">
       <div className="flex flex-wrap items-center gap-2">
         <span className="hidden text-sm font-medium text-muted-foreground sm:block">
           Search:
@@ -80,11 +85,22 @@ export default function TicketToolbar({
           <span className="text-sm text-muted-foreground">entries</span>
         </div> */}
 
-        <Button variant="outline" className="gap-1.5 text-sm border-[#E12729]">
-          <Upload size={14} />
-          Export
-          <ChevronDown size={13} />
-        </Button>
+        <div className="relative">
+  <ExportDropdown
+    showExport={showExport}
+    setShowExport={setShowExport}
+    handleCopy={() => console.log("Copy")}
+    handlePrint={() => window.print()}
+    handlePDF={() => console.log("Export PDF")}
+    handleCSV={() => console.log("Export CSV")}
+    border="border-gray-200"
+    t={{
+      cardBg: "bg-white",
+      textPrimary: "text-gray-700",
+    }}
+    isDark={false}
+  />
+</div>
 
         {activeTab === "raise" && (
           <Button className="gap-2 bg-[#E12729] text-white text-sm hover:bg-[#c81f21] border-[#E12729]">

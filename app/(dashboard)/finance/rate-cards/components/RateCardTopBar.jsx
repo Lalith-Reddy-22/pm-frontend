@@ -27,6 +27,11 @@ const departments = [
     icon: FileText,
   },
   {
+    id: "Editorial",
+    label: "Editorial",
+    icon: FileText,
+  },
+  {
     id: "PM",
     label: "PM",
     icon: Users,

@@ -29,6 +29,6 @@ export default function UtilizationCard({ percent, isDark }) {
         <p className={`text-lg font-bold leading-tight ${isDark ? "text-gray-100" : "text-gray-900"}`}>{percent}%</p>
         <p className={`text-xs font-medium ${isDark ? s.captionDark : s.captionLight}`}>This Week</p>
       </div>
-    </div>
+    </div> 
   );
 }

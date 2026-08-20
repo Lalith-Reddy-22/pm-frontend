@@ -1,46 +1,177 @@
+"use client";
+
+import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchWeekUtilization } from "@/store/slices/weekUtilizationSlice";
+
 import Header from "./components/Header";
 import FilterSection from "./components/FilterSection";
 import SectionTitle from "./components/SectionTitle";
 import SummaryTable from "./components/SummaryTable";
 import DesignationTable from "./components/DesignationTable";
 import ClientTable from "./components/ClientTable";
-import {designationBillable, designationNonBillable , clientData} from "./data";
+
 
 export default function WeekUtilization() {
+
+  const [startDate, setStartDate] = useState("2026-08-10");
+  const [endDate, setEndDate] = useState("2026-08-14");
+
+  const dispatch = useDispatch();
+
+const {
+  team,
+  designation,
+  client,
+  loading,
+  error,
+} = useSelector(
+  (state) => state.weekUtilization
+);
+
+const mapTeamData = (data = []) => {
+  return data.map((item) => ({
+    team: item.teams_Name || "",
+    hours: item.plan_Hours ?? 0,
+    available: item.availability_Hrs ?? 0,
+    utilization: item.utilization_Plan || "",
+    revenue: item.planned_Rev_Rec ?? 0,
+  }));
+};
+
+const mapClientData = (data = []) => {
+  return data.map((item) => ({
+    name: item.clientwiseRR || "",
+    hours: item.planned_Hrs ?? 0,
+    cost: item.planned_Cost ?? 0,
+    utilization: item.utilization || "",
+  }));
+};
+
+const mapDesignationData = (data = []) => {
+  const grouped = {};
+
+  data.forEach((item) => {
+    const department = item.department || "Unknown";
+
+    if (!grouped[department]) {
+      grouped[department] = {
+        department,
+        rows: [],
+      };
+    }
+
+    grouped[department].rows.push({
+      designation: item.empDesignation || "",
+      employee: item.numEmployees ?? 0,
+      planHours: item.plan_Hours ?? 0,
+      availableHours: item.available_Hours ?? 0,
+      utilization: item.utilization || "",
+    });
+  });
+
+  return Object.values(grouped);
+};
+
+const teamData = {
+  billable: mapTeamData(team?.billable),
+  nonBillable: mapTeamData(team?.nonBillable),
+};
+
+const designationData = {
+  billable: mapDesignationData(
+    designation?.billable
+  ),
+
+  nonBillable: mapDesignationData(
+    designation?.nonBillable
+  ),
+};
+
+const clientData = mapClientData(client);
+
+  
+
+  const handleGenerateReport = () => {
+  dispatch(
+    fetchWeekUtilization({
+      startDate,
+      endDate,
+    })
+  );
+};
+
   return (
     <div className="min-h-screen bg-[#f4f5f7] p-4 sm:p-6">
+
       <div className="mx-auto max-w-[1600px] rounded-lg border bg-white shadow-md p-6">
 
         <Header />
 
-        <FilterSection />
+        <FilterSection
+          startDate={startDate}
+          endDate={endDate}
+          onStartDateChange={setStartDate}
+          onEndDateChange={setEndDate}
+          onGenerate={handleGenerateReport}
+        />
+
+        {error && (
+          <div className="mt-4 rounded border border-red-300 bg-red-50 p-3 text-sm text-red-600">
+            {error}
+          </div>
+        )}
+
+        {loading && (
+          <div className="py-6 text-center text-sm text-gray-500">
+            Loading utilization report...
+          </div>
+        )}
 
         <SectionTitle title="Utilization Summary Team Wise" />
 
         <div className="grid grid-cols-2 gap-4 mt-3">
-          <SummaryTable title="BILLABLE" />
-          <SummaryTable title="NON BILLABLE" />
+
+          <SummaryTable
+            title="BILLABLE"
+            data={teamData.billable}
+          />
+
+          <SummaryTable
+            title="NON BILLABLE"
+            data={teamData.nonBillable}
+          />
+
         </div>
 
-      <SectionTitle title="Utilization Summary Designation Wise" />
+        <SectionTitle title="Utilization Summary Designation Wise" />
 
-      <div className="grid grid-cols-2 gap-4 mt-3">
-            <DesignationTable
-                title="BILLABLE"
-                data={designationBillable}
-            />
-            <DesignationTable
-                title="NON BILLABLE"
-                data={designationNonBillable}
-            />
+        <div className="grid grid-cols-2 gap-4 mt-3">
+
+          <DesignationTable
+            title="BILLABLE"
+            data={designationData.billable}
+          />
+
+          <DesignationTable
+            title="NON BILLABLE"
+            data={designationData.nonBillable}
+          />
+
         </div>
 
         <SectionTitle title="Utilization Summary Client Wise" />
 
         <div className="mt-3">
-            <ClientTable data={clientData} />
+
+          <ClientTable
+            data={clientData}
+          />
+
         </div>
+
       </div>
+
     </div>
   );
 }

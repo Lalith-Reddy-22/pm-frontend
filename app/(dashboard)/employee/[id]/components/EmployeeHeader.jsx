@@ -12,13 +12,13 @@ export default function EmployeeHeader({
 
       {/* Left */}
       <div>
-        <p className="text-sm font-medium text-gray-500">
+        {/* <p className="text-sm font-medium text-gray-500">
           Employee / Dashboard
         </p>
 
         <h1 className="mt-1 text-4xl font-bold tracking-tight text-gray-900">
           Dashboard
-        </h1>
+        </h1> */}
 
         <p className="mt-2 text-gray-500">
           Welcome back,

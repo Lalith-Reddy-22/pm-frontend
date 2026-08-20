@@ -15,6 +15,7 @@ import { usePagination } from "../../../hooks/usePagination";
 import StatCard from "./components/statCard";
 import UtilizationCard from "./components/UtilizationCard";
 import TimesheetTable from "./components/TimesheetTable";
+import CustomSelect from "@/components/ui/CustomSelect";
 
 import { TASKS, DAY_KEYS } from "./data";
 
@@ -197,25 +198,28 @@ const {
           onChange={(s, e) => { setStartDate(s); setEndDate(e); }}
         />
 
-        <div
-          className={`flex items-center gap-2 text-sm ${t.textSecondary}`}
-        >
-          Show
-
-          <select
-  value={pageSize}
-  onChange={(e) => setPageSize(Number(e.target.value))}
-  className={`rounded-lg border ${border} ${inputBg} px-2 py-1 text-sm ${t.textPrimary}`}
->
-            {[10, 25, 50, 100].map((n) => (
-              <option key={n} value={n}>
-                {n}
-              </option>
-            ))}
-          </select>
-
-          entries
-        </div>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground flex-shrink-0">
+                    <span>Show</span>
+                    <div className="rounded-lg border border-input bg-background">
+                      <CustomSelect
+          value={String(pageSize)}
+          onChange={(value) =>
+            setPagination((prev) => ({
+              ...prev,
+              pageSize: Number(value),
+              pageIndex: 0,
+            }))
+          }
+          options={[
+            { value: "10", label: "10" },
+            { value: "25", label: "25" },
+            { value: "50", label: "50" },
+            { value: "100", label: "100" },
+          ]}
+        />
+                    </div>
+                    <span>entries</span>
+                  </div>
 
         <div
           className={`flex items-center gap-2 text-sm ${t.textSecondary}`}

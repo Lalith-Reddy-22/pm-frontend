@@ -28,41 +28,48 @@ export default function CustomSelect({
 
   // Update dropdown position
   useEffect(() => {
-    if (!open || !buttonRef.current) return;
+  if (!open || !buttonRef.current) return;
 
-    const updatePosition = () => {
-      const rect = buttonRef.current.getBoundingClientRect();
+  const updatePosition = () => {
+    const rect = buttonRef.current.getBoundingClientRect();
 
-      const dropdownHeight = 260;
-      const spaceBelow = window.innerHeight - rect.bottom;
-      const spaceAbove = rect.top;
+    const gap = 8;
+    const dropdownHeight = Math.min(
+      240,
+      Math.max(80, options.length * 40 + 8)
+    );
 
-      let top = rect.bottom + 8;
+    let top = rect.bottom + gap;
 
-      // Open upwards if there isn't enough space below
-      if (spaceBelow < dropdownHeight && spaceAbove > dropdownHeight) {
-        top = rect.top - dropdownHeight - 8;
-      }
+    // Keep dropdown below the field.
+    // If it would go beyond the viewport, limit its height.
+    const availableBelow = window.innerHeight - top - 8;
 
-      setPopupStyle({
-        position: "fixed",
-        top,
-        left: rect.left,
-        width: rect.width,
-        zIndex: 9999,
-      });
-    };
+    const maxHeight = Math.min(
+      dropdownHeight,
+      Math.max(80, availableBelow)
+    );
 
-    updatePosition();
+    setPopupStyle({
+      position: "fixed",
+      top,
+      left: rect.left,
+      width: rect.width,
+      maxHeight,
+      zIndex: 9999,
+    });
+  };
 
-    window.addEventListener("scroll", updatePosition, true);
-    window.addEventListener("resize", updatePosition);
+  updatePosition();
 
-    return () => {
-      window.removeEventListener("scroll", updatePosition, true);
-      window.removeEventListener("resize", updatePosition);
-    };
-  }, [open]);
+  window.addEventListener("scroll", updatePosition, true);
+  window.addEventListener("resize", updatePosition);
+
+  return () => {
+    window.removeEventListener("scroll", updatePosition, true);
+    window.removeEventListener("resize", updatePosition);
+  };
+}, [open, options.length]);
 
   // Close on outside click
   useEffect(() => {
@@ -91,7 +98,7 @@ export default function CustomSelect({
         ref={buttonRef}
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="flex h-11 w-full items-center justify-between rounded-md border border-gray-300 bg-white px-3 text-sm transition hover:border-[#E12729] focus:outline-none focus:ring-2 focus:ring-[#E12729]/20"
+        className="flex h-8 w-full items-center justify-between rounded-md border border-gray-300 bg-white px-3 text-sm transition hover:border-[#E12729] focus:outline-none focus:ring-2 focus:ring-[#E12729]/20"
       >
         <span className={selectedItem ? "text-gray-900" : "text-gray-400"}>
           {selectedItem
@@ -114,10 +121,9 @@ export default function CustomSelect({
           <div
             ref={dropdownRef}
             style={popupStyle}
-            className="max-h-72 overflow-y-auto rounded-md border border-gray-200 bg-white shadow-xl custom-scrollbar"
-          >
+            className="overflow-y-auto rounded-md border border-gray-200 bg-white shadow-xl custom-scrollbar"          >
             {options.length === 0 ? (
-              <div className="px-4 py-3 text-sm text-gray-500">
+              <div className="px-4 py-2 text-sm text-gray-500">
                 No options found
               </div>
             ) : (
@@ -134,7 +140,7 @@ export default function CustomSelect({
                       onChange(itemValue);
                       setOpen(false);
                     }}
-                    className={`block w-full px-4 py-3 text-left text-sm transition
+                    className={`block w-full px-4 py-2 text-left text-sm transition
                       ${
                         selected
                           ? "bg-red-50 text-[#E12729] font-medium"
