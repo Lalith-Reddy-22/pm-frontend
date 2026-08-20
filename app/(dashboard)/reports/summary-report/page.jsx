@@ -8,9 +8,13 @@ import EmployeeToolbar from "./components/EmployeeToolbar";
 import EmployeeTable from "./components/EmployeeTable";
 import DataPagination from "@/components/DataPagination";
 import { usePagination } from "@/hooks/usePagination";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchProjectsDropdown,
+  fetchTaskList,
+} from "@/store/slices/summaryReportSlice";
 import {
   getTaskAllocationReport,
-  getProjects,
   generateCSV,
 } from "@/services/taskAllocationReportService";
 import {
@@ -20,6 +24,7 @@ import {
 import EmployeeTaskModal from "./components/EmployeeTaskModal";
 import ProjectTable from "./components/ProjectTable";
 import ProjectDetailsModal from "./components/ProjectDetailsModal";
+
 
 const getEmpIdFromToken = () => {
   try {
@@ -39,6 +44,29 @@ const getEmpIdFromToken = () => {
 };
 
 export default function SummaryReportPage() {
+
+  const dispatch = useDispatch();
+
+const {
+  projects: reduxProjects,
+  projectsLoading,
+  projectsError,
+
+  taskData,
+  taskTotalRecords,
+  taskPageNumber,
+  taskPageSize,
+  taskTotalPages,
+  taskLoading,
+  taskError,
+} = useSelector((state) => state.summaryReport);
+
+const projects = reduxProjects || [];
+
+useEffect(() => {
+  console.log("FETCHING PROJECTS...");
+  dispatch(fetchProjectsDropdown());
+}, [dispatch]);
 
   const [empId, setEmpId] = useState(null);
   // Tab state
@@ -71,7 +99,6 @@ const [selectedProjectDetails, setSelectedProjectDetails] = useState(null);
 const [projectModalOpen, setProjectModalOpen] = useState(false);
 
   // Data state
-  const [projects, setProjects] = useState([]);
   const [reportData, setReportData] = useState([]);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -84,6 +111,62 @@ const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
   const reportPagination = usePagination({ data: reportData, pageSize });
   const employeePagination = usePagination({ data: employeeData, pageSize: employeePageSize });
   const projectPagination = usePagination({ data: projectData, pageSize: projectPageSize });
+
+  useEffect(() => {
+  const token = sessionStorage.getItem("accessToken");
+
+  if (!token) {
+    console.log("ACCESS TOKEN NOT AVAILABLE");
+    return;
+  }
+
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+
+    const loggedEmpId = Number(payload.empId);
+    const empType = Number(payload.userType);
+
+    console.log("TASK API EMP ID:", loggedEmpId);
+    console.log("TASK API EMP TYPE:", empType);
+
+    if (!loggedEmpId) {
+      console.log("EMP ID NOT AVAILABLE");
+      return;
+    }
+
+    console.log("FETCHING TASK LIST...");
+
+    dispatch(
+      fetchTaskList({
+        empId: loggedEmpId,
+        empType: empType,
+        startDate: startDate
+          ? format(startDate, "yyyy-MM-dd")
+          : "",
+        endDate: endDate
+          ? format(endDate, "yyyy-MM-dd")
+          : "",
+        projectId:
+          selectedProject === "all"
+            ? 0
+            : Number(selectedProject),
+        searchText: search,
+        pageNumber: reportPagination.page,
+        pageSize: pageSize,
+      })
+    );
+  } catch (error) {
+    console.error("FAILED TO READ JWT:", error);
+  }
+}, [
+  dispatch,
+  startDate,
+  endDate,
+  selectedProject,
+  search,
+  pageSize,
+  reportPagination.page,
+]);
 
   /**
    * Fetch report data whenever filters or pagination changes
@@ -119,18 +202,6 @@ const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
   /**
    * Fetch projects for filter dropdown on mount
    */
-  useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        const data = await getProjects();
-        setProjects(data);
-      } catch (err) {
-        console.error("Error fetching projects:", err);
-      }
-    };
-
-    fetchProjects();
-  }, []);
 
   useEffect(() => {
   const id = getEmpIdFromToken();
@@ -354,14 +425,14 @@ const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
           {/* Table & Pagination Card */}
           <div className="overflow-visible rounded-xl border border-border bg-card shadow-sm">
             <ReportTable
-              rows={reportData}
-              isLoading={isLoading}
-              emptyMessage={
-                search || selectedProject !== "all"
-                  ? "No records match your filters"
-                  : "No records available"
-              }
-            />
+  rows={taskData}
+  isLoading={taskLoading}
+  emptyMessage={
+    search || selectedProject !== "all"
+      ? "No records match your filters"
+      : "No records available"
+  }
+/>
 
             {/* Pagination */}
             {reportData.length > 0 && (
