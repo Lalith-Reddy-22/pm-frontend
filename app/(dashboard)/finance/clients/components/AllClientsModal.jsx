@@ -3,22 +3,30 @@
 import { useState } from "react";
 import { X, Search } from "lucide-react";
 import { useTheme } from "../../../../context/ThemeContext";
-import { CLIENTS, fmtM } from "../data";
 
-const sorted = [...CLIENTS].sort((a, b) => b.poValue - a.poValue);
-
-function StatusBadge({ status, isDark }) {
-  const map = isDark
-    ? { High: "bg-green-500/20 text-green-400", Medium: "bg-white/10 text-gray-400", Low: "bg-red-500/20 text-red-400" }
-    : { High: "bg-green-100 text-green-700", Medium: "bg-gray-100 text-gray-600", Low: "bg-red-100 text-red-600" };
-  return <span className={`px-2 py-0.5 rounded text-xs font-medium ${map[status] ?? map.Medium}`}>{status}</span>;
+function statusFromPct(pct) {
+  if (pct > 60) return "High";
+  if (pct >= 20) return "Medium";
+  return "Low";
 }
 
-export default function AllClientsModal({ onClose }) {
+function StatusBadge({ pct, isDark }) {
+  const status = statusFromPct(pct);
+  const map = isDark
+    ? { High: "bg-green-500/20 text-green-400", Medium: "bg-white/10 text-gray-400", Low: "bg-red-500/20 text-red-400" }
+    : { High: "bg-green-100 text-green-700",    Medium: "bg-gray-100 text-gray-600", Low: "bg-red-100 text-red-600" };
+  return <span className={`px-2 py-0.5 rounded text-xs font-medium ${map[status]}`}>{status}</span>;
+}
+
+export default function AllClientsModal({ clients = [], onClose }) {
   const { t, isDark } = useTheme();
   const [search, setSearch] = useState("");
-  const filtered = sorted.filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
-  const max = Math.max(...CLIENTS.map(c => c.poValue));
+
+  const sorted   = [...clients].sort((a, b) => b.total_PO_Value - a.total_PO_Value);
+  const filtered = sorted.filter(c => c.client_Title.toLowerCase().includes(search.toLowerCase()));
+  const max      = Math.max(...clients.map(c => c.total_PO_Value), 1);
+
+  const fmtM = (n) => `${n < 0 ? "-" : ""}$${(Math.abs(n) / 1e6).toFixed(2)}M`;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -50,25 +58,25 @@ export default function AllClientsModal({ onClose }) {
 
         <div className="overflow-y-auto flex-1 px-6 py-3 space-y-2 custom-scrollbar">
           {filtered.map((c, i) => (
-            <div key={c.name} className={`flex items-center gap-4 py-2.5 border-b ${t.clientBorder} last:border-0`}>
+            <div key={c.client_ID} className={`flex items-center gap-4 py-2.5 border-b ${t.clientBorder} last:border-0`}>
               <span className={`w-5 text-xs ${t.textMuted} font-medium shrink-0`}>{i + 1}</span>
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-1">
-                  <span className={`text-sm font-medium ${t.clientModalText} truncate`}>{c.name}</span>
-                  <span className={`text-xs font-semibold ml-2 shrink-0 text-red-500`}>
-                    {fmtM(c.poValue)}
+                  <span className={`text-sm font-medium ${t.clientModalText} truncate`}>{c.client_Title}</span>
+                  <span className="text-xs font-semibold ml-2 shrink-0 text-red-500">
+                    {fmtM(c.total_PO_Value)}
                   </span>
                 </div>
                 <div className={`h-1.5 w-full ${isDark ? "bg-white/10" : "bg-gray-100"} rounded-full overflow-hidden`}>
                   <div
                     className="h-full rounded-full transition-all bg-red-600"
-                    style={{ width: `${Math.max(0, (c.poValue / max) * 100)}%` }}
+                    style={{ width: `${Math.max(0, (c.total_PO_Value / max) * 100)}%` }}
                   />
                 </div>
               </div>
 
-              <div className="shrink-0"><StatusBadge status={c.status} isDark={isDark} /></div>
+              <div className="shrink-0"><StatusBadge pct={c.actual_percentage} isDark={isDark} /></div>
             </div>
           ))}
 

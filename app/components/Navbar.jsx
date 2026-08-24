@@ -3,10 +3,24 @@
 import { Bell, ChevronDown, Sun, Moon, Menu } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
 
 export default function Navbar({ onMenuClick }) {
   const { isDark, toggle, t } = useTheme();
   const pathname = usePathname();
+
+  const [empName, setEmpName] = useState("");
+  const [designation, setDesignation] = useState("");
+
+  useEffect(() => {
+    setEmpName(sessionStorage.getItem("empName") || "");
+    setDesignation(sessionStorage.getItem("designation") || "");
+  }, []);
+
+  function getInitials(name) {
+    const parts = name.trim().split(" ");
+    return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "")).toUpperCase();
+  }
   const pageTitles = {
   "/employee": "Employee Details",
   "/timesheet": "Task Time Sheet",
@@ -97,11 +111,11 @@ if (pathname.startsWith("/project/")) {
         {/* User */}
         <button className={`flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors ${t.userHover}`}>
           <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-red-500 text-[11px] font-bold text-white">
-            AS
+            {getInitials(empName)}
           </span>
           <div className="hidden sm:flex flex-col items-start">
-            <span className={`text-xs font-semibold leading-tight font-mono ${t.textPrimary}`}>Andrew Smith</span>
-            <span className={`text-[10px] leading-tight ${t.textMuted}`}>Admin</span>
+            <span className={`text-xs font-semibold leading-tight font-mono ${t.textPrimary}`}>{empName}</span>
+            <span className={`text-[10px] leading-tight ${t.textMuted}`}>{designation}</span>
           </div>
           <ChevronDown size={12} className={`hidden sm:block ${t.textMuted}`} />
         </button>
