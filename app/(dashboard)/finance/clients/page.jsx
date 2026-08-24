@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Plus } from "lucide-react";
 import { useTheme } from "../../../context/ThemeContext";
 import StatCards     from "./components/StatCards";
@@ -92,14 +92,22 @@ export default function FinanceClientsPage() {
       </div>
 
       <div className="p-6 space-y-5">
-        <StatCards clients={clients} />
+        {clientsLoading ? (
+          <div className="flex items-center justify-center py-16">
+            <p className="text-sm text-muted-foreground">Loading clients...</p>
+          </div>
+        ) : (
+          <>
+            <StatCards clients={clients} />
 
-        <div className="flex gap-4 w-full">
-          <div className="w-[70%] flex"><GPBarChart clients={clients} topN={topN} onTopNChange={setTopN} /></div>
-          <div className="w-[30%] flex"><TopPerformers clients={clients} /></div>
-        </div>
+            <div className="flex gap-4 w-full">
+              <div className="w-[70%] flex"><GPBarChart clients={clients} topN={topN} onTopNChange={setTopN} /></div>
+              <div className="w-[30%] flex"><TopPerformers clients={clients} /></div>
+            </div>
 
-        <ClientTable finYrId={selectedYear} allClients={clients} />
+            <ClientTable finYrId={selectedYear} allClients={clients} />
+          </>
+        )}
       </div>
     </div>
   );
