@@ -1,66 +1,55 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { ChevronDown } from "lucide-react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useTheme } from "../../../context/ThemeContext";
 import { useRouter } from "next/navigation";
 import ProjectTable from "./components/ProjectTable";
 import AddRateCardPanel from "./components/AddRateCardPanel";
+import { api } from "@/lib/api";
 
-const YEARS = ["2026 - 2027", "2025 - 2026", "2024 - 2025"];
+const PAGE_SIZE = 10;
 
 export default function ProjectListsPage() {
   const { t } = useTheme();
   const router = useRouter();
-  const [selectedYear, setSelectedYear] = useState(YEARS[0]);
-  const [open, setOpen] = useState(false);
   const [showRateCard, setShowRateCard] = useState(false);
-  const wrapperRef = useRef(null);
+  const [loading, setLoading] = useState(false);
+  const [projects, setProjects] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [empId, setEmpId] = useState(null);
+  const fetchingRef = useRef(false);
 
-  useEffect(() => {
-    function handleClickOutside(e) {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) setOpen(false);
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+  useEffect(() => { setEmpId(sessionStorage.getItem("empId")); }, []);
+
+  const fetchProjects = useCallback((empId, page, search) => {
+    if (!empId || fetchingRef.current) return;
+    fetchingRef.current = true;
+    setLoading(true);
+    const params = new URLSearchParams({ EmpId: empId, pageNumber: page, pageSize: PAGE_SIZE });
+    if (search) params.set("searchText", search);
+    api.get(`/api/v1/finance-projects?${params}`)
+      .then(data => {
+        setProjects(data.projects ?? data ?? []);
+        setTotalCount(data.totalCount ?? (data.projects ?? data ?? []).length);
+        setTotalPages(data.totalPages ?? 1);
+      })
+      .catch(console.error)
+      .finally(() => { setLoading(false); fetchingRef.current = false; });
   }, []);
 
+  useEffect(() => {
+    if (empId) fetchProjects(empId, page, search);
+  }, [empId, page, search]);
+
+  const handleSearch = (val) => { setSearch(val); setPage(1); };
+
   return (
-    <div className={`${t.mainBg} min-h-screen`}>
-      <div className={`sticky top-0 z-10 px-6 py-4 bg-inherit border-b ${t.clientBorder} flex items-end justify-between`}>
-        <div>
-          <div>
-          <p className={`text-xs ${t.textSecondary} mb-1`}>Financial Year</p>
-
-          <div ref={wrapperRef} className="relative">
-            <button
-              onClick={() => setOpen(prev => !prev)}
-              className={`flex items-center gap-2 border ${t.clientBorder} rounded-lg px-3 py-1.5 text-sm ${t.clientInputText} ${t.clientInputBg} hover:border-red-400 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-red-300 min-w-[140px]`}
-            >
-              <span className="flex-1 text-left">{selectedYear}</span>
-              <ChevronDown
-                className={`w-3.5 h-3.5 shrink-0 transition-transform duration-300 ease-in-out ${open ? "rotate-180" : ""} ${t.textMuted}`}
-              />
-            </button>
-
-            {open && (
-              <div className={`dropdown-open absolute left-0 top-full mt-1 w-full rounded-lg border ${t.clientBorder} ${t.clientInputBg} shadow-lg overflow-hidden z-20`}>
-                {YEARS.map(year => (
-                  <button
-                    key={year}
-                    onClick={() => { setSelectedYear(year); setOpen(false); }}
-                    className={`w-full text-left px-3 py-2 text-sm transition-colors duration-150 ${
-                      year === selectedYear ? "bg-red-600 text-white" : `${t.clientInputText} hover:bg-red-50 dark:hover:bg-red-500/10`
-                    }`}
-                  >
-                    {year}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-          </div>
-        </div>
+    <div className={`${t.mainBg} h-full flex flex-col overflow-hidden`}>
+      <div className={`shrink-0 px-6 py-4 border-b ${t.clientBorder} flex items-center justify-end`}>
+        <div />
         <div className="flex items-center gap-3">
           <button onClick={() => router.push("/project/add-project")} className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition-colors duration-150">
             <span className="text-base leading-none">+</span> Project
@@ -71,8 +60,18 @@ export default function ProjectListsPage() {
         </div>
       </div>
 
-      <div className="p-6">
-        <ProjectTable selectedYear={selectedYear} />
+      <div className="p-6 flex-1 overflow-hidden">
+        <ProjectTable
+          projects={projects}
+          loading={loading}
+          page={page}
+          totalPages={totalPages}
+          totalCount={totalCount}
+          pageSize={PAGE_SIZE}
+          onPageChange={setPage}
+          search={search}
+          onSearchChange={handleSearch}
+        />
       </div>
 
       {showRateCard && <AddRateCardPanel onClose={() => setShowRateCard(false)} />}
