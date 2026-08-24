@@ -72,7 +72,7 @@ export default function ProjectListsPage() {
       </div>
 
       <div className="p-6">
-        <ProjectTable />
+        <ProjectTable selectedYear={selectedYear} />
       </div>
 
       {showRateCard && <AddRateCardPanel onClose={() => setShowRateCard(false)} />}

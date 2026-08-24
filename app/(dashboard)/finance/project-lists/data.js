@@ -26,3 +26,26 @@ export const BUYING_CENTERS = {
 
 export const fmt    = (n) => n == null ? "-" : `$${Math.abs(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 export const fmtPct = (n) => `${n >= 0 ? "" : "-"}${Math.abs(n).toFixed(2)}%`;
+
+// Maps the dropdown label to the calendar year range it covers, e.g.
+// "2025 - 2026" → projects whose financialYear is CY-2025 or CY-2026
+const YEAR_LABEL_TO_CY = {
+  "2026 - 2027": ["CY-2026", "CY-2027"],
+  "2025 - 2026": ["CY-2025", "CY-2026"],
+  "2024 - 2025": ["CY-2024", "CY-2025"],
+};
+
+/**
+ * Simulates an async API call that returns projects filtered by financial year.
+ * Replace the body of this function with a real fetch() / axios call when the
+ * backend is ready — the rest of the code won't need to change.
+ */
+export async function fetchProjects(financialYear) {
+  // Simulate network latency
+  await new Promise((resolve) => setTimeout(resolve, 400));
+
+  const cyYears = YEAR_LABEL_TO_CY[financialYear];
+  if (!cyYears) return [];
+
+  return PROJECTS.filter((p) => cyYears.includes(p.financialYear));
+}
