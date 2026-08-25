@@ -3,175 +3,277 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import {
-  ArrowLeft, FolderOpen, Save, X, DollarSign, Calendar,
+  ArrowLeft, FolderOpen, Save, DollarSign, Calendar,
   Globe, ShoppingCart, Hash, Tag, Users, Building2,
 } from "lucide-react";
 import { useTheme } from "../../../../../context/ThemeContext";
-import { api } from "@/lib/api";
+import {
+  getFinanceProjectById,
+  updateFinanceProject,
+  getProjectLookups,
+} from "@/services/financeClientService";
+import SmartSelect from "@/app/components/SmartSelect";
+
+// Defined outside the component so React sees a stable identity across renders,
+// which prevents inputs from losing focus on every keystroke.
+function Field({ label, icon: Icon, children, span, t }) {
+  return (
+    <div className={span ? "col-span-2" : ""}>
+      <label className={`block text-xs font-medium mb-1 ${t.textMuted}`}>{label}</label>
+      <div className={`flex items-center gap-1.5 border ${t.clientBorder} rounded-lg px-2.5 py-1.5 ${t.clientInputBg}`}>
+        {Icon && <Icon className="w-3 h-3 text-red-500 shrink-0" />}
+        {children}
+      </div>
+    </div>
+  );
+}
+
+const STATUS_OPTIONS  = ["Active", "Inactive", "Completed", "On Hold"].map((s) => ({ value: s, label: s }));
+const BILLING_OPTIONS = ["Billable", "Non-Billable", "Internal"].map((s) => ({ value: s, label: s }));
 
 export default function EditProjectPage() {
   const { t } = useTheme();
   const router = useRouter();
   const { projectId } = useParams();
 
-  const [form, setForm] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [empId, setEmpId] = useState(null);
+  const [form, setForm]               = useState(null);
+  const [loading, setLoading]         = useState(true);
+  const [saving, setSaving]           = useState(false);
+  const [error, setError]             = useState("");
+  const [clients, setClients]         = useState([]);
+  const [employees, setEmployees]     = useState([]);
+  const [buyingCenters, setBuyingCenters] = useState([]);
+  const [financialYears, setFinancialYears] = useState([]);
 
   useEffect(() => {
-    const id = sessionStorage.getItem("empId");
-    if (id) setEmpId(id);
-    else { setError("Session expired. Please log in again."); setLoading(false); }
+    getProjectLookups()
+      .then((data) => {
+        setClients(data.clients ?? []);
+        setEmployees(data.projectManagers ?? []);
+        setBuyingCenters(data.buyingCenters ?? []);
+        setFinancialYears(data.financialYears ?? []);
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
-    if (!empId) return;
-    const params = new URLSearchParams({ EmpId: empId, pageNumber: 1, pageSize: 1000 });
-    api.get(`/api/v1/finance-projects?${params}`)
-      .then(data => {
-        const projects = data.projects ?? data ?? [];
-        const p = projects.find(p => String(p.projecT_ID ?? p.project_ID) === String(projectId));
-        if (!p) { setError("not_found"); return; }
+    if (!projectId) return;
+    setLoading(true);
+    getFinanceProjectById(projectId)
+      .then((p) => {
+        const statusMap = { 1: "Active", 2: "Inactive", 3: "Completed", 4: "On Hold" };
+        const typeMap   = { 1: "Billable", 2: "Non-Billable", 3: "Internal" };
         setForm({
-          title:                p.project_Title ?? "",
-          client:               p.client_Title  ?? "",
-          region:               p.region        ?? "",
-          status:               p.project_Status ?? "Active",
-          projectCode:          p.projectCode   ?? "",
-          type:                 p.type          ?? "Billable",
-          subClient:            p.subClient     ?? "",
-          projectOwner:         p.employee_Name ?? "",
-          startDate:            p.pstart_date   ?? "",
-          endDate:              p.end_date       ?? "",
-          buyingCenter:         p.buyingCenter  ?? "",
-          financialYear:        p.financial_Year ?? "",
-          poValue:              p.total_Value   ?? 0,
-          predictedCost:        p.predictedCost ?? 0,
-          outsourcingCost:      p.outsourcing_Value ?? 0,
+          title:                 p.project_Title      ?? "",
+          client:                p.client_Id != null ? String(p.client_Id) : "",
+          region:                p.region             ?? "",
+          status:                statusMap[p.project_Status] ?? "Active",
+          projectCode:           p.projectCode        ?? "",
+          type:                  typeMap[p.billing_type] ?? "Billable",
+          subClient:             p.sub_Client_Name    ?? "",
+          projectOwner:          (p.project_manager != null && p.project_manager !== "") ? String(p.project_manager) : "",
+          startDate:             p.start_date ? p.start_date.split("T")[0] : "",
+          endDate:               p.end_date   ? p.end_date.split("T")[0]   : "",
+          buyingCenter:          (p.b_Id != null && p.b_Id !== 0) ? String(p.b_Id) : "",
+          financialYear:         p.financial_Year_Id != null ? String(p.financial_Year_Id) : "",
+          poValue:               p.total_Value       != null ? String(p.total_Value)       : "",
+          predictedCost:         p.predicted_Value   != null ? String(p.predicted_Value)   : "",
+          outsourcingCost:       p.outsourcing_Value != null ? String(p.outsourcing_Value) : "",
           includeInBuyingCenter: p.includeInBuyingCenter ?? false,
         });
       })
-      .catch(e => setError(e.message))
+      .catch((e) => setError(e.response?.data?.message || e.message || "Failed to load project."))
       .finally(() => setLoading(false));
-  }, [empId, projectId]);
+  }, [projectId]);
 
-  const set = (key) => (e) => setForm(prev => ({ ...prev, [key]: e.target.value }));
-  const toggle = (key) => () => setForm(prev => ({ ...prev, [key]: !prev[key] }));
+  const setField   = (key) => (e)    => setForm((prev) => ({ ...prev, [key]: e.target.value }));
+  const setVal     = (key) => (val)  => setForm((prev) => ({ ...prev, [key]: val }));
+  const toggle     = (key) => ()     => setForm((prev) => ({ ...prev, [key]: !prev[key] }));
+  const goBack     = () => router.push("/finance/project-lists");
 
-  const handleSubmit = (e) => {
+  const statusMap  = { Active: 1, Inactive: 2, Completed: 3, "On Hold": 4 };
+  const billingMap = { Billable: 1, "Non-Billable": 2, Internal: 3 };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: persist changes via API
-    router.push("/finance/project-lists");
+    setSaving(true);
+    setError("");
+    try {
+      const payload = {
+        projectTitle:          form.title,
+        clientId:              form.client      ? Number(form.client)      : null,
+        region:                form.region,
+        projectStatus:         statusMap[form.status]  ?? 1,
+        projectCode:           form.projectCode,
+        billingType:           billingMap[form.type]   ?? 1,
+        subClientName:         form.subClient,
+        projectManagerIds:     form.projectOwner || null,
+        startDate:             form.startDate    || null,
+        endDate:               form.endDate      || null,
+        buyingCenterId:        form.buyingCenter  ? Number(form.buyingCenter)  : null,
+        financialYearId:       form.financialYear ? Number(form.financialYear) : null,
+        totalValue:            Number(form.poValue),
+        predictedValue:        Number(form.predictedCost),
+        outsourcingValue:      Number(form.outsourcingCost),
+        includeInBuyingCenter: form.includeInBuyingCenter,
+      };
+      await updateFinanceProject({ projectId, payload });
+      router.push("/finance/project-lists");
+    } catch (e) {
+      const errData = e.response?.data;
+      const msg =
+        errData?.errors
+          ? Object.entries(errData.errors).map(([k, v]) => `${k}: ${[v].flat().join(", ")}`).join(" | ")
+          : errData?.title || errData?.detail || errData?.message || e.message || "Failed to save. Please try again.";
+      setError(msg);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const Field = ({ label, icon: Icon, children, span }) => (
-    <div className={span ? "col-span-2" : ""}>
-      <label className={`block text-xs font-medium mb-1.5 ${t.textMuted}`}>{label}</label>
-      <div className={`flex items-center gap-2 border ${t.clientBorder} rounded-lg px-3 py-2 ${t.clientInputBg}`}>
-        {Icon && <Icon className="w-3.5 h-3.5 text-red-500 shrink-0" />}
-        {children}
-      </div>
-    </div>
-  );
-
   if (loading) return (
-    <div className={`${t.mainBg} min-h-screen flex items-center justify-center`}>
-      <p className={`${t.textMuted} text-sm`}>Loading...</p>
+    <div className={`${t.mainBg} h-full flex items-center justify-center`}>
+      <p className={`${t.textMuted} text-sm`}>Loading project...</p>
     </div>
   );
 
-  if (error === "not_found" || !form) return (
-    <div className={`${t.mainBg} min-h-screen flex items-center justify-center`}>
+  if (error && !form) return (
+    <div className={`${t.mainBg} h-full flex items-center justify-center flex-col gap-3`}>
+      <p className="text-red-500 text-sm">{error}</p>
+      <button onClick={goBack} className="text-sm text-red-500 hover:text-red-600">← Back to Project Lists</button>
+    </div>
+  );
+
+  if (!form) return (
+    <div className={`${t.mainBg} h-full flex items-center justify-center`}>
       <p className={`${t.textMuted} text-sm`}>Project not found.</p>
     </div>
   );
 
-  if (error) return (
-    <div className={`${t.mainBg} min-h-screen flex items-center justify-center`}>
-      <p className="text-red-500 text-sm">{error}</p>
-    </div>
-  );
+  const clientOptions      = clients.map((c) => ({ value: String(c.client_ID), label: c.client_Title }));
+  const employeeOptions    = employees.map((e) => ({ value: String(e.empId), label: e.employee_Name }));
+  const buyingCtrOptions   = buyingCenters.map((bc) => ({ value: String(bc.bId), label: bc.bName }));
+  const financialYrOptions = financialYears.map((y) => ({ value: String(y.id), label: y.financial_Year }));
 
   return (
-    <div className={`${t.mainBg} min-h-screen px-6 py-6`}>
-      <button
-        onClick={() => router.push("/finance/project-lists")}
-        className="flex items-center gap-1.5 text-sm mb-6 text-red-500 hover:text-red-600"
-      >
-        <ArrowLeft className="w-4 h-4" /> Back to Project Lists
-      </button>
+    <div className={`${t.mainBg} h-full flex flex-col overflow-hidden`}>
 
-      <div className="flex items-center gap-4 mb-6">
-        <div className={`p-3 rounded-xl ${t.clientIconBg}`}>
-          <FolderOpen className="w-6 h-6 text-red-500" />
+      {/* ── Top bar ── */}
+      <div className="shrink-0 px-6 pt-4 pb-3">
+        <button onClick={goBack} className="flex items-center gap-1.5 text-sm mb-3 text-red-500 hover:text-red-600">
+          <ArrowLeft className="w-4 h-4" /> Back to Project Lists
+        </button>
+        <div className="flex items-center gap-3">
+          <div className={`p-2.5 rounded-xl ${t.clientIconBg}`}>
+            <FolderOpen className="w-5 h-5 text-red-500" />
+          </div>
+          <div>
+            <h1 className={`text-base font-bold ${t.textPrimary}`}>Edit Project</h1>
+            <p className={`text-xs ${t.textMuted} mt-0.5 max-w-2xl truncate`}>{form.title}</p>
+          </div>
         </div>
-        <div>
-          <h1 className={`text-xl font-bold ${t.textPrimary}`}>Edit Project</h1>
-          <p className={`text-xs ${t.textMuted} mt-0.5 max-w-2xl truncate`}>{form.title}</p>
-        </div>
+        {error && (
+          <div className="mt-3 px-4 py-2.5 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-lg text-sm text-red-600 dark:text-red-400">
+            {error}
+          </div>
+        )}
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-2 gap-5 items-start">
+      {/* ── Form body ── */}
+      <form onSubmit={handleSubmit} className="flex-1 flex flex-col overflow-hidden px-6 pb-4">
+        <div className="flex-1 grid grid-cols-2 gap-4 overflow-hidden min-h-0">
 
           {/* ── LEFT: Project Information ── */}
-          <div className={`${t.cardBg} ${t.cardShadow} rounded-2xl p-6`}>
-            <div className={`flex items-center gap-3 pb-4 mb-5 border-b ${t.clientBorder}`}>
-              <div className={`p-2 rounded-lg ${t.clientMutedBg}`}>
-                <FolderOpen className="w-4 h-4 text-red-500" />
+          <div className={`${t.cardBg} ${t.cardShadow} rounded-2xl flex flex-col overflow-hidden min-h-0`}>
+            <div className={`shrink-0 flex items-center gap-3 px-5 py-3 border-b ${t.clientBorder}`}>
+              <div className={`p-1.5 rounded-lg ${t.clientMutedBg}`}>
+                <FolderOpen className="w-3.5 h-3.5 text-red-500" />
               </div>
               <span className={`font-semibold text-sm ${t.textPrimary}`}>Project Information</span>
             </div>
+            <div className="flex-1 overflow-y-auto px-5 py-4">
+              <div className="grid grid-cols-2 gap-3">
 
-            <div className="grid grid-cols-2 gap-4">
-              <Field label="Project Name" icon={FolderOpen} span>
-                <input required value={form.title} onChange={set("title")} className={`flex-1 bg-transparent outline-none text-sm ${t.clientInputText}`} />
-              </Field>
-              <Field label="Region" icon={Globe}>
-                <input value={form.region} onChange={set("region")} className={`flex-1 bg-transparent outline-none text-sm ${t.clientInputText}`} />
-              </Field>
-              <Field label="Project Status" icon={Tag}>
-                <select value={form.status} onChange={set("status")} className={`flex-1 bg-transparent outline-none text-sm ${t.clientInputText}`}>
-                  <option>Active</option><option>Inactive</option><option>Completed</option><option>On Hold</option>
-                </select>
-              </Field>
-              <Field label="Client" icon={Building2}>
-                <input value={form.client} onChange={set("client")} className={`flex-1 bg-transparent outline-none text-sm ${t.clientInputText}`} />
-              </Field>
-              <Field label="Project Code" icon={Hash}>
-                <input value={form.projectCode} onChange={set("projectCode")} className={`flex-1 bg-transparent outline-none text-sm ${t.clientInputText}`} />
-              </Field>
-              <Field label="Type" icon={Tag}>
-                <select value={form.type} onChange={set("type")} className={`flex-1 bg-transparent outline-none text-sm ${t.clientInputText}`}>
-                  <option>Billable</option><option>Non-Billable</option><option>Internal</option>
-                </select>
-              </Field>
-              <Field label="SubClient" icon={Building2}>
-                <input value={form.subClient} onChange={set("subClient")} className={`flex-1 bg-transparent outline-none text-sm ${t.clientInputText}`} />
-              </Field>
-              <Field label="Start Date" icon={Calendar}>
-                <input type="date" value={form.startDate} onChange={set("startDate")} className={`flex-1 bg-transparent outline-none text-sm ${t.clientInputText}`} />
-              </Field>
-              <Field label="End Date" icon={Calendar}>
-                <input type="date" value={form.endDate} onChange={set("endDate")} className={`flex-1 bg-transparent outline-none text-sm ${t.clientInputText}`} />
-              </Field>
-              <Field label="Project Owner" icon={Users} span>
-                <input value={form.projectOwner} onChange={set("projectOwner")} className={`flex-1 bg-transparent outline-none text-sm ${t.clientInputText}`} />
-              </Field>
+                <Field t={t} label="Project Name" icon={FolderOpen} span>
+                  <input required value={form.title} onChange={setField("title")}
+                    className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText}`} />
+                </Field>
+
+                <Field t={t} label="Region" icon={Globe}>
+                  <input value={form.region} onChange={setField("region")}
+                    className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText}`} />
+                </Field>
+
+                <Field t={t} label="Project Status" icon={Tag}>
+                  <SmartSelect
+                    value={form.status}
+                    onChange={setVal("status")}
+                    options={STATUS_OPTIONS}
+                    placeholder="Select status"
+                  />
+                </Field>
+
+                <Field t={t} label="Client" icon={Building2}>
+                  <SmartSelect
+                    value={form.client}
+                    onChange={setVal("client")}
+                    options={clientOptions}
+                    placeholder="— Select client —"
+                  />
+                </Field>
+
+                <Field t={t} label="Project Code" icon={Hash}>
+                  <input value={form.projectCode} onChange={setField("projectCode")}
+                    className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText}`} />
+                </Field>
+
+                <Field t={t} label="Type" icon={Tag}>
+                  <SmartSelect
+                    value={form.type}
+                    onChange={setVal("type")}
+                    options={BILLING_OPTIONS}
+                    placeholder="Select type"
+                  />
+                </Field>
+
+                <Field t={t} label="SubClient" icon={Building2}>
+                  <input value={form.subClient} onChange={setField("subClient")}
+                    className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText}`} />
+                </Field>
+
+                <Field t={t} label="Start Date" icon={Calendar}>
+                  <input type="date" value={form.startDate} onChange={setField("startDate")}
+                    className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText}`} />
+                </Field>
+
+                <Field t={t} label="End Date" icon={Calendar}>
+                  <input type="date" value={form.endDate} onChange={setField("endDate")}
+                    className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText}`} />
+                </Field>
+
+                <Field t={t} label="Project Owner" icon={Users} span>
+                  <SmartSelect
+                    value={form.projectOwner}
+                    onChange={setVal("projectOwner")}
+                    options={employeeOptions}
+                    placeholder="— Select owner —"
+                  />
+                </Field>
+
+              </div>
             </div>
           </div>
 
           {/* ── RIGHT: Budget Details ── */}
-          <div className={`${t.cardBg} ${t.cardShadow} rounded-2xl p-6`}>
-            <div className={`flex items-center justify-between pb-4 mb-5 border-b ${t.clientBorder}`}>
+          <div className={`${t.cardBg} ${t.cardShadow} rounded-2xl flex flex-col overflow-hidden min-h-0`}>
+            <div className={`shrink-0 flex items-center justify-between px-5 py-3 border-b ${t.clientBorder}`}>
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${t.clientMutedBg}`}>
-                  <DollarSign className="w-4 h-4 text-red-500" />
+                <div className={`p-1.5 rounded-lg ${t.clientMutedBg}`}>
+                  <DollarSign className="w-3.5 h-3.5 text-red-500" />
                 </div>
                 <span className={`font-semibold text-sm ${t.textPrimary}`}>Budget Details</span>
               </div>
-              <button type="button" onClick={toggle("includeInBuyingCenter")} className="flex items-center gap-2 group">
+              <button type="button" onClick={toggle("includeInBuyingCenter")} className="flex items-center gap-2">
                 <div className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
                   form.includeInBuyingCenter ? "bg-red-600 border-red-600" : `border-gray-400 ${t.clientInputBg}`
                 }`}>
@@ -186,40 +288,56 @@ export default function EditProjectPage() {
                 </span>
               </button>
             </div>
+            <div className="flex-1 overflow-y-auto px-5 py-4">
+              <div className="grid grid-cols-2 gap-3">
 
-            <div className="grid grid-cols-2 gap-4">
-              <Field label="Buying Center" icon={ShoppingCart} span>
-                <input value={form.buyingCenter} onChange={set("buyingCenter")} className={`flex-1 bg-transparent outline-none text-sm ${t.clientInputText}`} />
-              </Field>
-              <Field label="Financial Year" icon={Calendar} span>
-                <select value={form.financialYear} onChange={set("financialYear")} className={`flex-1 bg-transparent outline-none text-sm ${t.clientInputText}`}>
-                  <option>CY-2026</option><option>CY-2025</option><option>CY-2024</option>
-                  <option>FY-2026-2027</option><option>FY-2025-2026</option>
-                </select>
-              </Field>
-              <Field label="Purchase Order Value ($)" icon={DollarSign} span>
-                <input type="number" value={form.poValue} onChange={set("poValue")} className={`flex-1 bg-transparent outline-none text-sm ${t.clientInputText}`} />
-              </Field>
-              <Field label="Predicted Cost ($)" icon={DollarSign} span>
-                <input type="number" value={form.predictedCost} onChange={set("predictedCost")} className={`flex-1 bg-transparent outline-none text-sm ${t.clientInputText}`} />
-              </Field>
-              <Field label="Outsourcing Cost ($)" icon={DollarSign} span>
-                <input type="number" value={form.outsourcingCost} onChange={set("outsourcingCost")} className={`flex-1 bg-transparent outline-none text-sm ${t.clientInputText}`} />
-              </Field>
+                <Field t={t} label="Buying Center" icon={ShoppingCart} span>
+                  <SmartSelect
+                    value={form.buyingCenter}
+                    onChange={setVal("buyingCenter")}
+                    options={buyingCtrOptions}
+                    placeholder="— Select buying center —"
+                  />
+                </Field>
+
+                <Field t={t} label="Financial Year" icon={Calendar} span>
+                  <SmartSelect
+                    value={form.financialYear}
+                    onChange={setVal("financialYear")}
+                    options={financialYrOptions}
+                    placeholder="— Select year —"
+                  />
+                </Field>
+
+                <Field t={t} label="Purchase Order Value ($)" icon={DollarSign} span>
+                  <input type="text" inputMode="decimal" value={form.poValue} onChange={setField("poValue")}
+                    className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText}`} />
+                </Field>
+
+                <Field t={t} label="Predicted Cost ($)" icon={DollarSign} span>
+                  <input type="text" inputMode="decimal" value={form.predictedCost} onChange={setField("predictedCost")}
+                    className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText}`} />
+                </Field>
+
+                <Field t={t} label="Outsourcing Cost ($)" icon={DollarSign} span>
+                  <input type="text" inputMode="decimal" value={form.outsourcingCost} onChange={setField("outsourcingCost")}
+                    className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText}`} />
+                </Field>
+
+              </div>
             </div>
           </div>
+
         </div>
 
-        <div className="flex justify-between pt-1">
+        {/* ── Action bar ── */}
+        <div className="shrink-0 flex justify-between pt-3">
           <button
-            type="button"
-            onClick={() => router.push("/finance/project-lists")}
-            className={`flex items-center gap-1.5 px-4 py-2 border ${t.clientBorder} rounded-lg text-sm ${t.clientMutedText} ${t.clientRowHover}`}
+            type="submit"
+            disabled={saving}
+            className="flex items-center gap-1.5 px-5 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white rounded-lg text-sm font-medium transition-colors"
           >
-            <X className="w-4 h-4" /> Cancel
-          </button>
-          <button type="submit" className="flex items-center gap-1.5 px-5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium">
-            <Save className="w-4 h-4" /> Save Changes
+            <Save className="w-4 h-4" /> {saving ? "Saving…" : "Save Changes"}
           </button>
         </div>
       </form>

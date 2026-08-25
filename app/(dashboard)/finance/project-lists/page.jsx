@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
-import { useTheme } from "../../../context/ThemeContext";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useTheme } from "../../../context/ThemeContext";
 import ProjectTable from "./components/ProjectTable";
 import AddRateCardPanel from "./components/AddRateCardPanel";
-import { api } from "@/lib/api";
+import { useFinanceProjects } from "@/hooks/useFinanceProjects";
 
 const PAGE_SIZE = 10;
 
@@ -13,65 +13,68 @@ export default function ProjectListsPage() {
   const { t } = useTheme();
   const router = useRouter();
   const [showRateCard, setShowRateCard] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [projects, setProjects] = useState([]);
-  const [totalCount, setTotalCount] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [empId, setEmpId] = useState(null);
-  const fetchingRef = useRef(false);
-
-  useEffect(() => { setEmpId(sessionStorage.getItem("empId")); }, []);
-
-  const fetchProjects = useCallback((empId, page, search) => {
-    if (!empId || fetchingRef.current) return;
-    fetchingRef.current = true;
-    setLoading(true);
-    const params = new URLSearchParams({ EmpId: empId, pageNumber: page, pageSize: PAGE_SIZE });
-    if (search) params.set("searchText", search);
-    api.get(`/api/v1/finance-projects?${params}`)
-      .then(data => {
-        setProjects(data.projects ?? data ?? []);
-        setTotalCount(data.totalCount ?? (data.projects ?? data ?? []).length);
-        setTotalPages(data.totalPages ?? 1);
-      })
-      .catch(console.error)
-      .finally(() => { setLoading(false); fetchingRef.current = false; });
-  }, []);
 
   useEffect(() => {
-    if (empId) fetchProjects(empId, page, search);
-  }, [empId, page, search]);
+    setEmpId(sessionStorage.getItem("empId"));
+  }, []);
 
-  const handleSearch = (val) => { setSearch(val); setPage(1); };
+  const { data, isFetching, isError } = useFinanceProjects({
+    empId,
+    pageNumber: page,
+    pageSize: PAGE_SIZE,
+    searchText: search,
+  });
+
+  const projects   = data?.projects   ?? [];
+  const totalCount = data?.totalCount ?? 0;
+  const totalPages = data?.totalPages ?? 1;
+
+  const handleSearch = (val) => {
+    setSearch(val);
+    setPage(1);
+  };
 
   return (
     <div className={`${t.mainBg} h-full flex flex-col overflow-hidden`}>
       <div className={`shrink-0 px-6 py-4 border-b ${t.clientBorder} flex items-center justify-end`}>
         <div />
         <div className="flex items-center gap-3">
-          <button onClick={() => router.push("/project/add-project")} className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition-colors duration-150">
+          <button
+            onClick={() => router.push("/project/add-project")}
+            className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition-colors duration-150"
+          >
             <span className="text-base leading-none">+</span> Project
           </button>
-          <button onClick={() => setShowRateCard(true)} className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition-colors duration-150">
+          <button
+            onClick={() => setShowRateCard(true)}
+            className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition-colors duration-150"
+          >
             <span className="text-base leading-none">+</span> Rate Card
           </button>
         </div>
       </div>
 
       <div className="p-6 flex-1 overflow-hidden">
-        <ProjectTable
-          projects={projects}
-          loading={loading}
-          page={page}
-          totalPages={totalPages}
-          totalCount={totalCount}
-          pageSize={PAGE_SIZE}
-          onPageChange={setPage}
-          search={search}
-          onSearchChange={handleSearch}
-        />
+        {isError ? (
+          <div className="flex items-center justify-center h-full">
+            <p className="text-sm text-red-500">Failed to load projects. Please try again.</p>
+          </div>
+        ) : (
+          <ProjectTable
+            projects={projects}
+            loading={isFetching}
+            page={page}
+            totalPages={totalPages}
+            totalCount={totalCount}
+            pageSize={PAGE_SIZE}
+            onPageChange={setPage}
+            search={search}
+            onSearchChange={handleSearch}
+          />
+        )}
       </div>
 
       {showRateCard && <AddRateCardPanel onClose={() => setShowRateCard(false)} />}

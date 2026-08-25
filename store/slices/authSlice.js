@@ -18,12 +18,13 @@ export const login = createAsyncThunk(
     } catch (error) {
       console.error(
         "LOGIN ERROR:",
-        error.response?.data
+        error.response?.data ?? error.message
       );
 
       return rejectWithValue(
         error.response?.data?.message ||
           error.response?.data?.title ||
+          error.message ||
           "Invalid email or password."
       );
     }
@@ -49,12 +50,13 @@ export const forgotPassword = createAsyncThunk(
     } catch (error) {
       console.error(
         "FORGOT PASSWORD ERROR:",
-        error.response?.data
+        error.response?.data ?? error.message
       );
 
       return rejectWithValue(
         error.response?.data?.message ||
           error.response?.data?.title ||
+          error.message ||
           "Failed to send reset link."
       );
     }
@@ -81,12 +83,13 @@ export const verifyOtp = createAsyncThunk(
     } catch (error) {
       console.error(
         "VERIFY OTP ERROR:",
-        error.response?.data
+        error.response?.data ?? error.message
       );
 
       return rejectWithValue(
         error.response?.data?.message ||
           error.response?.data?.title ||
+          error.message ||
           "Invalid OTP."
       );
     }
@@ -117,12 +120,13 @@ export const resetPassword = createAsyncThunk(
     } catch (error) {
       console.error(
         "RESET PASSWORD ERROR:",
-        error.response?.data
+        error.response?.data ?? error.message
       );
 
       return rejectWithValue(
         error.response?.data?.message ||
           error.response?.data?.title ||
+          error.message ||
           "Failed to reset password."
       );
     }

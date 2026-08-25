@@ -1,11 +1,12 @@
 "use client";
 
-import { Fragment, useState, useMemo, useEffect } from "react";
+import { Fragment, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Search, ChevronDown, ChevronRight, Pencil } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTheme } from "../../../../context/ThemeContext";
 import DataPagination from "@/components/DataPagination";
+import { buildPageNumbers } from "@/lib/utils";
 import { fmt, fmtPct } from "../data";
 
 const HEADERS = [
@@ -38,18 +39,6 @@ export default function ProjectTable({
 
   const startIndex = totalCount === 0 ? 0 : (page - 1) * pageSize + 1;
   const endIndex   = Math.min(page * pageSize, totalCount);
-
-  const pageNumbers = useMemo(() => {
-    if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
-    const pages = [];
-    const left = page - 1, right = page + 1;
-    pages.push(1);
-    if (left > 2) pages.push("…");
-    for (let i = Math.max(2, left); i <= Math.min(totalPages - 1, right); i++) pages.push(i);
-    if (right < totalPages - 1) pages.push("…");
-    if (totalPages > 1) pages.push(totalPages);
-    return pages;
-  }, [page, totalPages]);
 
   return (
     <Card className="flex flex-col h-full">
@@ -84,8 +73,9 @@ export default function ProjectTable({
                 <tr><td colSpan={7} className={`py-8 text-center text-sm ${t.textMuted}`}>No projects found</td></tr>
               ) : projects.map((p, i) => {
                 const rowId = p.projecT_ID ?? p.project_ID ?? i;
+                const rowKey = `${rowId}-${i}`;
                 return (
-                  <Fragment key={rowId}>
+                  <Fragment key={rowKey}>
                     <tr className={`border-b ${t.clientBorder} ${t.clientRowHover} cursor-pointer`} onClick={() => toggle(rowId)}>
                       <td className="py-2.5 px-3 align-top">
                         <div className="flex items-center gap-1.5">
@@ -159,7 +149,7 @@ export default function ProjectTable({
           prevPage={() => onPageChange(page - 1)}
           nextPage={() => onPageChange(page + 1)}
           goToPage={onPageChange}
-          pageNumbers={pageNumbers}
+          pageNumbers={buildPageNumbers(page, totalPages)}
           className={`border-t ${t.clientBorder} shrink-0`}
         />
       </CardContent>

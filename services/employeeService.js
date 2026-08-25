@@ -1,21 +1,18 @@
-const API_URL = "http://localhost:5234/api/v1";
+import axiosClient from "./axiosClient";
+
+export async function getEmployees() {
+  const response = await axiosClient.get("/employee");
+  const data = response.data;
+  return Array.isArray(data) ? data : (data?.employees ?? data?.data ?? []);
+}
 
 export async function getEmployeeList() {
   try {
-    const response = await fetch(`${API_URL}/employee`);
-
-    if (!response.ok) {
-      throw new Error(`API request failed: ${response.status}`);
-    }
-
-    const apiData = await response.json();
+    const response = await axiosClient.get("/employee");
+    const apiData = Array.isArray(response.data) ? response.data : [];
 
     console.log("Employee API Response:", apiData);
-
-    console.log(
-  "Employee IDs:",
-  apiData.map((employee) => employee.empId)
-);
+    console.log("Employee IDs:", apiData.map((employee) => employee.empId));
 
     return apiData.map((employee, index) => ({
       id: `${employee.empId}-${index}`,
@@ -28,7 +25,6 @@ export async function getEmployeeList() {
       status: employee.status || "",
       initialLetters: employee.initial_Letters || "",
     }));
-
   } catch (error) {
     console.error("Employee API Error:", error);
     throw error;
@@ -37,17 +33,9 @@ export async function getEmployeeList() {
 
 export async function getEmployeeTypes() {
   try {
-    const response = await fetch(`${API_URL}/employee/types`);
-
-    if (!response.ok) {
-      throw new Error(`Type API failed: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    console.log("Employee Types:", data);
-
-    return data;
+    const response = await axiosClient.get("/employee/types");
+    console.log("Employee Types:", response.data);
+    return response.data;
   } catch (error) {
     console.error("Error fetching employee types:", error);
     throw error;
@@ -57,37 +45,9 @@ export async function getEmployeeTypes() {
 export async function createEmployee(employeeData) {
   try {
     console.log("POST Employee Request:", employeeData);
-
-    const response = await fetch(
-      `${API_URL}/employee`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(employeeData),
-      }
-    );
-
-    console.log("POST Response Status:", response.status);
-
-    const responseText = await response.text();
-
-    console.log("POST Response Body:", responseText);
-
-    if (!response.ok) {
-      throw new Error(
-        `API Error ${response.status}: ${responseText}`
-      );
-    }
-
-    // Some APIs return an empty response
-    if (!responseText) {
-      return null;
-    }
-
-    return JSON.parse(responseText);
-
+    const response = await axiosClient.post("/employee", employeeData);
+    console.log("POST Response:", response.data);
+    return response.data ?? null;
   } catch (error) {
     console.error("Create Employee Error:", error);
     throw error;
@@ -96,24 +56,9 @@ export async function createEmployee(employeeData) {
 
 export async function getEmployeeNames() {
   try {
-    const response = await fetch(`${API_URL}/employee/names`, {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(
-        `Employee Names API failed: ${response.status}`
-      );
-    }
-
-    const data = await response.json();
-
-    console.log("Employee Names API Response:", data);
-
-    return data;
+    const response = await axiosClient.get("/employee/names");
+    console.log("Employee Names API Response:", response.data);
+    return response.data;
   } catch (error) {
     console.error("Employee Names API Error:", error);
     throw error;
