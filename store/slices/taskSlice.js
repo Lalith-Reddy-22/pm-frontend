@@ -1,26 +1,24 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import axiosClient from "@/services/axiosClient";
+import { getTasks, getTaskProjects } from "@/services/taskService";
 
 export const fetchTasks = createAsyncThunk(
   "task/fetchTasks",
   async (params, { rejectWithValue }) => {
     try {
-      const response = await axiosClient.get("/Task", {
-        params: {
-          empId: params.empId,
-          userType: params.userType,
-          startDate: params.startDate,
-          endDate: params.endDate,
-          searchText: params.searchText,
-          projectId: params.projectId,
-          pageNumber: params.pageNumber,
-          pageSize: params.pageSize,
-        },
+      const data = await getTasks({
+        empId: params.empId,
+        userType: params.userType,
+        startDate: params.startDate,
+        endDate: params.endDate,
+        searchText: params.searchText,
+        projectId: params.projectId,
+        pageNumber: params.pageNumber,
+        pageSize: params.pageSize,
       });
 
-      console.log("TASK API RESPONSE:", response.data);
+      console.log("TASK API RESPONSE:", data);
 
-      return response.data;
+      return data;
 
     } catch (error) {
       console.error(
@@ -42,19 +40,11 @@ export const fetchTaskProjects = createAsyncThunk(
   "task/fetchTaskProjects",
   async ({ empId, userType }, { rejectWithValue }) => {
     try {
-      const response = await axiosClient.get("/Task/projects", {
-        params: {
-          empId,
-          userType,
-        },
-      });
+      const data = await getTaskProjects({ empId, userType });
 
-      console.log(
-        "TASK PROJECTS RESPONSE:",
-        response.data
-      );
+      console.log("TASK PROJECTS RESPONSE:", data);
 
-      return response.data;
+      return data;
     } catch (error) {
       console.error(
         "TASK PROJECTS ERROR:",

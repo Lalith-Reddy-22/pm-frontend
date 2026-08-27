@@ -1,6 +1,4 @@
 import axios from "axios";
-import { store } from "@/store/store";
-import { logout } from "@/store/slices/authSlice";
 
 const axiosClient = axios.create({
   baseURL: `${process.env.NEXT_PUBLIC_API_URL}/api/v1`,
@@ -10,7 +8,7 @@ const axiosClient = axios.create({
   },
 });
 
-// JWT
+// JWT — attach token from sessionStorage on every request
 axiosClient.interceptors.request.use(
   (config) => {
     if (typeof window !== "undefined") {
@@ -28,13 +26,17 @@ axiosClient.interceptors.request.use(
 );
 
 // Errors — auto-logout on 401 (expired / invalid token)
+// Dynamic imports break the circular dependency:
+//   axiosClient ← authSlice ← store ← axiosClient
 axiosClient.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (
       typeof window !== "undefined" &&
       error.response?.status === 401
     ) {
+      const { store } = await import("@/store/store");
+      const { logout } = await import("@/store/slices/authSlice");
       store.dispatch(logout());
       window.location.href = "/login";
     }

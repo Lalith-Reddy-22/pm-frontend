@@ -1,33 +1,28 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-
-import axiosClient from "@/services/axiosClient";
+import {
+  getProjectsDropdown,
+  getTaskList,
+} from "@/services/reportService";
 
 export const fetchProjectsDropdown = createAsyncThunk(
   "summaryReport/fetchProjectsDropdown",
 
   async (_, { rejectWithValue }) => {
     try {
-  console.log("CALLING PROJECT DROPDOWN API");
+      console.log("CALLING PROJECT DROPDOWN API");
+      const data = await getProjectsDropdown();
+      console.log("PROJECT API DATA:", data);
+      return data;
+    } catch (error) {
+      console.error("PROJECT API ERROR:", error);
 
-  console.log("AXIOS CLIENT:", axiosClient);
-console.log("AXIOS CLIENT TYPE:", typeof axiosClient);
-console.log("AXIOS GET:", typeof axiosClient?.get);
-  const response = await axiosClient.get("/Reports/projects-dropdown");
-
-  console.log("PROJECT API RESPONSE:", response);
-  console.log("PROJECT API DATA:", response.data);
-
-  return response.data;
-} catch (error) {
-  console.error("PROJECT API ERROR:", error);
-
-  return rejectWithValue(
-    error.response?.data?.message ||
-      error.response?.data?.title ||
-      error.message ||
-      "Failed to load projects."
-  );
-}
+      return rejectWithValue(
+        error.response?.data?.message ||
+          error.response?.data?.title ||
+          error.message ||
+          "Failed to load projects."
+      );
+    }
   }
 );
 
@@ -50,23 +45,20 @@ export const fetchTaskList = createAsyncThunk(
     try {
       console.log("CALLING TASK LIST API");
 
-      const response = await axiosClient.get("/Reports/task-list", {
-        params: {
-          empId,
-          empType,
-          startDate,
-          endDate,
-          projectId,
-          searchText,
-          pageNumber,
-          pageSize,
-        },
+      const data = await getTaskList({
+        empId,
+        empType,
+        startDate,
+        endDate,
+        projectId,
+        searchText,
+        pageNumber,
+        pageSize,
       });
 
-      console.log("TASK LIST API RESPONSE:", response);
-      console.log("TASK LIST API DATA:", response.data);
+      console.log("TASK LIST API DATA:", data);
 
-      return response.data;
+      return data;
     } catch (error) {
       console.error("TASK LIST API ERROR:", error);
 
