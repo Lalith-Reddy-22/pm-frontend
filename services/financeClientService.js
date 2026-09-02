@@ -62,3 +62,37 @@ export async function getProjectLookups() {
   const response = await axiosClient.get("/finance-project/lookups");
   return response.data;
 }
+
+export async function getFinanceRateCard({ teamId }) {
+  const params = new URLSearchParams({ teamId: String(teamId) });
+  const response = await axiosClient.get(`/finance-rate-card?${params}`);
+  return response.data;
+}
+
+export async function cloneBuyingCenter({ orgBId, buyCenterName, createdBy }) {
+  const response = await axiosClient.post(
+    "/finance-rate-card/buying-centers/clone",
+    { orgBId, buyCenterName, createdBy }
+  );
+  return response.data;
+}
+
+export async function getRateCardProjects() {
+  const response = await axiosClient.get("/finance-project-list-rate-card/projects");
+  return response.data; // [{ projectId, projectName }]
+}
+
+export async function getRateCardEmployees() {
+  const response = await axiosClient.get("/finance-project-list-rate-card/employees");
+  return response.data; // [{ empId, employee_Name }]
+}
+
+export async function saveRateCardBuyingCenter(payload) {
+  const response = await axiosClient.post("/finance-project-list-rate-card", payload);
+  return response.data;
+}
+
+export async function getRateCardBuyingCenter(projectId) {
+  const response = await axiosClient.get(`/finance-project-list-rate-card/buying-center/${projectId}`);
+  return response.data; // { buyingCenterName, employees: [{ emp_Id, employee_Name, emp_Value, bName, ... }] }
+}

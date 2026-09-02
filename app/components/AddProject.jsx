@@ -74,7 +74,7 @@ export default function AddProject() {
   const setField = (key) => (e)   => setForm((prev) => ({ ...prev, [key]: e.target.value }));
   const setVal   = (key) => (val) => setForm((prev) => ({ ...prev, [key]: val }));
   const toggle   = (key) => ()    => setForm((prev) => ({ ...prev, [key]: !prev[key] }));
-  const goBack   = () => router.push("/finance/project-lists");
+  const goBack   = () => router.back();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -133,7 +133,7 @@ export default function AddProject() {
       {/* ── Top bar ── */}
       <div className="shrink-0 px-6 pt-4 pb-3">
         <button onClick={goBack} className="flex items-center gap-1.5 text-sm mb-3 text-red-500 hover:text-red-600">
-          <ArrowLeft className="w-4 h-4" /> Back to Project Lists
+          <ArrowLeft className="w-4 h-4" /> Back
         </button>
         <div className="flex items-center gap-3">
           <div className={`p-2.5 rounded-xl ${t.clientIconBg}`}>
@@ -271,45 +271,52 @@ export default function AddProject() {
               </button>
             </div>
             <div className="flex-1 overflow-y-auto px-5 py-4">
-              <div className="grid grid-cols-2 gap-3">
+              {form.includeBuyingCenter ? (
+                <div className="grid grid-cols-2 gap-3">
 
-                <Field t={t} label="Buying Center" icon={ShoppingCart} span>
-                  <SmartSelect
-                    value={form.buyingCenterId}
-                    onChange={setVal("buyingCenterId")}
-                    options={buyingCtrOptions}
-                    placeholder="— Select buying center —"
-                  />
-                </Field>
+                  <Field t={t} label="Buying Center" icon={ShoppingCart} span>
+                    <SmartSelect
+                      value={form.buyingCenterId}
+                      onChange={setVal("buyingCenterId")}
+                      options={buyingCtrOptions}
+                      placeholder="— Select buying center —"
+                    />
+                  </Field>
 
-                <Field t={t} label="Financial Year" icon={Calendar} span>
-                  <SmartSelect
-                    value={form.financialYearId}
-                    onChange={setVal("financialYearId")}
-                    options={financialYrOptions}
-                    placeholder="— Select year —"
-                  />
-                </Field>
+                  <Field t={t} label="Financial Year" icon={Calendar} span>
+                    <SmartSelect
+                      value={form.financialYearId}
+                      onChange={setVal("financialYearId")}
+                      options={financialYrOptions}
+                      placeholder="— Select year —"
+                    />
+                  </Field>
 
-                <Field t={t} label="Purchase Order Value ($)" icon={DollarSign} span>
-                  <input type="text" inputMode="decimal" placeholder="0.00"
-                    value={form.purchaseOrderValue} onChange={setField("purchaseOrderValue")}
-                    className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText}`} />
-                </Field>
+                  <Field t={t} label="Purchase Order Value ($)" icon={DollarSign} span>
+                    <input type="text" inputMode="decimal" placeholder="0.00"
+                      value={form.purchaseOrderValue} onChange={setField("purchaseOrderValue")}
+                      className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText}`} />
+                  </Field>
 
-                <Field t={t} label="Predicted Cost ($)" icon={DollarSign} span>
-                  <input type="text" inputMode="decimal" placeholder="0.00"
-                    value={form.predictedCost} onChange={setField("predictedCost")}
-                    className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText}`} />
-                </Field>
+                  <Field t={t} label="Predicted Cost ($)" icon={DollarSign} span>
+                    <input type="text" inputMode="decimal" placeholder="0.00"
+                      value={form.predictedCost} onChange={setField("predictedCost")}
+                      className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText}`} />
+                  </Field>
 
-                <Field t={t} label="Outsourcing Cost ($)" icon={DollarSign} span>
-                  <input type="text" inputMode="decimal" placeholder="0.00"
-                    value={form.outsourcingCost} onChange={setField("outsourcingCost")}
-                    className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText}`} />
-                </Field>
+                  <Field t={t} label="Outsourcing Cost ($)" icon={DollarSign} span>
+                    <input type="text" inputMode="decimal" placeholder="0.00"
+                      value={form.outsourcingCost} onChange={setField("outsourcingCost")}
+                      className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText}`} />
+                  </Field>
 
-              </div>
+                </div>
+              ) : (
+                <div className={`h-full flex flex-col items-center justify-center gap-2 ${t.textMuted}`}>
+                  <ShoppingCart className="w-8 h-8 opacity-30" />
+                  <p className="text-xs text-center opacity-50">Check &quot;Include Buying Center&quot; to fill in budget details</p>
+                </div>
+              )}
             </div>
           </div>
 

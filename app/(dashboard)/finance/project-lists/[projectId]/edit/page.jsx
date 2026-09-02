@@ -289,42 +289,49 @@ export default function EditProjectPage() {
               </button>
             </div>
             <div className="flex-1 overflow-y-auto px-5 py-4">
-              <div className="grid grid-cols-2 gap-3">
+              {form.includeInBuyingCenter ? (
+                <div className="grid grid-cols-2 gap-3">
 
-                <Field t={t} label="Buying Center" icon={ShoppingCart} span>
-                  <SmartSelect
-                    value={form.buyingCenter}
-                    onChange={setVal("buyingCenter")}
-                    options={buyingCtrOptions}
-                    placeholder="— Select buying center —"
-                  />
-                </Field>
+                  <Field t={t} label="Buying Center" icon={ShoppingCart} span>
+                    <SmartSelect
+                      value={form.buyingCenter}
+                      onChange={setVal("buyingCenter")}
+                      options={buyingCtrOptions}
+                      placeholder="— Select buying center —"
+                    />
+                  </Field>
 
-                <Field t={t} label="Financial Year" icon={Calendar} span>
-                  <SmartSelect
-                    value={form.financialYear}
-                    onChange={setVal("financialYear")}
-                    options={financialYrOptions}
-                    placeholder="— Select year —"
-                  />
-                </Field>
+                  <Field t={t} label="Financial Year" icon={Calendar} span>
+                    <SmartSelect
+                      value={form.financialYear}
+                      onChange={setVal("financialYear")}
+                      options={financialYrOptions}
+                      placeholder="— Select year —"
+                    />
+                  </Field>
 
-                <Field t={t} label="Purchase Order Value ($)" icon={DollarSign} span>
-                  <input type="text" inputMode="decimal" value={form.poValue} onChange={setField("poValue")}
-                    className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText}`} />
-                </Field>
+                  <Field t={t} label="Purchase Order Value ($)" icon={DollarSign} span>
+                    <input type="text" inputMode="decimal" value={form.poValue} onChange={setField("poValue")}
+                      className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText}`} />
+                  </Field>
 
-                <Field t={t} label="Predicted Cost ($)" icon={DollarSign} span>
-                  <input type="text" inputMode="decimal" value={form.predictedCost} onChange={setField("predictedCost")}
-                    className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText}`} />
-                </Field>
+                  <Field t={t} label="Predicted Cost ($)" icon={DollarSign} span>
+                    <input type="text" inputMode="decimal" value={form.predictedCost} onChange={setField("predictedCost")}
+                      className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText}`} />
+                  </Field>
 
-                <Field t={t} label="Outsourcing Cost ($)" icon={DollarSign} span>
-                  <input type="text" inputMode="decimal" value={form.outsourcingCost} onChange={setField("outsourcingCost")}
-                    className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText}`} />
-                </Field>
+                  <Field t={t} label="Outsourcing Cost ($)" icon={DollarSign} span>
+                    <input type="text" inputMode="decimal" value={form.outsourcingCost} onChange={setField("outsourcingCost")}
+                      className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText}`} />
+                  </Field>
 
-              </div>
+                </div>
+              ) : (
+                <div className={`h-full flex flex-col items-center justify-center gap-2 ${t.textMuted}`}>
+                  <ShoppingCart className="w-8 h-8 opacity-30" />
+                  <p className="text-xs text-center opacity-50">Check &quot;Include Buying Center&quot; to fill in budget details</p>
+                </div>
+              )}
             </div>
           </div>
 

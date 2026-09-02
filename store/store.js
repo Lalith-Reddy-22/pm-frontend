@@ -8,6 +8,8 @@ import taskReducer from "./slices/taskSlice";
 import summaryReportReducer from "./slices/summaryReportSlice";
 import financeClientReducer from "./slices/financeClientSlice";
 import financeProjectReducer from "./slices/financeProjectSlice";
+import financeRateCardReducer from "./slices/financeRateCardSlice";
+import financeRateCardBuyingCenterReducer from "./slices/financeRateCardBuyingCenterSlice";
 
 export const store = configureStore({
   reducer: {
@@ -20,5 +22,7 @@ export const store = configureStore({
     summaryReport: summaryReportReducer,
     financeClient: financeClientReducer,
     financeProject: financeProjectReducer,
+    financeRateCard: financeRateCardReducer,
+    financeRateCardBuyingCenter: financeRateCardBuyingCenterReducer,
   },
 });
