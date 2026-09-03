@@ -3,7 +3,7 @@
 import { X, Plus, FolderOpen, Users, DollarSign, Loader2, Search } from "lucide-react";
 import { useTheme } from "../../../../context/ThemeContext";
 import { useState, useEffect, useRef } from "react";
-import { getRateCardProjects, getRateCardBuyingCenter, getRateCardEmployees, saveRateCardBuyingCenter } from "@/services/financeClientService";
+import { getRateCardProjects, getRateCardBuyingCenter, getRateCardEmployees, saveRateCardBuyingCenter, updateRateCardBuyingCenter } from "@/services/financeClientService";
 import SmartSelect from "@/app/components/SmartSelect";
 
 // Mirrors the Field wrapper used in AddProject
@@ -137,17 +137,13 @@ export default function AddRateCardPanel({ onClose }) {
       originalEmployees.current.map((r) => [String(r.empId), r.value])
     );
 
-    // Include a row if:
-    //   - it's new (empId was null → employee was just picked from the dropdown)
-    //   - OR its emp_Value changed from the original
-    const empSets = employees
-      .filter((r) => r.employee) // skip blank rows
+    const filledRows = employees.filter((r) => r.employee);
+
+    // New rows: empId was null when first loaded (freshly picked from the dropdown)
+    const newEmpSets = filledRows
       .filter((r) => {
-        // resolve the actual empId: for pre-loaded rows it equals r.employee (string of emp_Id)
         const empIdStr = String(r.empId ?? r.employee);
-        const isNew    = !origMap.has(empIdStr);
-        const isEdited = !isNew && origMap.get(empIdStr) !== r.value;
-        return isNew || isEdited;
+        return !origMap.has(empIdStr);
       })
       .map((r) => ({
         empId:    Number(r.empId ?? r.employee),
@@ -155,21 +151,40 @@ export default function AddRateCardPanel({ onClose }) {
         empValue: Number(r.value) || 0,
       }));
 
-    if (empSets.length === 0) {
+    // Edited rows: existed in the original snapshot but emp_Value changed
+    const editedEmpSets = filledRows
+      .filter((r) => {
+        const empIdStr = String(r.empId ?? r.employee);
+        return origMap.has(empIdStr) && origMap.get(empIdStr) !== r.value;
+      })
+      .map((r) => ({
+        empId:    Number(r.empId ?? r.employee),
+        projId:   Number(projectId),
+        empValue: Number(r.value) || 0,
+      }));
+
+    if (newEmpSets.length === 0 && editedEmpSets.length === 0) {
       setSubmitError("No new or edited employees to save.");
       return;
     }
 
-    const payload = {
+    const basePayload = {
       buying_CenterName: buyingCenter,
       userId,
       action: "string",
-      empSets,
     };
 
     setSaving(true);
     try {
-      await saveRateCardBuyingCenter(payload);
+      // POST for new employees, PUT for edited employees — run in parallel when both exist
+      await Promise.all([
+        newEmpSets.length > 0
+          ? saveRateCardBuyingCenter({ ...basePayload, empSets: newEmpSets })
+          : null,
+        editedEmpSets.length > 0
+          ? updateRateCardBuyingCenter({ ...basePayload, empSets: editedEmpSets })
+          : null,
+      ].filter(Boolean));
       onClose();
     } catch (e) {
       const errData = e.response?.data;

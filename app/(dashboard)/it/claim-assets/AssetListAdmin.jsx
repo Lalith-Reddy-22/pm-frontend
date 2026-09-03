@@ -2,15 +2,19 @@
 
 import { useState, useEffect } from "react";
 import { Search, ChevronDown, Plus, X, Loader2, AlertCircle } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useTheme } from "../../../context/ThemeContext";
 import { usePagination } from "@/hooks/usePagination";
 import DataPagination from "@/components/DataPagination";
 import { useAllAssetRequests } from "@/hooks/useAssets";
 import { updateAssetRequestStatus, addAsset } from "@/services/itAssetService";
 
-// ── Status map — API returns numeric status ───────────────────────────────────
-// 1 = Request, 2 = Issued, 3 = Returned
+// ── Status map ────────────────────────────────────────────────────────────────
+// API may return numeric `status` (1/2/3) OR string `statusName` ("Request"/"Issued"/"Returned")
 const STATUS_LABEL = { 1: "Request", 2: "Issued", 3: "Returned" };
+
+// Reverse lookup: statusName string → numeric key
+const STATUS_NAME_TO_NUM = { Request: 1, Issued: 2, Returned: 3 };
 
 const STATUS_STYLES = {
   1: { label: "Request",  pill: "bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20",  dot: "bg-blue-500"  },
@@ -18,6 +22,13 @@ const STATUS_STYLES = {
   3: { label: "Returned", pill: "bg-gray-100 text-gray-600 border border-gray-200 dark:bg-white/5 dark:text-gray-400 dark:border-white/10",           dot: "bg-gray-400"  },
 };
 const FALLBACK_STYLE = STATUS_STYLES[1];
+
+/** Resolve the API record's status to a numeric key (1 | 2 | 3). */
+function resolveStatus(r) {
+  if (r.status != null && STATUS_STYLES[Number(r.status)]) return Number(r.status);
+  if (r.statusName)                                          return STATUS_NAME_TO_NUM[r.statusName] ?? 1;
+  return 1;
+}
 
 const STATUS_OPTIONS = [
   { value: 1, label: "Request"  },
@@ -27,7 +38,7 @@ const STATUS_OPTIONS = [
 
 const COLS = ["Request ID", "Status", "Employee Name", "Item List", "Reason", "Raise Date", "Issued Date", "Taken Back Date"];
 
-const EMPTY_FORM = { p_Id: "", product_Name: "", service_Number: "", storage: "", isActive: "Yes" };
+const EMPTY_FORM = { p_Id: "", product_Name: "", service_Number: "", storage: "", isActive: "1" };
 
 /** "2026-07-20T00:00:00" → "20 Jul 2026" */
 function fmtDate(iso) {
@@ -37,6 +48,7 @@ function fmtDate(iso) {
 
 export default function AssetListAdmin() {
   const { t, isDark } = useTheme();
+  const queryClient = useQueryClient();
 
   // ── API ───────────────────────────────────────────────────────────────────
   const { data: apiRequests = [], isFetching, isError } = useAllAssetRequests();
@@ -73,10 +85,11 @@ export default function AssetListAdmin() {
         product_Name:   form.product_Name.trim(),
         service_Number: form.service_Number.trim(),
         storage:        form.storage.trim(),
-        isActive:       form.isActive,
+        isActive:       String(form.isActive === "1" ? "1" : "0"),
       });
       setModalSuccess(true);
       setForm(EMPTY_FORM);
+      queryClient.invalidateQueries({ queryKey: ["allAssets"] });
       setTimeout(() => { setModalSuccess(false); setShowModal(false); }, 1500);
     } catch (err) {
       console.error("addAsset failed:", err?.response?.status, err?.response?.data);
@@ -94,35 +107,38 @@ export default function AssetListAdmin() {
     setModalSuccess(false);
   }
 
-  async function updateStatus(id, requestId, newStatus) {
+  async function updateStatus(requestId, newStatus) {
     const numStatus = Number(newStatus);
-    const prevStatus = statusOverrides[id] ?? apiRequests.find(r => r.id === id)?.status;
+    const prevStatus = statusOverrides[requestId] ?? resolveStatus(apiRequests.find(r => r.request_Id === requestId) ?? {});
 
-    // Optimistic update
-    setStatusOverrides(prev => ({ ...prev, [id]: numStatus }));
-    setUpdatingRows(prev => ({ ...prev, [id]: true }));
-    setRowErrors(prev => ({ ...prev, [id]: "" }));
+    // Optimistic update — keyed by request_Id (always present and unique)
+    setStatusOverrides(prev => ({ ...prev, [requestId]: numStatus }));
+    setUpdatingRows(prev => ({ ...prev, [requestId]: true }));
+    setRowErrors(prev => ({ ...prev, [requestId]: "" }));
 
     try {
-      // Try passing the string request_Id as reqId per the API spec.
-      // If the backend has a SQL conversion bug, switch to passing String(id) instead.
       await updateAssetRequestStatus({ reqId: requestId, status: numStatus });
+      // Invalidate all three so Assets Management, My Request, and Asset List all update
+      queryClient.invalidateQueries({ queryKey: ["allAssetRequests"] });
+      queryClient.invalidateQueries({ queryKey: ["allAssets"] });
+      queryClient.invalidateQueries({ queryKey: ["myAssetRequests"] });
     } catch (err) {
       console.error("updateAssetRequestStatus failed:", err?.response?.status, err?.response?.data, err?.message);
       // Roll back on failure
-      setStatusOverrides(prev => ({ ...prev, [id]: prevStatus }));
-      setRowErrors(prev => ({ ...prev, [id]: "Update failed" }));
+      setStatusOverrides(prev => ({ ...prev, [requestId]: prevStatus }));
+      setRowErrors(prev => ({ ...prev, [requestId]: "Update failed" }));
       // Auto-clear error after 3 s
-      setTimeout(() => setRowErrors(prev => ({ ...prev, [id]: "" })), 3000);
+      setTimeout(() => setRowErrors(prev => ({ ...prev, [requestId]: "" })), 3000);
     } finally {
-      setUpdatingRows(prev => ({ ...prev, [id]: false }));
+      setUpdatingRows(prev => ({ ...prev, [requestId]: false }));
     }
   }
 
   // ── Derived list (apply local overrides, then filter) ────────────────────
+  // Keyed by request_Id (always present) to avoid collisions when r.id is null/undefined
   const requests = apiRequests.map(r => ({
     ...r,
-    effectiveStatus: statusOverrides[r.id] ?? (Number(r.status) || 1),
+    effectiveStatus: statusOverrides[r.request_Id] ?? resolveStatus(r),
   }));
 
   const filtered = requests.filter(r => {
@@ -222,8 +238,9 @@ export default function AssetListAdmin() {
             <tbody>
               {pagination.paginatedData.map((r, idx) => {
                 const style = STATUS_STYLES[r.effectiveStatus] ?? FALLBACK_STYLE;
+                const rowKey = r.request_Id ?? idx;
                 return (
-                  <tr key={r.id ?? r.request_Id ?? idx} className={`border-b border-border transition-colors ${isDark ? "hover:bg-white/3" : "hover:bg-gray-50"}`}>
+                  <tr key={rowKey} className={`border-b border-border transition-colors ${isDark ? "hover:bg-white/3" : "hover:bg-gray-50"}`}>
 
                     {/* Request ID */}
                     <td className={`px-5 py-3 font-mono text-xs font-semibold whitespace-nowrap ${t.textPrimary}`}>
@@ -236,22 +253,22 @@ export default function AssetListAdmin() {
                         <span className={`absolute left-2.5 w-1.5 h-1.5 rounded-full ${style.dot}`} />
                         <select
                           value={r.effectiveStatus}
-                          onChange={e => updateStatus(r.id, r.request_Id, e.target.value)}
-                          disabled={!!updatingRows[r.id]}
+                          onChange={e => updateStatus(r.request_Id, e.target.value)}
+                          disabled={!!updatingRows[r.request_Id]}
                           style={{ backgroundColor: isDark ? "#161b22" : undefined, colorScheme: isDark ? "dark" : "light" }}
-                          className={`appearance-none pl-6 pr-6 py-1 rounded-full text-xs font-semibold outline-none transition-colors ${style.pill} ${updatingRows[r.id] ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
+                          className={`appearance-none pl-6 pr-6 py-1 rounded-full text-xs font-semibold outline-none transition-colors ${style.pill} ${updatingRows[r.request_Id] ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
                         >
                           {STATUS_OPTIONS.map(s => (
                             <option key={s.value} value={s.value}>{s.label}</option>
                           ))}
                         </select>
-                        {updatingRows[r.id]
+                        {updatingRows[r.request_Id]
                           ? <Loader2 size={11} className="absolute right-2 animate-spin opacity-60" />
                           : <ChevronDown size={11} className="absolute right-2 pointer-events-none opacity-60" />
                         }
                       </div>
-                      {rowErrors[r.id] && (
-                        <p className="text-[10px] text-red-500 mt-1 whitespace-nowrap">{rowErrors[r.id]}</p>
+                      {rowErrors[r.request_Id] && (
+                        <p className="text-[10px] text-red-500 mt-1 whitespace-nowrap">{rowErrors[r.request_Id]}</p>
                       )}
                     </td>
 
@@ -328,7 +345,7 @@ export default function AssetListAdmin() {
                 <input
                   value={form.p_Id}
                   onChange={e => handleFormChange("p_Id", e.target.value)}
-                  placeholder="e.g. MHC-010"
+                  placeholder="Enter a number"
                   disabled={modalSubmitting}
                   className={`w-full h-11 px-3 rounded-lg border border-border text-sm ${t.textPrimary} ${isDark ? "bg-[#1c2333]" : "bg-gray-50"} outline-none focus:border-[#E12729] focus:ring-2 focus:ring-[#E12729]/20 transition-colors disabled:opacity-60`}
                 />
@@ -380,8 +397,8 @@ export default function AssetListAdmin() {
                   style={{ backgroundColor: isDark ? "#1c2333" : undefined, colorScheme: isDark ? "dark" : "light" }}
                   className={`w-full appearance-none h-11 pl-3 pr-8 rounded-lg border border-border text-sm ${t.textPrimary} ${isDark ? "bg-[#1c2333]" : "bg-gray-50"} outline-none focus:border-[#E12729] focus:ring-2 focus:ring-[#E12729]/20 transition-colors disabled:opacity-60`}
                 >
-                  <option value="Yes">Yes</option>
-                  <option value="No">No</option>
+                  <option value="1">Yes</option>
+                  <option value="0">No</option>
                 </select>
                 <ChevronDown size={14} className={`absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none ${t.textMuted}`} />
               </div>

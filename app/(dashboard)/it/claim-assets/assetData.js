@@ -18,7 +18,7 @@ export const ICON_MAP = {
  * Falls back to Laptop for any unrecognised class.
  */
 export function faClassToLucide(faClass = "") {
-  const cls = faClass.toLowerCase();
+  const cls = (faClass ?? "").toLowerCase();
   if (cls.includes("laptop") || cls.includes("macbook"))        return Laptop;
   if (cls.includes("tablet") || cls.includes("ipad"))           return Tablet;
   if (cls.includes("mobile") || cls.includes("phone") || cls.includes("iphone")) return Smartphone;

@@ -52,8 +52,10 @@ export async function getAllAssetRequests() {
  * Updates the status of an asset request.
  */
 export async function updateAssetRequestStatus({ reqId, status }) {
+  // Backend expects only the numeric part — strip any leading alpha prefix (e.g. "MTHA5887" → "5887")
+  const numericReqId = String(reqId).replace(/^[A-Za-z]+/, "");
   const response = await axiosClient.put("/asset/update-status", {
-    reqId,
+    reqId: numericReqId,
     status: Number(status),
   });
   return response.data;

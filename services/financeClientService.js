@@ -92,6 +92,11 @@ export async function saveRateCardBuyingCenter(payload) {
   return response.data;
 }
 
+export async function updateRateCardBuyingCenter(payload) {
+  const response = await axiosClient.put("/finance-project-list-rate-card/edit", payload);
+  return response.data;
+}
+
 export async function getRateCardBuyingCenter(projectId) {
   const response = await axiosClient.get(`/finance-project-list-rate-card/buying-center/${projectId}`);
   return response.data; // { buyingCenterName, employees: [{ emp_Id, employee_Name, emp_Value, bName, ... }] }

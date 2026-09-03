@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Search, ShoppingCart, CheckCircle, LayoutGrid, List, Loader2, AlertCircle } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAllAssets } from "@/hooks/useAssets";
 import { raiseAssetRequest } from "@/services/itAssetService";
 import AssetGridCard from "./AssetGridCard";
@@ -15,6 +16,7 @@ const MAX = 5;
 
 export default function ClaimAssetsPage() {
   const { t } = useTheme();
+  const queryClient = useQueryClient();
   const [activeTab,  setActiveTab]  = useState("assets");
   const [isSysAdmin, setIsSysAdmin] = useState(false);
   const [empId,      setEmpId]      = useState(null);
@@ -22,7 +24,14 @@ export default function ClaimAssetsPage() {
   useEffect(() => {
     setIsSysAdmin(sessionStorage.getItem("role") === "sys_admin");
     setEmpId(sessionStorage.getItem("empId"));
+    const savedTab = sessionStorage.getItem("claimAssetsTab");
+    if (savedTab) setActiveTab(savedTab);
   }, []);
+
+  function handleTabChange(key) {
+    setActiveTab(key);
+    sessionStorage.setItem("claimAssetsTab", key);
+  }
 
   const [viewMode,   setViewMode]   = useState("grid");
   const [selected,   setSelected]   = useState([]);
@@ -81,7 +90,7 @@ export default function ClaimAssetsPage() {
           ].map(tab => (
             <button
               key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
+              onClick={() => handleTabChange(tab.key)}
               className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activeTab === tab.key
                   ? `${t.cardBg} ${t.textPrimary} shadow-sm`
@@ -249,6 +258,10 @@ export default function ClaimAssetsPage() {
                       reason: reason.trim(),
                       productIds: selected,
                     });
+                    // Refetch assets (availability changes) + both request lists
+                    queryClient.invalidateQueries({ queryKey: ["allAssets"] });
+                    queryClient.invalidateQueries({ queryKey: ["myAssetRequests"] });
+                    queryClient.invalidateQueries({ queryKey: ["allAssetRequests"] });
                     setShowReason(false);
                     setReason("");
                     setSelected([]);
