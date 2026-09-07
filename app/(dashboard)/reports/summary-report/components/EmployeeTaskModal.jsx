@@ -1,42 +1,145 @@
 "use client";
 
 import { X, Search, ChevronDown, ChevronUp } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DataPagination from "@/components/DataPagination";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchEmployeeTaskDetails,
+} from "@/store/slices/summaryReportSlice";
 
 export default function EmployeeTaskModal({
   open,
   onOpenChange,
   employee,
+  startDate,
+  endDate,
+  taskRows = [],
 }) {
+
+  console.log("EMPLOYEE RECEIVED IN MODAL:", employee);
+console.log("EMPLOYEE ID:", employee?.id);
+console.log("EMPLOYEE EMP_ID:", employee?.emp_ID);
+
+  const dispatch = useDispatch();
+
+   console.log("SELECTED EMPLOYEE:", employee);
+
+const {
+  employeeTaskDetails,
+  employeeTaskDetailsLoading,
+  employeeTaskDetailsTotal,
+  employeeTaskDetailsTotalPages,
+} = useSelector(
+  (state) => state.summaryReport
+);
   const [search, setSearch] = useState("");
   const [pageSize, setPageSize] = useState(5);
   const [page, setPage] = useState(1);
   const [showExport, setShowExport] = useState(false);
 
+ useEffect(() => {
+  if (!open || !employee) return;
+
+  const employeeId =
+    employee?.empId ??
+    employee?.id ??
+    employee?.emp_ID ??
+    employee?.employeeId;
+
+  console.log("========== EMPLOYEE TASK API ==========");
+  console.log("EMPLOYEE OBJECT:", employee);
+  console.log("EMPLOYEE ID SENT:", employeeId);
+  console.log("START DATE:", startDate);
+  console.log("END DATE:", endDate);
+
+  if (!employeeId) {
+    console.error("❌ Employee ID not found:", employee);
+    return;
+  }
+
+  dispatch(
+    fetchEmployeeTaskDetails({
+      employeeId,
+      startDate,
+      endDate,
+      pageNumber: page,
+      pageSize,
+    })
+  );
+}, [
+  dispatch,
+  open,
+  employee,
+  startDate,
+  endDate,
+  page,
+  pageSize,
+]);
+
+const rows = (employeeTaskDetails || []).map((row, index) => ({
+  id:
+    row.id ??
+    row.task_ID ??
+    row.task_Id ??
+    row.task_id ??
+    index,
+
+  title:
+    row.title ??
+    row.task_Title ??
+    row.Task_Title ??
+    row.taskTitle ??
+    "",
+
+  start:
+    row.start ??
+    row.startDate ??
+    row.StartDate ??
+    row.start_Date ??
+    row.start_Date_Formatted ??
+    "",
+
+  end:
+    row.end ??
+    row.endDate ??
+    row.EndDate ??
+    row.end_Date ??
+    row.end_Date_Formatted ??
+    "",
+
+  actual:
+    row.actual ??
+    row.actualHours ??
+    row.ActualHours ??
+    row.logHours ??
+    0,
+
+  planned:
+    row.planned ??
+    row.plannedHours ??
+    row.Planned_hours ??
+    row.planneHours ??
+    0,
+
+  tasks:
+    row.tasks ??
+    row.task_Count ??
+    row.taskCount ??
+    "",
+}));
+
+console.log("========== TASK DETAILS ==========");
+console.log("RAW TASK DETAILS:", employeeTaskDetails);
+console.log("ROWS:", rows);
+
+if (rows?.[0]) {
+  console.log("FIRST TASK:", rows[0]);
+  console.log("TASK FIELD NAMES:", Object.keys(rows[0]));
+}
+
   if (!open || !employee) return null;
 
-  // Temporary sample data
-  const rows = [
-    {
-      id: 3965,
-      title: "Addressing fixes to the build",
-      start: "10-11-23",
-      end: "10-11-23",
-      actual: 8,
-      planned: 8,
-      tasks: 1,
-    },
-    {
-      id: 4080,
-      title: "Weekly status call with Neilda_November",
-      start: "10-11-23",
-      end: "17-11-23",
-      actual: 0,
-      planned: 1,
-      tasks: 6,
-    },
-  ];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-6">
@@ -46,7 +149,7 @@ export default function EmployeeTaskModal({
           <h2 className="text-xl mt-4">
             Employee Name :
             <span className="ml-2 text-black-400">
-              {employee.name}
+              {employee?.name ?? employee?.employee_name ?? "Employee"}
             </span>
           </h2>
 
@@ -167,8 +270,13 @@ export default function EmployeeTaskModal({
             </thead>
 
             <tbody>
-
-              {rows.map((row) => (
+              {employeeTaskDetailsLoading ? (
+                <tr>
+                  <td colSpan={7} className="px-5 py-8 text-center text-gray-500">
+                    Loading tasks...
+                  </td>
+                </tr>
+              ) : rows.map((row) => (
                 <tr key={row.id} className="border-b">
 
                   <td className="px-5 py-4">{row.id}</td>
@@ -198,13 +306,12 @@ export default function EmployeeTaskModal({
         <div className="border-t px-6 py-4">
 
           <DataPagination
-            page={page}
-            setPage={setPage}
-            pageSize={pageSize}
-            total={34}
-            totalPages={7}
-          />
-
+  page={page}
+  setPage={setPage}
+  pageSize={pageSize}
+  total={employeeTaskDetailsTotal || 0}
+  totalPages={employeeTaskDetailsTotalPages || 1}
+/>
         </div>
 
       </div>

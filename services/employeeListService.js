@@ -1,40 +1,4 @@
-/**
- * Employee List Service
- * 
- * Handles fetching and processing employee list data
- */
-
-// Sample employee data
-const SAMPLE_EMPLOYEE_DATA = [
-  { id: 1, name: "Vinoth Kumar M" },
-  { id: 2, name: "Vikram Subraya Shenoy" },
-  { id: 3, name: "Bharathkumar Duragappa" },
-  { id: 4, name: "Rajesh Hariharan" },
-  { id: 5, name: "Maithri Shanbhogue H" },
-  { id: 6, name: "Darshan T" },
-  { id: 7, name: "Vishwanath BJ" },
-  { id: 8, name: "Sushmita Gopalakrish" },
-  { id: 9, name: "Abhishek Badiger" },
-  { id: 10, name: "Priya Sharma" },
-  { id: 11, name: "Sahil Jain" },
-  { id: 12, name: "Meera Joshi" },
-  { id: 13, name: "Nikhil R" },
-  { id: 14, name: "Akshaya K" },
-  { id: 15, name: "Rupesh K" },
-  { id: 16, name: "Anaya M" },
-  { id: 17, name: "Vikram Singh" },
-  { id: 18, name: "Isha Patel" },
-  { id: 19, name: "Rajesh Kumar" },
-  { id: 20, name: "Anita Verma" },
-  { id: 21, name: "Karan Sharma" },
-  { id: 22, name: "Deepak Nair" },
-  { id: 23, name: "Pooja Gupta" },
-  { id: 24, name: "Sanjay Desai" },
-  { id: 25, name: "Neha Singh" },
-  { id: 26, name: "Rohit Patel" },
-  { id: 27, name: "Manisha Roy" },
-  { id: 28, name: "Arjun Kapoor" },
-];
+import axiosClient from "./axiosClient";
 
 /**
  * Fetch employee list with filtering and pagination
@@ -45,46 +9,83 @@ const SAMPLE_EMPLOYEE_DATA = [
  * @returns {Promise<Object>} - Returns { data: [], total: number, page: number, pageSize: number }
  */
 export async function getEmployeeList(filters = {}) {
+  const {
+    search = "",
+    startDate = "",
+    endDate = "",
+    page = 1,
+    pageSize = 10,
+  } = filters;
+  let payload;
+
   try {
-    const {
-      search = "",
-      page = 1,
-      pageSize = 10,
-    } = filters;
+    const response = await axiosClient.get("/Reports/employee-list", {
+      params: {
+        search,
+        searchText: search,
+        startDate,
+        endDate,
+        pageNumber: page,
+        pageSize,
+      },
+    });
+    payload = response.data;
+  } catch (error) {
+    if (![401, 503].includes(error.response?.status)) throw error;
 
-    // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 300));
-
-    let result = [...SAMPLE_EMPLOYEE_DATA];
-
-    // Search filter
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      result = result.filter(
-        (item) =>
-          item.name.toLowerCase().includes(q)
-      );
-    }
-
-    // Get total count before pagination
-    const total = result.length;
-
-    // Pagination
+    const response = await axiosClient.get("/employee");
+    const employees = Array.isArray(response.data) ? response.data : [];
+    const query = search.trim().toLowerCase();
+    const filtered = query
+      ? employees.filter((employee) =>
+          String(
+            employee.employee_Name ??
+            employee.employeeName ??
+            employee.name ??
+            ""
+          ).toLowerCase().includes(query)
+        )
+      : employees;
+    const total = filtered.length;
     const startIndex = (page - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-    const paginatedData = result.slice(startIndex, endIndex);
 
-    return {
-      data: paginatedData,
-      total,
-      page,
+    payload = {
+      data: filtered.slice(startIndex, startIndex + pageSize),
+      totalRecords: total,
+      pageNumber: page,
       pageSize,
       totalPages: Math.ceil(total / pageSize),
     };
-  } catch (error) {
-    console.error("Error fetching employee list:", error);
-    throw new Error("Failed to fetch employee list");
   }
+
+  const records = Array.isArray(payload)
+    ? payload
+    : payload?.data ?? payload?.employees ?? payload?.items ?? [];
+  const data = records.map((employee, index) => ({
+    ...employee,
+    id:
+      employee.id ??
+      employee.empId ??
+      employee.employeeId ??
+      employee.employee_ID ??
+      employee.emp_ID ??
+      index,
+    name:
+      employee.name ??
+      employee.employee_Name ??
+      employee.employeeName ??
+      employee.emp_Name ??
+      "",
+  }));
+  const total = payload?.totalCount ?? payload?.totalRecords ?? data.length;
+
+  return {
+    data,
+    total,
+    page: payload?.pageNumber ?? page,
+    pageSize: payload?.pageSize ?? pageSize,
+    totalPages: payload?.totalPages ?? Math.ceil(total / pageSize),
+  };
 }
 
 /**

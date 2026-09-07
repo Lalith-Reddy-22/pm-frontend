@@ -8,7 +8,12 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table";
-import { Pencil, Trash2, Plus, ChevronDown, ChevronUp,} from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  Plus,
+  CalendarClock,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 
@@ -23,7 +28,11 @@ const TABLE_HEADERS = [
   { label: "Actions", className: "w-28 text-center" },
 ];
 
-export default function TaskTable({ rows = [] }) {
+export default function TaskTable({
+  rows = [],
+  onReschedule,
+  onDelete,
+}) {
   return (
     <div className="border border-border bg-card ">
       <div className="max-h-[60vh] sm:max-h-[70vh] lg:max-h-[70vh] overflow-auto relative custom-scrollbar">
@@ -49,7 +58,14 @@ export default function TaskTable({ rows = [] }) {
                 </TableCell>
               </TableRow>
             ) : (
-              rows.map((task) => <TaskTableRow key={task.id} task={task} />)
+              rows.map((task) => (
+  <TaskTableRow
+  key={task.id}
+  task={task}
+  onReschedule={onReschedule}
+  onDelete={onDelete}
+/>
+))
             )}
           </TableBody>
         </table>
@@ -58,7 +74,11 @@ export default function TaskTable({ rows = [] }) {
   );
 }
 
-function TaskTableRow({ task }) {
+function TaskTableRow({
+  task,
+  onReschedule,
+  onDelete,
+}) {
   const router = useRouter();
 
   return (
@@ -100,30 +120,62 @@ function TaskTableRow({ task }) {
       <TableCell className="px-4 py-3 text-center text-sm text-muted-foreground">{task.startDate}</TableCell>
       <TableCell className="px-4 py-3 text-center text-sm text-muted-foreground">{task.endDate}</TableCell>
       <TableCell className="px-4 py-3 text-center">
-        <div className="flex items-center justify-center gap-1.5">
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label="Create task"
-            onClick={() => router.push("/tasks/create")}
-            className="opacity-60 group-hover:opacity-100 hover:text-[#E12729]"
-          >
-            <Plus />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label="Update task"
-            onClick={() => router.push(`/tasks/create?taskId=${task.id}`)}
-            className="opacity-60 group-hover:opacity-100 hover:text-[#E12729]"
-          >
-            <Pencil />
-          </Button>
-          <Button variant="ghost" size="icon-sm" aria-label="Delete task" className="opacity-60 group-hover:opacity-100 hover:text-destructive">
-            <Trash2 />
-          </Button>
-        </div>
-      </TableCell>
+    <div className="flex items-center justify-center gap-1.5 ">
+    {/* Create Task */}
+    <Button
+      variant="ghost"
+      size="icon-sm"
+      aria-label="Create task"
+      onClick={() => router.push("/tasks/create")}
+      className="opacity-60 group-hover:opacity-100 hover:text-[#E12729]"
+    >
+      <Plus />
+    </Button>
+
+    {/* Update Task */}
+    <Button
+      variant="ghost"
+      size="icon-sm"
+      aria-label="Update task"
+      onClick={() =>
+        router.push(`/tasks/create?taskId=${task.id}`)
+      }
+      className="opacity-60 group-hover:opacity-100 hover:text-[#E12729]"
+    >
+      <Pencil />
+    </Button>
+
+    {/* RESCHEDULE TASK */}
+    <Button
+      variant="ghost"
+      size="icon-sm"
+      aria-label="Reschedule task"
+      onClick={() => {
+        console.log("RESCHEDULE BUTTON CLICKED:", task);
+
+        onReschedule(task);
+      }}
+      className="opacity-60 group-hover:opacity-100 hover:text-[#E12729]"
+    >
+      <CalendarClock />
+    </Button>
+
+    {/* Delete Task */}
+    <Button
+  variant="ghost"
+  size="icon-sm"
+  aria-label="Delete task"
+  onClick={() => {
+    console.log("DELETE BUTTON CLICKED:", task);
+    onDelete(task);
+  }}
+  className="opacity-60 group-hover:opacity-100 hover:text-destructive"
+>
+  <Trash2 />
+</Button>
+
+  </div>
+</TableCell>
     </TableRow>
   );
 }

@@ -1,10 +1,8 @@
 export const TEMPLATE_OPTIONS = [
-  { value: "all", label: "All Templates" },
+  { value: "all", label: "Select Template" },
   { value: "AnimateBanner", label: "AnimateBanner" },
-  { value: "Emailer", label: "Emailer" },
-  { value: "Website", label: "Website" },
-  { value: "Landing Page", label: "Landing Page" },
-  { value: "Brochure", label: "Brochure" },
+  { value: "EMR Ads", label: "EMR Ads" },
+  { value: "Email", label: "Email" },
 ];
 
 export const PAGE_SIZE_OPTIONS = [

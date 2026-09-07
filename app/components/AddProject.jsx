@@ -1,12 +1,51 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft, Save, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import DatePicker from "./DatePicker";
 import CustomSelect from "@/components/ui/CustomSelect";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchClients } from "@/store/slices/clientSlice";
+import { fetchFinancialYears } from "@/store/slices/financialYearSlice";
+import { fetchBuyingCenters } from "@/store/slices/buyingCenterSlice";
 
-export default function AddProject() {
+export default function AddProject({
+  isEditMode,
+  projectId,
+  projectDetails,
+  projectDetailsLoading,
+  projectDetailsError,
+}) {
+
+  const dispatch = useDispatch();
+
+const {
+  clients,
+  loading: clientsLoading,
+  error: clientsError,
+} = useSelector((state) => state.client);
+
+const {
+  financialYears,
+  loading: financialYearsLoading,
+  error: financialYearsError,
+} = useSelector((state) => state.financialYear);
+
+const {
+  buyingCenters,
+  loading: buyingCentersLoading,
+  error: buyingCentersError,
+} = useSelector((state) => state.buyingCenter);
+
+console.log("FINANCIAL YEARS FROM REDUX:", financialYears);
+
+useEffect(() => {
+  dispatch(fetchClients());
+  dispatch(fetchFinancialYears());
+  dispatch(fetchBuyingCenters());
+}, [dispatch]);
+
   const router = useRouter();
 
   const [formData, setFormData] = useState({
@@ -48,38 +87,16 @@ export default function AddProject() {
   },
 ];
 
-const CLIENT_OPTIONS = [
+const clientOptions = [
   {
     value: "",
     label: "Select Client",
   },
-  {
-    value: "Pfizer",
-    label: "Pfizer",
-  },
-  {
-    value: "Novartis",
-    label: "Novartis",
-  },
-  {
-    value: "Roche",
-    label: "Roche",
-  },
-];
 
-const TYPE_OPTIONS = [
-  {
-    value: "",
-    label: "Select Type",
-  },
-  {
-    value: "Internal",
-    label: "Internal",
-  },
-  {
-    value: "External",
-    label: "External",
-  },
+  ...clients.map((client) => ({
+    value: String(client.client_Id),
+    label: client.client_Title,
+  })),
 ];
 
 const BUYING_CENTER_OPTIONS = [
@@ -87,37 +104,68 @@ const BUYING_CENTER_OPTIONS = [
     value: "",
     label: "Select Buying Center",
   },
-  {
-    value: "Medical",
-    label: "Medical",
-  },
-  {
-    value: "Marketing",
-    label: "Marketing",
-  },
-  {
-    value: "Sales",
-    label: "Sales",
-  },
+
+  ...buyingCenters.map((item) => ({
+    value: String(item.bId),
+    label: item.bName,
+  })),
 ];
 
-const FINANCIAL_YEAR_OPTIONS = [
+const financialYearOptions = [
   {
     value: "",
     label: "Select Financial Year",
   },
+  ...financialYears.map((year) => ({
+    value: String(year.id),
+    label: year.financial_Year,
+  })),
+];
+
+
+const TYPE_OPTIONS = [
   {
-    value: "2025-2026",
-    label: "2025-2026",
+    value: "",
+    label: "Select Type",
+  },
+   {
+    value: "billable",
+    label: "Billable",
   },
   {
-    value: "2026-2027",
-    label: "2026-2027",
+    value: "nonbillable",
+    label: "Non-Billable",
   },
-  {
-    value: "2027-2028",
-    label: "2027-2028",
-  },
+];
+
+const PROJECT_OWNER_OPTIONS = [
+  { value: "7", label: "Suresh Waghmore" },
+  { value: "10", label: "Shijin Pulikkotil" },
+  { value: "11", label: "Hari Prabhakaran" },
+  { value: "13", label: "Sunil Kadhamba" },
+  { value: "22", label: "Binoj" },
+  { value: "52", label: "Pavithra G" },
+  { value: "71", label: "Rajesh Hariharan" },
+  { value: "78", label: "Vishwanath BJ" },
+  { value: "21", label: "Sonali Sulakhe" },
+  { value: "45", label: "Shuja Jacob" },
+  { value: "60", label: "Karishma Reji" },
+  { value: "67", label: "Jigar Gohel" },
+  { value: "104", label: "Rosmin Thomas" },
+  { value: "110", label: "Pavitha Admin" },
+  { value: "115", label: "Aditi Dash" },
+  { value: "117", label: "Prajwal P Kunte" },
+  { value: "128", label: "Akshay Mohan" },
+  { value: "140", label: "Shruti Appaji" },
+  { value: "129", label: "Bhuvinaya Sriramkumar" },
+  { value: "136", label: "Rishabh Pandey" },
+  { value: "168", label: "Rajesh Balasundara" },
+  { value: "170", label: "Michelle Trussel" },
+  { value: "1174", label: "Sristi Das" },
+  { value: "1180", label: "Shreya Nagaraj" },
+  { value: "1181", label: "Akshaya K" },
+  { value: "1183", label: "Jaclyn Pallotti" },
+  { value: "171", label: "Shilpa Mistry" },
 ];
 
   const handleChange = (field, value) => {
@@ -126,6 +174,84 @@ const FINANCIAL_YEAR_OPTIONS = [
       [field]: value,
     }));
   };
+
+  const parseDate = (value) => {
+  if (!value) return "";
+
+  const date = new Date(value);
+
+  if (isNaN(date.getTime())) {
+    return "";
+  }
+
+  return date;
+};
+
+useEffect(() => {
+  if (!isEditMode || !projectDetails) {
+    return;
+  }
+
+  const buyingCenterId = Number(projectDetails.b_Id);
+
+  const projectType =
+    buyingCenterId === 0 || buyingCenterId === 25
+      ? "nonbillable"
+      : "billable";
+
+  console.log("========== EDIT PROJECT ==========");
+  console.log("PROJECT ID:", projectDetails.project_Id);
+  console.log("B_ID:", projectDetails.b_Id);
+  console.log("BUYING CENTER ID:", buyingCenterId);
+  console.log("CALCULATED TYPE:", projectType);
+  console.log("CLIENT ID:", projectDetails.client_Id);
+  console.log("CLIENT NAME:", projectDetails.client_Title);
+  console.log("FINANCIAL YEAR ID:", projectDetails.financial_Year_Id);
+  console.log("=================================");
+
+  setFormData((prev) => ({
+    ...prev,
+
+    projectName: projectDetails.project_Title || "",
+
+    region: "",
+
+    projectStatus: projectDetails.project_Status_Text || "",
+
+    client: projectDetails.client_Id
+      ? String(projectDetails.client_Id)
+      : "",
+
+    projectCode: projectDetails.projectCode || "",
+
+    // B_Id 0 and 25 = Non-Billable
+    type: projectType,
+
+    // Sub Client = selected Client
+    subClient: projectDetails.client_Title || "",
+
+    startDate: parseDate(projectDetails.startDate),
+    endDate: parseDate(projectDetails.endDate),
+
+    projectOwner: projectDetails.projectOwner || "",
+
+    includeBuyingCenter: true,
+
+    buyingCenter: projectDetails.b_Id
+  ? String(projectDetails.b_Id)
+  : "",
+
+    financialYear: projectDetails.financial_Year_Id
+      ? String(projectDetails.financial_Year_Id)
+      : "",
+
+    purchaseOrderValue: projectDetails.totalValue ?? "",
+
+    predictedCost: projectDetails.predicted_Value ?? "",
+
+    outsourcingCost: projectDetails.outsourcing_Value ?? "",
+  }));
+}, [isEditMode, projectDetails]);
 
   return (
     <div className="space-y-6 p-4 sm:p-6">
@@ -230,12 +356,21 @@ const FINANCIAL_YEAR_OPTIONS = [
                 </label>
 
                 <CustomSelect
+  label="Client"
+  options={clientOptions}
   value={formData.client}
-  onChange={(value) =>
-    handleChange("client", value)
-  }
-  placeholder="Select Client"
-  options={CLIENT_OPTIONS}
+  onChange={(value) => {
+    const selectedClient = clients.find(
+      (client) =>
+        String(client.client_Id) === String(value)
+    );
+
+    setFormData((prev) => ({
+      ...prev,
+      client: value,
+      subClient: selectedClient?.client_Title || "",
+    }));
+  }}
 />
 
               </div>
@@ -287,13 +422,14 @@ const FINANCIAL_YEAR_OPTIONS = [
                 </label>
 
                 <input
-                  value={formData.subClient}
-                  onChange={(e) =>
-                    handleChange("subClient", e.target.value)
-                  }
-                  placeholder="Enter Sub Client"
-                  className="h-8 w-full rounded-md border border-gray-300 px-4 outline-none focus:border-red-500"
-                />
+  type="text"
+  value={formData.subClient}
+  onChange={(e) =>
+    handleChange("subClient", e.target.value)
+  }
+  placeholder="Enter Sub Client"
+  className="h-8 w-full rounded-md border border-gray-300 px-4 outline-none focus:border-red-500"
+/>
 
               </div>
 
@@ -337,14 +473,12 @@ const FINANCIAL_YEAR_OPTIONS = [
                   Project Owner
                 </label>
 
-                <input
-                  value={formData.projectOwner}
-                  onChange={(e) =>
-                    handleChange("projectOwner", e.target.value)
-                  }
-                  placeholder="Enter Project Owner"
-                  className="h-8 w-full rounded-md border border-gray-300 px-4 outline-none focus:border-red-500"
-                />
+                <CustomSelect
+  value={formData.projectOwner}
+  onChange={(value) => handleChange("projectOwner", value)}
+  placeholder="Select Project Owner"
+  options={PROJECT_OWNER_OPTIONS}
+/>
 
               </div>
 
@@ -373,10 +507,9 @@ const FINANCIAL_YEAR_OPTIONS = [
                 // TODO:
                 // await axios.post("/api/projects", formData);
               }}
-              className="flex items-center gap-2 rounded-xl bg-[#E12729] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700"
+              className="flex items-center gap-2 rounded-xl bg-[#E12729] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700"
             >
-              <Plus size={16} />
-              Create Project
+  {isEditMode ? "Update Project" : "Create Project"}
             </button>
 
           </div>
@@ -434,9 +567,7 @@ const FINANCIAL_YEAR_OPTIONS = [
 
         <CustomSelect
   value={formData.buyingCenter}
-  onChange={(value) =>
-    handleChange("buyingCenter", value)
-  }
+  onChange={(value) => handleChange("buyingCenter", value)}
   placeholder="Select Buying Center"
   options={BUYING_CENTER_OPTIONS}
 />
@@ -452,12 +583,15 @@ const FINANCIAL_YEAR_OPTIONS = [
         </label>
 
         <CustomSelect
+  label="Financial Year"
+  options={financialYearOptions}
   value={formData.financialYear}
-  onChange={(value) =>
-    handleChange("financialYear", value)
-  }
-  placeholder="Select Financial Year"
-  options={FINANCIAL_YEAR_OPTIONS}
+  onChange={(value) => {
+    setFormData((prev) => ({
+      ...prev,
+      financialYear: value,
+    }));
+  }}
 />
 
       </div>

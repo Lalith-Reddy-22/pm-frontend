@@ -217,54 +217,63 @@ const authSlice = createSlice({
 
       .addCase(login.fulfilled, (state, action) => {
         const data = action.payload;
+        const authData = data?.data ?? data;
+        const accessToken =
+          authData?.accessToken ||
+          authData?.access_token ||
+          authData?.token ||
+          authData?.jwt ||
+          null;
+        const refreshToken =
+          authData?.refreshToken ||
+          authData?.refresh_token ||
+          null;
 
         state.loading = false;
         state.error = null;
         state.isAuthenticated = true;
 
-        state.accessToken =
-          data?.accessToken || null;
+        state.accessToken = accessToken;
 
-        state.refreshToken =
-          data?.refreshToken || null;
+        state.refreshToken = refreshToken;
 
         state.user = {
-          empId: data?.empId,
-          userType: data?.user_Type,
-          employeeName: data?.employee_Name,
-          email: data?.emailId,
+          empId: authData?.empId,
+          userType: authData?.user_Type,
+          employeeName: authData?.employee_Name,
+          email: authData?.emailId,
         };
 
         // Save authentication data
         if (typeof window !== "undefined") {
           sessionStorage.setItem(
             "accessToken",
-            data?.accessToken || ""
+            accessToken || ""
           );
 
           sessionStorage.setItem(
             "refreshToken",
-            data?.refreshToken || ""
+            refreshToken || ""
           );
 
           sessionStorage.setItem(
             "empId",
-            String(data?.empId || "")
+            String(authData?.empId || "")
           );
 
           sessionStorage.setItem(
             "userType",
-            String(data?.user_Type || "")
+            String(authData?.user_Type || "")
           );
 
           sessionStorage.setItem(
             "employeeName",
-            data?.employee_Name || ""
+            authData?.employee_Name || ""
           );
 
           sessionStorage.setItem(
             "email",
-            data?.emailId || ""
+            authData?.emailId || ""
           );
 
           sessionStorage.setItem(

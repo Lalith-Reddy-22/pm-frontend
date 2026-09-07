@@ -27,11 +27,16 @@ import { useState, useMemo } from "react";
  *   goToPage        – (n: number) => void
  *   pageNumbers     – array of page numbers / ellipsis strings for rendering
  */
-export function usePagination({ data = [], pageSize: initialSize = 10, initialPage = 1 } = {}) {
+export function usePagination({
+  data = [],
+  pageSize: initialSize = 10,
+  initialPage = 1,
+  totalItems: totalItemsOverride,
+} = {}) {
   const [page, setPageRaw] = useState(initialPage);
   const [pageSize, setPageSizeRaw] = useState(initialSize);
 
-  const totalItems = data.length;
+  const totalItems = totalItemsOverride ?? data.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
 
   // Clamp page when data or pageSize changes

@@ -19,6 +19,22 @@ console.log("AXIOS GET:", typeof axiosClient?.get);
 
   return response.data;
 } catch (error) {
+  if ([401, 404, 503].includes(error.response?.status)) {
+    const empId =
+      typeof window !== "undefined"
+        ? Number(sessionStorage.getItem("empId") || 0)
+        : 0;
+    const userType =
+      typeof window !== "undefined"
+        ? Number(sessionStorage.getItem("userType") || 0)
+        : 0;
+    const fallbackResponse = await axiosClient.get("/projects", {
+      params: { empId, userType },
+    });
+
+    return fallbackResponse.data?.projects ?? fallbackResponse.data ?? [];
+  }
+
   console.error("PROJECT API ERROR:", error);
 
   return rejectWithValue(
@@ -54,9 +70,11 @@ export const fetchTaskList = createAsyncThunk(
         params: {
           empId,
           empType,
+          userType: empType,
           startDate,
           endDate,
           projectId,
+          search: searchText,
           searchText,
           pageNumber,
           pageSize,
@@ -68,6 +86,23 @@ export const fetchTaskList = createAsyncThunk(
 
       return response.data;
     } catch (error) {
+      if ([401, 404, 503].includes(error.response?.status)) {
+        const fallbackResponse = await axiosClient.get("/Task", {
+          params: {
+            empId,
+            userType: empType,
+            startDate,
+            endDate,
+            projectId,
+            searchText,
+            pageNumber,
+            pageSize,
+          },
+        });
+
+        return fallbackResponse.data;
+      }
+
       console.error("TASK LIST API ERROR:", error);
 
       return rejectWithValue(
@@ -86,33 +121,21 @@ export const fetchTaskList = createAsyncThunk(
 
 export const fetchEmployeeList = createAsyncThunk(
   "summaryReport/fetchEmployeeList",
-
-  async (
-    {
-      startDate,
-      endDate,
-      searchText = "",
-      pageNumber = 1,
-      pageSize = 10,
-    },
-    { rejectWithValue }
-  ) => {
+  async (_, { rejectWithValue }) => {
     try {
-      const response = await getEmployeeList({
-        startDate,
-        endDate,
-        searchText,
-        pageNumber,
-        pageSize,
-      });
+      const response = await axiosClient.get(
+        "/api/v1/Reports/employee-list"
+      );
 
-      return response;
+      console.log("EMPLOYEE LIST API RESPONSE:", response);
+      console.log("EMPLOYEE LIST API DATA:", response.data);
+
+      return response.data;
     } catch (error) {
+      console.error("EMPLOYEE LIST API ERROR:", error);
+
       return rejectWithValue(
-        error.response?.data?.message ||
-          error.response?.data?.title ||
-          error.message ||
-          "Failed to load employee report."
+        error.response?.data || error.message
       );
     }
   }
@@ -124,7 +147,6 @@ export const fetchEmployeeList = createAsyncThunk(
 
 export const fetchProjectList = createAsyncThunk(
   "summaryReport/fetchProjectList",
-
   async (
     {
       empId,
@@ -136,29 +158,44 @@ export const fetchProjectList = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const response = await getProjectList({
-        empId,
-        empType,
-        searchText,
-        pageNumber,
-        pageSize,
-      });
+      console.log("========== PROJECT LIST API ==========");
+      console.log("empId:", empId);
+      console.log("empType:", empType);
+      console.log("searchText:", searchText);
+      console.log("pageNumber:", pageNumber);
+      console.log("pageSize:", pageSize);
 
-      return response;
+      const response = await axiosClient.get(
+        "/Reports/project-list",
+        {
+          params: {
+            empId,
+            empType,
+            searchText,
+            pageNumber,
+            pageSize,
+          },
+        }
+      );
+
+      console.log("PROJECT LIST API RESPONSE:", response);
+      console.log("PROJECT LIST API DATA:", response.data);
+
+      return response.data;
     } catch (error) {
+      console.error("PROJECT LIST API ERROR:", error);
+      console.error("STATUS:", error.response?.status);
+      console.error("DATA:", error.response?.data);
+      console.error("PARAMS:", error.config?.params);
+
       return rejectWithValue(
-        error.response?.data?.message ||
-          error.response?.data?.title ||
-          error.message ||
-          "Failed to load project report."
+        error.response?.data ||
+        error.message ||
+        "Failed to fetch project list"
       );
     }
   }
 );
-
-// ======================================================
-// 5. EMPLOYEE TASK DETAILS
-// ======================================================
 
 export const fetchEmployeeTaskDetails = createAsyncThunk(
   "summaryReport/fetchEmployeeTaskDetails",
@@ -168,28 +205,75 @@ export const fetchEmployeeTaskDetails = createAsyncThunk(
       employeeId,
       startDate,
       endDate,
+      pageNumber = 1,
+      pageSize = 5,
     },
     { rejectWithValue }
   ) => {
     try {
-      const response = await getEmployeeTaskDetails({
-        employeeId,
-        startDate,
-        endDate,
-      });
+      console.log("CALLING EMPLOYEE TASK DETAILS API");
 
-      return response;
+      const formatRequestDate = (value) => {
+        if (!value) return "";
+
+        const date = value instanceof Date ? value : new Date(value);
+
+        if (isNaN(date.getTime())) return "";
+
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+
+        return `${year}/${month}/${day}`;
+      };
+
+      const requestStartDate = formatRequestDate(startDate);
+      const requestEndDate = formatRequestDate(endDate);
+
+      console.log("EMPLOYEE ID:", employeeId);
+      console.log("START DATE:", requestStartDate);
+      console.log("END DATE:", requestEndDate);
+      console.log("PAGE:", pageNumber);
+      console.log("PAGE SIZE:", pageSize);
+
+      const response = await axiosClient.get(
+        "/Reports/emp-task-details",
+        {
+          params: {
+            employeeId: Number(employeeId),
+            startDate: requestStartDate,
+            endDate: requestEndDate,
+            pageNumber,
+            pageSize,
+          },
+        }
+      );
+
+      console.log(
+        "EMPLOYEE TASK DETAILS API RESPONSE:",
+        response
+      );
+
+      console.log(
+        "EMPLOYEE TASK DETAILS API DATA:",
+        response.data
+      );
+
+      return response.data;
     } catch (error) {
+      console.error(
+        "EMPLOYEE TASK DETAILS API ERROR:",
+        error
+      );
+
       return rejectWithValue(
-        error.response?.data?.message ||
-          error.response?.data?.title ||
+        error.response?.data ||
           error.message ||
-          "Failed to load employee task details."
+          "Failed to fetch employee task details"
       );
     }
   }
 );
-
 // ======================================================
 // 6. PROJECT TASK DETAILS
 // ======================================================
@@ -206,13 +290,12 @@ export const fetchProjectTaskDetails = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const response = await getProjectTaskDetails({
-        projectId,
-        startDate,
-        endDate,
-      });
+      const response = await axiosClient.get(
+        "/Reports/project-task-details",
+        { params: { projectId, startDate, endDate } }
+      );
 
-      return response;
+      return response.data?.data ?? response.data ?? [];
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message ||
@@ -253,18 +336,18 @@ const initialState = {
   employeeError: null,
 
   // Project report
-  projectData: [],
-  projectTotalRecords: 0,
-  projectPageNumber: 1,
-  projectPageSize: 10,
-  projectTotalPages: 0,
-  projectLoading: false,
-  projectError: null,
+  projectList: [],
+projectListLoading: false,
+projectListTotal: 0,
+projectListTotalPages: 0,
+projectListError: null,
 
   // Employee task details
   employeeTaskDetails: [],
-  employeeTaskDetailsLoading: false,
-  employeeTaskDetailsError: null,
+employeeTaskDetailsLoading: false,
+employeeTaskDetailsError: null,
+employeeTaskDetailsTotal: 0,
+employeeTaskDetailsTotalPages: 0,
 
   // Project task details
   projectTaskDetails: [],
@@ -296,10 +379,10 @@ const summaryReportSlice = createSlice({
       state.employeePageNumber = 1;
       state.employeeTotalPages = 0;
 
-      state.projectData = [];
-      state.projectTotalRecords = 0;
-      state.projectPageNumber = 1;
-      state.projectTotalPages = 0;
+      state.projectList = [];
+      state.projectListTotal = 0;
+      state.projectListPageNumber = 1;
+      state.projectListTotalPages = 0;
 
       state.employeeTaskDetails = [];
       state.projectTaskDetails = [];
@@ -358,10 +441,19 @@ const summaryReportSlice = createSlice({
 .addCase(fetchTaskList.fulfilled, (state, action) => {
   state.taskLoading = false;
 
-  state.taskData = action.payload?.data || [];
+  state.taskData =
+    (Array.isArray(action.payload) ? action.payload : null) ??
+    action.payload?.data ??
+    action.payload?.tasks ??
+    action.payload?.records ??
+    action.payload?.items ??
+    action.payload?.result?.data ??
+    [];
 
   state.taskTotalRecords =
-    action.payload?.totalCount || 0;
+    action.payload?.totalCount ??
+    action.payload?.totalRecords ??
+    state.taskData.length;
 
   state.taskPageNumber =
     action.payload?.pageNumber || 1;
@@ -370,7 +462,10 @@ const summaryReportSlice = createSlice({
     action.payload?.pageSize || 10;
 
   state.taskTotalPages =
-    action.payload?.totalPages || 0;
+    action.payload?.totalPages ??
+    Math.ceil(
+      state.taskTotalRecords / state.taskPageSize
+    );
 })
 
 .addCase(fetchTaskList.rejected, (state, action) => {
@@ -385,72 +480,44 @@ const summaryReportSlice = createSlice({
       // ==================================================
 
       .addCase(fetchEmployeeList.pending, (state) => {
-        state.employeeLoading = true;
-        state.employeeError = null;
-      })
+  state.employeeLoading = true;
+  state.employeeError = null;
+})
 
-      .addCase(fetchEmployeeList.fulfilled, (state, action) => {
-        state.employeeLoading = false;
+.addCase(fetchEmployeeList.fulfilled, (state, action) => {
+  state.employeeLoading = false;
 
-        state.employeeData =
-          action.payload?.data || [];
+  state.employeeData =
+    Array.isArray(action.payload)
+      ? action.payload
+      : action.payload?.data || [];
+})
 
-        state.employeeTotalRecords =
-          action.payload?.totalCount || 0;
-
-        state.employeePageNumber =
-          action.payload?.pageNumber || 1;
-
-        state.employeePageSize =
-          action.payload?.pageSize || 10;
-
-        state.employeeTotalPages =
-          action.payload?.totalPages || 0;
-      })
-
-      .addCase(fetchEmployeeList.rejected, (state, action) => {
-        state.employeeLoading = false;
-
-        state.employeeError =
-          action.payload ||
-          "Failed to load employee report.";
-      })
-
+.addCase(fetchEmployeeList.rejected, (state, action) => {
+  state.employeeLoading = false;
+  state.employeeError =
+    action.payload || "Failed to load employee list.";
+})
       // ==================================================
       // PROJECT LIST
       // ==================================================
 
       .addCase(fetchProjectList.pending, (state) => {
-        state.projectLoading = true;
-        state.projectError = null;
-      })
+    state.projectListLoading = true;
+    state.projectListError = null;
+  })
+  .addCase(fetchProjectList.fulfilled, (state, action) => {
+    state.projectListLoading = false;
 
-      .addCase(fetchProjectList.fulfilled, (state, action) => {
-        state.projectLoading = false;
-
-        state.projectData =
-          action.payload?.data || [];
-
-        state.projectTotalRecords =
-          action.payload?.totalCount || 0;
-
-        state.projectPageNumber =
-          action.payload?.pageNumber || 1;
-
-        state.projectPageSize =
-          action.payload?.pageSize || 10;
-
-        state.projectTotalPages =
-          action.payload?.totalPages || 0;
-      })
-
-      .addCase(fetchProjectList.rejected, (state, action) => {
-        state.projectLoading = false;
-
-        state.projectError =
-          action.payload ||
-          "Failed to load project report.";
-      })
+    state.projectList = action.payload?.data || [];
+    state.projectListTotal = action.payload?.totalCount || 0;
+    state.projectListTotalPages = action.payload?.totalPages || 0;
+  })
+  .addCase(fetchProjectList.rejected, (state) => {
+    state.projectListLoading = false;
+    state.projectListError = "Failed to fetch projects";
+    state.projectList = [];
+  })
 
       // ==================================================
       // EMPLOYEE TASK DETAILS
@@ -464,8 +531,28 @@ const summaryReportSlice = createSlice({
       .addCase(fetchEmployeeTaskDetails.fulfilled, (state, action) => {
         state.employeeTaskDetailsLoading = false;
 
-        state.employeeTaskDetails =
-          action.payload || [];
+        const payload = action.payload;
+        const records = Array.isArray(payload)
+          ? payload
+          : payload?.data ?? payload?.tasks ?? payload?.items ?? [];
+
+        state.employeeTaskDetails = records.map((task, index) => ({
+          id: task.id ?? task.task_Id ?? task.task_ID ?? index,
+          title: task.title ?? task.task_Title ?? task.taskTitle ?? "",
+          start:
+            task.start ??
+            task.start_Date_Formatted ??
+            task.startDate ??
+            "",
+          end:
+            task.end ??
+            task.end_Date_Formatted ??
+            task.endDate ??
+            "",
+          actual: task.actual ?? task.actualHours ?? task.logHours ?? 0,
+          planned: task.planned ?? task.plannedHours ?? task.planneHours ?? 0,
+          tasks: task.tasks ?? task.task_Count ?? "",
+        }));
       })
 
       .addCase(fetchEmployeeTaskDetails.rejected, (state, action) => {

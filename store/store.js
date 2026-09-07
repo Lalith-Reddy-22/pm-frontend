@@ -7,6 +7,12 @@ import resourceAllocationReducer from "./slices/resourceAllocationSlice";
 import taskReducer from "./slices/taskSlice";
 import summaryReportReducer from "./slices/summaryReportSlice";
 import financeClientReducer from "./slices/financeClientSlice";
+import projectReducer from "./slices/projectSlice";
+import clientReducer from "./slices/clientSlice";
+import financialYearReducer from "./slices/financialYearSlice";
+import buyingCenterReducer from "./slices/buyingCenterSlice";
+import timesheetReducer from "./slices/timesheetSlice";
+import employeeReducer from "./slices/employeeSlice";
 
 export const store = configureStore({
   reducer: {
@@ -18,5 +24,11 @@ export const store = configureStore({
     task: taskReducer,
     summaryReport: summaryReportReducer,
     financeClient: financeClientReducer,
+    project: projectReducer,
+    client: clientReducer,
+    financialYear: financialYearReducer,
+    buyingCenter: buyingCenterReducer,
+    timesheet: timesheetReducer,
+    employee: employeeReducer,
   },
 });

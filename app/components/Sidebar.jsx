@@ -260,7 +260,7 @@ export default function Sidebar({ onClose, collapsed = false }) {
       </nav>
 
       {/* ── Logout ───────────────────────────────────────────────────────── */}
-      <div className={`px-2 py-3 flex-shrink-0 border-t ${isDark ? "border-white/5" : "border-gray-100"}`}>
+      {/* <div className={`px-2 py-3 flex-shrink-0 border-t ${isDark ? "border-white/5" : "border-gray-100"}`}>
         <button
           onClick={handleLogout}
           title={collapsed ? "Log out" : undefined}
@@ -270,7 +270,7 @@ export default function Sidebar({ onClose, collapsed = false }) {
           <LogOut size={15} className="flex-shrink-0" />
           {!collapsed && <span>Log out</span>}
         </button>
-      </div>
+      </div> */}
 
     </div>
   );

@@ -1,35 +1,65 @@
+"use client";
+
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useParams } from "next/navigation";
+
 import TaskList from "../../tasks/TaskList";
+import { fetchProjectTasks } from "@/store/slices/projectSlice";
 
-const PROJECT_TASKS = [
-  {
-    id: 1,
-    title: "Design Login Page",
-    projectTitle: "Project Alpha",
-    projectCode: "P001",
-    priority: "High",
-    employees: ["Keerthi"],
-    startDate: "07/20/2026",
-    endDate: "07/22/2026",
-  },
-  {
-    id: 2,
-    title: "Create Dashboard",
-    projectTitle: "Project Alpha",
-    projectCode: "P001",
-    priority: "Medium",
-    employees: ["Avinash"],
-    startDate: "07/21/2026",
-    endDate: "07/24/2026",
-  },
-];
+export default function ProjectTaskPage() {
+  const { projectId } = useParams();
 
-export default function ProjectTaskPage({ params }) {
-  const { projectId } = params;
+  const dispatch = useDispatch();
 
-  console.log(projectId);
+  const {
+    projectTasks,
+    tasksLoading,
+    tasksError,
+  } = useSelector((state) => state.project);
 
-  return <TaskList
-  tasks={PROJECT_TASKS}
-  showBackButton={true}
-/>
+  useEffect(() => {
+    if (projectId) {
+      dispatch(fetchProjectTasks(Number(projectId)));
+    }
+  }, [projectId, dispatch]);
+
+  console.log("PROJECT ID:", projectId);
+  console.log("PROJECT TASKS FROM REDUX:", projectTasks);
+
+  if (tasksLoading) {
+    return <div>Loading tasks...</div>;
+  }
+
+  if (tasksError) {
+    return <div>{tasksError}</div>;
+  }
+
+  // Convert project-wise API response
+  // into the format expected by the existing TaskList/TaskTable
+  const formattedTasks = (projectTasks || []).map((task) => ({
+    id: task.task_Id,
+    title: task.task_Title,
+    projectTitle: task.project_Title,
+    projectCode: task.project_Code,
+
+    employees: task.employee_Name
+      ? [task.employee_Name]
+      : [],
+
+    startDate: task.start_Date,
+    endDate: task.end_Date,
+
+    // API currently doesn't provide priority
+    priority: "",
+  }));
+
+  console.log("FORMATTED PROJECT TASKS:", formattedTasks);
+
+  return (
+    <TaskList
+      tasks={formattedTasks}
+      showBackButton={true}
+    />
+  );
 }

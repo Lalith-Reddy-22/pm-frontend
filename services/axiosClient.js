@@ -12,10 +12,23 @@ const axiosClient = axios.create({
 axiosClient.interceptors.request.use(
   (config) => {
     if (typeof window !== "undefined") {
-      const token = sessionStorage.getItem("accessToken");
+      const token =
+        sessionStorage.getItem("accessToken") ||
+        sessionStorage.getItem("token") ||
+        localStorage.getItem("accessToken") ||
+        localStorage.getItem("token");
        
-      console.log("ACCESS TOKEN EXISTS:", !!token);
-      console.log("ACCESS TOKEN:", token);
+      console.log(
+  "ACCESS TOKEN EXISTS:",
+  !!token
+);
+
+console.log(
+  "TOKEN PREVIEW:",
+  token
+    ? `${token.substring(0, 20)}...`
+    : "NO TOKEN"
+);
 
       if (token) {
         config.headers = config.headers || {};        

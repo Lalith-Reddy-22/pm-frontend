@@ -199,7 +199,7 @@ function SortIcon({ col, sortCol, sortDir }) {
 const TABS  = ["Content", "Editorial", "Creative", "Tech", "PM's", "AM's"];
 const TAB_IDS = {
   Content: 3,
-  Editorial: null,
+  Editorial: 9,
   Creative: 2,
   Tech: 1,
   "PM's": 4,
