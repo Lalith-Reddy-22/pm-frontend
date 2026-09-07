@@ -71,8 +71,244 @@ export const fetchTaskProjects = createAsyncThunk(
   }
 );
 
+export const fetchEmployeeNames = createAsyncThunk(
+  "task/fetchEmployeeNames",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axiosClient.get("/employee/names");
+
+      console.log(
+        "EMPLOYEE NAMES RESPONSE:",
+        response.data
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error(
+        "EMPLOYEE NAMES ERROR:",
+        error.response?.data || error.message
+      );
+
+      return rejectWithValue(
+        error.response?.data?.message ||
+        error.response?.data?.title ||
+        error.message ||
+        "Failed to load employee names."
+      );
+    }
+  }
+);
+
+export const fetchTaskTemplates = createAsyncThunk(
+  "task/fetchTaskTemplates",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axiosClient.get("/Task/template-list");
+
+      console.log(
+        "TASK TEMPLATE LIST RESPONSE:",
+        response.data
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error(
+        "TASK TEMPLATE LIST ERROR:",
+        error.response?.data || error.message
+      );
+
+      return rejectWithValue(
+        error.response?.data?.message ||
+        error.response?.data?.title ||
+        error.message ||
+        "Failed to load task templates."
+      );
+    }
+  }
+);
+
+export const createTaskTemplate = createAsyncThunk(
+  "task/createTaskTemplate",
+  async (templateData, { rejectWithValue }) => {
+    try {
+      const response = await axiosClient.post(
+        "/Task/template",
+        templateData
+      );
+
+      console.log(
+        "CREATE TASK TEMPLATE RESPONSE:",
+        response.data
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error(
+        "CREATE TASK TEMPLATE ERROR:",
+        error.response?.data || error.message
+      );
+
+      return rejectWithValue(
+        error.response?.data?.message ||
+        error.response?.data?.title ||
+        error.message ||
+        "Failed to create task template."
+      );
+    }
+  }
+);
+
+export const fetchTaskById = createAsyncThunk(
+  "task/fetchTaskById",
+  async (taskId, { rejectWithValue }) => {
+    try {
+      const response = await axiosClient.get(
+        `/Task/${taskId}`
+      );
+
+      console.log(
+        "SINGLE TASK API RESPONSE:",
+        response.data
+      );
+
+      return response.data;
+    } catch (error) {
+  const debugInfo = {
+    message: error?.message,
+    code: error?.code,
+    status: error?.response?.status,
+    data: error?.response?.data,
+    url: error?.config?.url,
+    method: error?.config?.method,
+  };
+
+  console.log(
+    "SINGLE TASK API ERROR:",
+    JSON.stringify(debugInfo, null, 2)
+  );
+
+  return rejectWithValue(
+    error?.response?.data?.message ||
+      error?.response?.data?.title ||
+      error?.message ||
+      "Failed to load task."
+  );
+}
+  }
+);
+
+export const fetchAllProjects = createAsyncThunk(
+  "task/fetchAllProjects",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axiosClient.get(
+        "/project/all",
+        {
+          params: {
+            pageNumber: 1,
+            pageSize: 2000,
+          },
+        }
+      );
+
+      console.log(
+        "ALL PROJECTS RESPONSE:",
+        response.data
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error(
+        "ALL PROJECTS ERROR:",
+        error.response?.data || error.message
+      );
+
+      return rejectWithValue(
+        error.response?.data?.message ||
+          error.response?.data?.title ||
+          error.message ||
+          "Failed to load projects."
+      );
+    }
+  }
+);
+
+export const rescheduleTask = createAsyncThunk(
+  "task/rescheduleTask",
+  async (requestData, { rejectWithValue }) => {
+    try {
+      const response = await axiosClient.post(
+        "/Task/reschedule",
+        requestData
+      );
+
+      console.log(
+        "RESCHEDULE API RESPONSE:",
+        response.data
+      );
+
+      return response.data;
+
+    } catch (error) {
+      console.error(
+        "RESCHEDULE API ERROR:",
+        error.response?.data || error.message
+      );
+
+      return rejectWithValue(
+        error.response?.data?.message ||
+        error.response?.data?.title ||
+        error.message ||
+        "Failed to reschedule task."
+      );
+    }
+  }
+);
+
+// =====================================================
+// DELETE TASK
+// DELETE /api/v1/Task/{taskId}
+// =====================================================
+
+export const deleteTask = createAsyncThunk(
+  "task/deleteTask",
+  async ({ taskId, deletedBy, deleteReason }, { rejectWithValue }) => {
+    try {
+      const response = await axiosClient.delete(
+        `/Task/${taskId}`,
+        {
+          data: {
+            deletedBy,
+            deleteReason,
+          },
+        }
+      );
+
+      console.log("DELETE TASK API RESPONSE:", response.data);
+
+      return response.data;
+    } catch (error) {
+      console.error(
+        "DELETE TASK API ERROR:",
+        error.response?.data || error.message
+      );
+
+      return rejectWithValue(
+        error.response?.data?.message ||
+          error.response?.data?.title ||
+          error.message ||
+          "Failed to delete task."
+      );
+    }
+  }
+);
+
 const initialState = {
   tasks: [],
+
+  selectedTask: null,
+  selectedTaskLoading: false,
+  selectedTaskError: null,
 
   totalCount: 0,
   pageNumber: 1,
@@ -83,8 +319,25 @@ const initialState = {
   projectsLoading: false,
   projectsError: null,
 
+  employeeNames: [],
+  employeeNamesLoading: false,
+  employeeNamesError: null,
+
+    taskTemplates: [],
+  taskTemplatesLoading: false,
+  taskTemplatesError: null,
+
+  createTemplateLoading: false,
+  createTemplateError: null,
+
   loading: false,
   error: null,
+
+  rescheduleLoading: false,
+rescheduleError: null,
+
+deleteLoading: false,
+deleteError: null,
 };
 
 const taskSlice = createSlice({
@@ -163,7 +416,197 @@ const taskSlice = createSlice({
         action.payload || "Failed to load projects.";
 
       state.projects = [];
-    });
+    })
+
+    .addCase(fetchEmployeeNames.pending, (state) => {
+  state.employeeNamesLoading = true;
+  state.employeeNamesError = null;
+})
+
+.addCase(fetchEmployeeNames.fulfilled, (state, action) => {
+  state.employeeNamesLoading = false;
+  state.employeeNamesError = null;
+
+  state.employeeNames = action.payload || [];
+})
+
+.addCase(fetchEmployeeNames.rejected, (state, action) => {
+  state.employeeNamesLoading = false;
+
+  state.employeeNamesError =
+    action.payload || "Failed to load employee names.";
+
+  state.employeeNames = [];
+})
+
+    // -------------------------------------------------
+    // TASK TEMPLATE LIST
+    // -------------------------------------------------
+
+    .addCase(fetchTaskTemplates.pending, (state) => {
+      state.taskTemplatesLoading = true;
+      state.taskTemplatesError = null;
+    })
+
+    .addCase(fetchTaskTemplates.fulfilled, (state, action) => {
+      state.taskTemplatesLoading = false;
+      state.taskTemplatesError = null;
+
+      state.taskTemplates = action.payload?.tasks || [];
+    })
+
+    .addCase(fetchTaskTemplates.rejected, (state, action) => {
+      state.taskTemplatesLoading = false;
+
+      state.taskTemplatesError =
+        action.payload || "Failed to load task templates.";
+
+      state.taskTemplates = [];
+    })
+
+    // -------------------------------------------------
+    // CREATE TASK TEMPLATE
+    // -------------------------------------------------
+
+    .addCase(createTaskTemplate.pending, (state) => {
+      state.createTemplateLoading = true;
+      state.createTemplateError = null;
+    })
+
+    .addCase(createTaskTemplate.fulfilled, (state) => {
+      state.createTemplateLoading = false;
+      state.createTemplateError = null;
+    })
+
+    .addCase(createTaskTemplate.rejected, (state, action) => {
+      state.createTemplateLoading = false;
+
+      state.createTemplateError =
+        action.payload || "Failed to create task template.";
+    })
+
+    .addCase(fetchTaskById.pending, (state) => {
+  state.selectedTaskLoading = true;
+  state.selectedTaskError = null;
+  state.selectedTask = null;
+})
+
+.addCase(fetchTaskById.fulfilled, (state, action) => {
+  state.selectedTaskLoading = false;
+  state.selectedTaskError = null;
+
+  const item = action.payload;
+
+  console.log(
+    "========== FETCH TASK BY ID RESPONSE =========="
+  );
+  console.log(item);
+
+  state.selectedTask = {
+    id: item.taskId,
+    title: item.taskTitle || "",
+    priority: item.taskPriority || "",
+
+    projectId: item.projectId,
+
+    // ADD THESE
+    projectCode: item.projectCode || "",
+    projectTitle:
+      item.projectTitle ||
+      item.project_Title ||
+      "",
+
+    empIds: item.empIds || "",
+    startDate: item.startDate || "",
+    endDate: item.endDate || "",
+    status: item.status,
+
+    employeeAllocations:
+      item.employeeAllocations || [],
+  };
+})
+
+.addCase(fetchTaskById.rejected, (state, action) => {
+  state.selectedTaskLoading = false;
+  state.selectedTaskError =
+    action.payload || "Failed to load task.";
+
+  state.selectedTask = null;
+})
+
+.addCase(fetchAllProjects.pending, (state) => {
+  state.projectsLoading = true;
+  state.projectsError = null;
+})
+
+.addCase(fetchAllProjects.fulfilled, (state, action) => {
+  state.projectsLoading = false;
+  state.projectsError = null;
+
+  state.projects =
+    action.payload?.projects || [];
+})
+
+.addCase(fetchAllProjects.rejected, (state, action) => {
+  state.projectsLoading = false;
+
+  state.projectsError =
+    action.payload ||
+    "Failed to load projects.";
+
+  state.projects = [];
+})
+
+// -------------------------------------------------
+// DELETE TASK
+// -------------------------------------------------
+
+.addCase(deleteTask.pending, (state) => {
+  state.deleteLoading = true;
+  state.deleteError = null;
+})
+
+.addCase(deleteTask.fulfilled, (state, action) => {
+  state.deleteLoading = false;
+  state.deleteError = null;
+
+  // Remove deleted task immediately from current Redux list
+  const deletedTaskId = action.meta.arg.taskId;
+
+  state.tasks = state.tasks.filter(
+    (task) => String(task.id) !== String(deletedTaskId)
+  );
+
+  if (state.totalCount > 0) {
+    state.totalCount -= 1;
+  }
+})
+
+.addCase(deleteTask.rejected, (state, action) => {
+  state.deleteLoading = false;
+
+  state.deleteError =
+    action.payload || "Failed to delete task.";
+})
+
+.addCase(rescheduleTask.pending, (state) => {
+  state.rescheduleLoading = true;
+  state.rescheduleError = null;
+})
+
+.addCase(rescheduleTask.fulfilled, (state) => {
+  state.rescheduleLoading = false;
+  state.rescheduleError = null;
+})
+
+.addCase(rescheduleTask.rejected, (state, action) => {
+  state.rescheduleLoading = false;
+
+  state.rescheduleError =
+    action.payload ||
+    "Failed to reschedule task.";
+});
+
 },
 });
 

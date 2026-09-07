@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import {
   Calendar,
   Clock,
@@ -11,14 +10,20 @@ import {
 import { useTheme } from "../../context/ThemeContext";
 import WeekRangePicker from "../../components/WeekRangePicker";
 import { usePagination } from "../../../hooks/usePagination";
-
+import TaskCommentModal from "./components/TaskCommentModal";
 import StatCard from "./components/statCard";
 import UtilizationCard from "./components/UtilizationCard";
 import TimesheetTable from "./components/TimesheetTable";
 import CustomSelect from "@/components/ui/CustomSelect";
+import { useMemo, useState, useEffect } from "react";
+import { MessageSquare, X } from "lucide-react";
+import { addTaskComment } from "@/store/slices/timesheetSlice";
+import { useDispatch, useSelector } from "react-redux";
 
-import { TASKS, DAY_KEYS } from "./data";
-
+import {
+  fetchTimesheet
+} from "@/store/slices/timesheetSlice";
+import { DAY_KEYS } from "./data";
 import {
   startOfWeek,
   addDays,
@@ -26,15 +31,175 @@ import {
   hoursLabel,
 } from "./util";
 
+function formatApiDate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
 export default function TimesheetPage() {
-  const { t, isDark } = useTheme();
+  const dispatch = useDispatch();
+
+  const {
+  tasks: apiTasks,
+  loading,
+  error,
+  rescheduleLoading,
+  rescheduleError,
+  rescheduleSuccess,
+  commentLoading,
+  commentError,
+  commentSuccess,
+} = useSelector((state) => state.timesheet);
 
   const [search, setSearch] = useState("");
-  const [data, setData] = useState(TASKS);
+
+const [commentTask, setCommentTask] = useState(null);
+const [commentText, setCommentText] = useState("");
+
 
   // Week Dates
-  const [startDate, setStartDate] = useState(() => startOfWeek(new Date()));
-  const [endDate, setEndDate] = useState(() => addDays(startOfWeek(new Date()), 4));
+  const [startDate, setStartDate] = useState(() =>
+    startOfWeek(new Date())
+  );
+
+  const [endDate, setEndDate] = useState(() =>
+    addDays(startOfWeek(new Date()), 4)
+  );
+
+  // Local task data
+  const [data, setData] = useState([]);
+
+  const handleCommentSubmit = () => {
+  if (!commentTask || !commentText.trim()) {
+    return;
+  }
+
+  const plannedHours = Object.values(
+    commentTask.planned || {}
+  ).reduce(
+    (sum, value) => sum + (Number(value) || 0),
+    0
+  );
+
+  const actualHours = Object.values(
+    commentTask.actual || {}
+  ).reduce(
+    (sum, value) => sum + (Number(value) || 0),
+    0
+  );
+
+  dispatch(
+    addTaskComment({
+      taskId: Number(commentTask.id),
+
+      // Temporary - replace with logged-in employee ID
+      employeeId: 10,
+
+      commentType:
+        actualHours > plannedHours
+          ? "Overtime"
+          : "Underallocated",
+
+      commentText: commentText.trim(),
+
+      plannedHours,
+
+      actualHours,
+
+      // Temporary - replace with logged-in employee ID
+      createdBy: 10,
+    })
+  );
+};
+
+  // Fetch timesheet whenever week changes
+// 1. Fetch API
+useEffect(() => {
+  const empId = 10;
+
+  dispatch(
+    fetchTimesheet({
+      empId,
+      startDate: formatApiDate(startDate),
+      endDate: formatApiDate(endDate),
+    })
+  );
+}, [dispatch, startDate, endDate]);
+
+
+
+// Update local data when API data changes
+useEffect(() => {
+  const mappedData = (apiTasks || []).map((task) => {
+    const planned = {
+      mon: 0,
+      tue: 0,
+      wed: 0,
+      thu: 0,
+      fri: 0,
+    };
+
+    const actual = {
+      mon: 0,
+      tue: 0,
+      wed: 0,
+      thu: 0,
+      fri: 0,
+    };
+
+    (task.dates || []).forEach((date) => {
+      if (!date.allocated_Date) return;
+
+      const [month, day, year] = date.allocated_Date
+        .split("/")
+        .map(Number);
+
+      const allocatedDate = new Date(year, month - 1, day);
+
+      const dayMap = {
+        1: "mon",
+        2: "tue",
+        3: "wed",
+        4: "thu",
+        5: "fri",
+      };
+
+      const dayKey = dayMap[allocatedDate.getDay()];
+
+      
+
+      if (!dayKey) return;
+
+      planned[dayKey] =
+        Number(date.working_hours) || 0;
+
+      actual[dayKey] =
+        Number(date.loghours) || 0;
+    });
+
+    return {
+      id: String(task.task_Id),
+      title: task.task_Title || "",
+      owner: task.taskowner || "",
+      priority: task.tskpriority || "MEDIUM",
+      buyingCenterId: Number(task.buyingCenterId) || 0,
+
+      planned,
+      actual,
+
+      dates: task.dates || [],
+    };
+  });
+
+  console.log("MAPPED TIMESHEET DATA:", mappedData);
+
+  setData(mappedData);
+}, [apiTasks]);
+
+  const { t, isDark } = useTheme();
 
   const weekDates = useMemo(() => {
     const dates = [];
@@ -48,41 +213,45 @@ export default function TimesheetPage() {
   }, [startDate, endDate]);
 
   // Card Totals
-  const totals = useMemo(() => {
-    let planned = 0;
-    let actual = 0;
+ const totals = useMemo(() => {
+  let planned = 0;
+  let actual = 0;
 
-    data.forEach((task) => {
-      DAY_KEYS.forEach((day) => {
-        planned += Number(task.planned[day]) || 0;
-        actual += Number(task.actual[day]) || 0;
-      });
+  apiTasks?.forEach((task) => {
+    task.dates?.forEach((date) => {
+      planned += Number(date.working_hours) || 0;
+      actual += Number(date.loghours) || 0;
     });
+  });
 
-    return {
-      planned,
-      actual,
-      variance: actual - planned,
-      utilization:
-        planned > 0
-          ? Math.round((actual / planned) * 100)
-          : 0,
-    };
-  }, [data]);
+  const variance = actual - planned;
+
+  const utilization =
+    planned > 0
+      ? Math.round((actual / planned) * 100)
+      : 0;
+
+  return {
+    planned,
+    actual,
+    variance,
+    utilization,
+  };
+}, [apiTasks]);
 
   // Search
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
+ const filtered = useMemo(() => {
+  const q = search.trim().toLowerCase();
 
-    if (!q) return data;
+  if (!q) return data;
 
-    return data.filter(
-      (task) =>
-        task.title.toLowerCase().includes(q) ||
-        task.owner.toLowerCase().includes(q) ||
-        task.id.includes(q)
-    );
-  }, [data, search]);
+  return data.filter(
+    (task) =>
+      (task.title || "").toLowerCase().includes(q) ||
+      (task.owner || "").toLowerCase().includes(q) ||
+      String(task.id || "").includes(q)
+  );
+}, [data, search]);
 
   // Pagination
 const {
@@ -104,6 +273,13 @@ const {
   data: filtered,
   pageSize: 50,
 });
+
+console.log("========== TIMESHEET DEBUG ==========");
+console.log("API TASKS:", apiTasks);
+console.log("LOCAL DATA:", data);
+console.log("FILTERED:", filtered);
+console.log("PAGE ROWS:", pageRows);
+console.log("======================================");
 
   // Update Actual Hours
   function updateActual(taskId, dayKey, value) {
@@ -127,6 +303,8 @@ const {
     );
   }
 
+
+
   // Theme Classes
   const border = isDark
     ? "border-white/10"
@@ -144,11 +322,12 @@ const {
     ? "bg-white/5"
     : "bg-white";
 
-  return (
+    console.log("COMMENT MODAL TASK:", commentTask);
+
+    return (
     <div className="flex h-[calc(100vh-80px)] flex-col p-6 overflow-hidden">
 
       {/* Summary Cards */}
-
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
 
         <StatCard
@@ -189,58 +368,73 @@ const {
 
       </div>
 
+      {/* Billing Tabs + Controls */}
+<div className="flex flex-wrap items-center justify-end gap-6 py-5">
+       
 
-      <div className="flex flex-wrap items-center justify-end gap-6 py-5">
+        {/* Right Controls */}
+        <div className="flex flex-wrap items-center justify-end gap-6">
 
-        <WeekRangePicker
-          start={startDate}
-          end={endDate}
-          onChange={(s, e) => { setStartDate(s); setEndDate(e); }}
-        />
-
-        <div className="flex items-center gap-2 text-sm text-muted-foreground flex-shrink-0">
-                    <span>Show</span>
-                    <div className="rounded-lg border border-input bg-background">
-                      <CustomSelect
-          value={String(pageSize)}
-          onChange={(value) =>
-            setPagination((prev) => ({
-              ...prev,
-              pageSize: Number(value),
-              pageIndex: 0,
-            }))
-          }
-          options={[
-            { value: "10", label: "10" },
-            { value: "25", label: "25" },
-            { value: "50", label: "50" },
-            { value: "100", label: "100" },
-          ]}
-        />
-                    </div>
-                    <span>entries</span>
-                  </div>
-
-        <div
-          className={`flex items-center gap-2 text-sm ${t.textSecondary}`}
-        >
-          Search:
-
-          <input
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
+          {/* Week Picker */}
+          <WeekRangePicker
+            start={startDate}
+            end={endDate}
+            onChange={(s, e) => {
+              setStartDate(s);
+              setEndDate(e);
             }}
-            placeholder="Task, owner or ID"
-            className={`w-56 rounded-lg border ${border} ${inputBg} px-3 py-1.5 text-sm ${t.textPrimary}`}
           />
+
+          {/* Page Size */}
+          <div className="flex items-center gap-2 text-sm text-muted-foreground flex-shrink-0">
+
+            <span>Show</span>
+
+            <div className="rounded-lg border border-input bg-background">
+
+              <CustomSelect
+                value={String(pageSize)}
+                onChange={(value) => {
+                  setPageSize(Number(value));
+                }}
+                options={[
+                  { value: "10", label: "10" },
+                  { value: "25", label: "25" },
+                  { value: "50", label: "50" },
+                  { value: "100", label: "100" },
+                ]}
+              />
+
+            </div>
+
+            <span>entries</span>
+
+          </div>
+
+          {/* Search */}
+          <div
+            className={`flex items-center gap-2 text-sm ${t.textSecondary}`}
+          >
+
+            Search:
+
+            <input
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+              placeholder="Task, owner or ID"
+              className={`w-56 rounded-lg border ${border} ${inputBg} px-3 py-1.5 text-sm ${t.textPrimary}`}
+            />
+
+          </div>
+
         </div>
 
       </div>
 
       {/* Table */}
-
       <TimesheetTable
   pageRows={pageRows}
   weekDates={weekDates}
@@ -251,6 +445,14 @@ const {
   t={t}
   isDark={isDark}
   updateActual={updateActual}
+
+  onComment={(task) => {
+    console.log("COMMENT TASK FROM TABLE:", task);
+
+    setCommentTask(task);
+    setCommentText("");
+  }}
+
   filtered={filtered}
   clampedPage={clampedPage}
   pageSize={pageSize}
@@ -266,6 +468,22 @@ const {
   setPage={setPage}
   formatMDY={formatMDY}
 />
+
+<TaskCommentModal
+  open={Boolean(commentTask)}
+  task={commentTask}
+  commentText={commentText}
+  setCommentText={setCommentText}
+  loading={commentLoading}
+  error={commentError}
+  onClose={() => {
+    setCommentTask(null);
+    setCommentText("");
+  }}
+  onSubmit={handleCommentSubmit}
+/>
+
+    
 
     </div>
   );

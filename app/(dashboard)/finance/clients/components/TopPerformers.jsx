@@ -5,30 +5,32 @@ import { Pie, PieChart, Cell, Label } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { useTheme } from "../../../../context/ThemeContext";
-import { CLIENTS, fmtM } from "../data";
 import AllClientsModal from "./AllClientsModal";
 
 const COLORS = ["#dc2626", "#ef4444", "#f87171", "#fca5a5", "#fee2e2"];
 
-const TOP_PERFORMERS = [...CLIENTS]
-  .sort((a, b) => b.poValue - a.poValue)
-  .slice(0, 5)
-  .map(c => ({ name: c.name, value: c.poValue }));
+function fmtM(n) {
+  return `${n < 0 ? "-" : ""}$${(Math.abs(n) / 1e6).toFixed(2)}M`;
+}
 
-const pieData = TOP_PERFORMERS.map((p, i) => ({
-  name: p.name,
-  value: Math.max(0, p.value),
-  fill: COLORS[i],
-}));
-
-const pieConfig = Object.fromEntries(
-  TOP_PERFORMERS.map((p, i) => [p.name, { label: p.name, color: COLORS[i] }])
-);
-
-export default function TopPerformers() {
+export default function TopPerformers({ clients = [] }) {
   const { t, isDark } = useTheme();
   const [open, setOpen] = useState(false);
   const labelFill = isDark ? "#f3f4f6" : "#111";
+
+  const top5 = [...clients]
+    .sort((a, b) => b.total_PO_Value - a.total_PO_Value)
+    .slice(0, 5);
+
+  const pieData = top5.map((c, i) => ({
+    name:  c.client_Title,
+    value: Math.max(0, c.total_PO_Value),
+    fill:  COLORS[i],
+  }));
+
+  const pieConfig = Object.fromEntries(
+    top5.map((c, i) => [c.client_Title, { label: c.client_Title, color: COLORS[i] }])
+  );
 
   return (
     <>
@@ -60,13 +62,13 @@ export default function TopPerformers() {
           </ChartContainer>
 
           <div className="w-full space-y-1.5 mt-1">
-            {TOP_PERFORMERS.map((p, i) => (
-              <div key={p.name} className="flex items-center justify-between text-xs">
+            {top5.map((c, i) => (
+              <div key={c.client_ID} className="flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: COLORS[i] }} />
-                  <span className={t.textPrimary}>{p.name}</span>
+                  <span className={t.textPrimary}>{c.client_Title}</span>
                 </div>
-                <span className={`font-medium ${t.clientMutedText}`}>{fmtM(p.value)}</span>
+                <span className={`font-medium ${t.clientMutedText}`}>{fmtM(c.total_PO_Value)}</span>
               </div>
             ))}
           </div>
@@ -80,7 +82,7 @@ export default function TopPerformers() {
         </CardContent>
       </Card>
 
-      {open && <AllClientsModal onClose={() => setOpen(false)} />}
+      {open && <AllClientsModal clients={clients} onClose={() => setOpen(false)} />}
     </>
   );
 }

@@ -49,7 +49,7 @@ export default function ProjectTable({
           </TableHeader>
 
           <TableBody>
-            <TableRow>
+  <TableRow key="loading-projects">
               <TableCell
                 colSpan={3}
                 className="py-10 text-center text-muted-foreground"
@@ -102,20 +102,27 @@ export default function ProjectTable({
         <TableBody>
 
           {rows.length === 0 ? (
-            <TableRow>
-              <TableCell
-                colSpan={3}
-                className="py-10 text-center text-muted-foreground"
-              >
-                {emptyMessage}
-              </TableCell>
-            </TableRow>
-          ) : (
-            rows.map((row) => (
-              <TableRow
-                key={row.projectId}
-                className="hover:bg-muted/40"
-              >
+  <TableRow key="empty-projects">
+    <TableCell
+      colSpan={3}
+      className="py-10 text-center text-muted-foreground"
+    >
+      {emptyMessage}
+    </TableCell>
+  </TableRow>
+) : (
+           rows.map((row, index) => (
+  <TableRow
+    key={
+      row.projectId ??
+      row.project_ID ??
+      row.project_Id ??
+      row.id ??
+      row.project_Code ??
+      index
+    }
+    className="hover:bg-muted/40"
+  >
                 <TableCell className="text-center">
 
                   <button
@@ -128,12 +135,19 @@ export default function ProjectTable({
                 </TableCell>
 
                 <TableCell className="text-center align-middle">
-                {row.projectTitle}
-                </TableCell>
+  {row.projectTitle ??
+    row.project_Title ??
+    row.Project_Title ??
+    row.project_title ??
+    "—"}
+</TableCell>
 
                 <TableCell className="text-center align-middle">
-                 {row.projectCode}
-                </TableCell>
+  {row.projectCode ??
+    row.project_Code ??
+    row.Project_Code ??
+    "—"}
+</TableCell>
 
               </TableRow>
             ))

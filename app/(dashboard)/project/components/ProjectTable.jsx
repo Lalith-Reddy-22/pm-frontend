@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import {
   Table,
   TableBody,
@@ -25,6 +25,11 @@ const TABLE_HEADERS = [
 ];
 
 export default function ProjectTable({ rows = [] }) {
+  const role = useMemo(() => {
+    if (typeof window === "undefined") return "admin";
+    return sessionStorage.getItem("role") || "admin";
+  }, []);
+
   return (
     <div className="overflow-auto relative max-h-[60vh] sm:max-h-[70vh] lg:max-h-[70vh] custom-scrollbar">
       <table className="w-full caption-bottom text-sm min-w-[960px]">
@@ -53,7 +58,7 @@ export default function ProjectTable({ rows = [] }) {
             </TableRow>
           ) : (
             rows.map((project, idx) => (
-              <ProjectTableRow key={project.id ?? idx} project={project} />
+              <ProjectTableRow key={project.id ?? idx} project={project} role={role} />
             ))
           )}
         </TableBody>
@@ -62,13 +67,9 @@ export default function ProjectTable({ rows = [] }) {
   );
 }
 
-function ProjectTableRow({ project }) {
+function ProjectTableRow({ project, role }) {
   const router = useRouter();
-  const [role, setRole] = useState("admin");
 
-  useEffect(() => {
-    setRole(sessionStorage.getItem("role") || "admin");
-  }, []);
   return (
     <TableRow className="group border-b border-border transition-colors hover:bg-accent/30 ">
 
@@ -78,26 +79,33 @@ function ProjectTableRow({ project }) {
   onClick={() => router.push(`/project/${project.id}`)}
   className="px-6 py-2 cursor-pointer"
 >
-  <div className="flex gap-2 items-center">
-    <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[#FFDAD5]">
+  {/* Project Name */}
+  <div className="flex items-center gap-2">
+    {/* Client Initial */}
+    <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[#FFDAD5] shrink-0">
       <p className="text-[#FF3B30] font-semibold">
-        {project.client.charAt(0).toUpperCase()}
+        {(project.client || "P").charAt(0).toUpperCase()}
       </p>
     </div>
 
-    <p className="font-semibold text-foreground leading-snug hover:text-[#E12729] transition-colors">
+    {/* Project Name */}
+    <p className="font-semibold text-foreground leading-snug">
       {project.name ?? "—"}
     </p>
   </div>
 
-  <div className="flex gap-1 items-center">
-    <span className="mt-0.5 text-sm text-muted-foreground mr-1 font-medium">
-      Client: {project.client}
+  {/* Client + Project Code Badge */}
+  <div className="flex items-center gap-2 mt-1">
+    
+    <span className="text-sm text-muted-foreground font-medium">
+      Client: {project.client ?? "—"}
     </span>
 
-    <span className="mt-1 text-xs text-muted-foreground border border-border bg-muted/30 rounded-full inline-flex items-center justify-center px-2.5 py-0.5">
-      {project.createDate ?? "—"}
-    </span>
+    {/* Project Code Badge */}
+    <span className="text-xs text-[#E12729] border border-[#E12729] bg-transparent rounded-full inline-flex items-center justify-center px-2.5 py-0.5">
+  {project.projectCode ?? "—"}
+</span>
+
   </div>
 </TableCell>
 
@@ -132,21 +140,34 @@ function ProjectTableRow({ project }) {
         {role !== "pm_employee" && (
           <div className="flex items-center justify-center gap-1.5">
             <Button
-              variant="ghost"
-              size="icon-sm"
-              aria-label="Edit project"
-              className="opacity-60 group-hover:opacity-100 hover:text-[#E12729]"
-            >
-              <Pencil />
-            </Button>
-            <Button
+  variant="ghost"
+  size="icon-sm"
+  aria-label="Edit project"
+  className="opacity-60 group-hover:opacity-100 hover:text-[#E12729]"
+  onClick={(e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // alert("PROJECT ID = " + project.id);
+
+    console.log("========== EDIT ==========");
+    console.log("PROJECT OBJECT:", project);
+    console.log("PROJECT ID:", project.id);
+    console.log("==========================");
+
+    router.push(`/project/add-project?id=${project.id}`);
+  }}
+>
+  <Pencil />
+</Button>
+            {/* <Button
               variant="ghost"
               size="icon-sm"
               aria-label="Delete project"
               className="opacity-60 group-hover:opacity-100 hover:text-destructive"
             >
               <Trash2 />
-            </Button>
+            </Button> */}
           </div>
         )}
       </TableCell>

@@ -26,8 +26,6 @@ export default function ReportTable({
   emptyMessage = "No records found",
   isLoading = false,
 }) {
-
-  console.log("REPORT TABLE FIRST ROW:", rows[0]);
   if (isLoading) {
     return (
       <div className="relative max-h-[70vh] overflow-auto">
@@ -117,94 +115,135 @@ export default function ReportTable({
 }
 
 function ReportTableRow({ row }) {
+
   const tableRow = {
-    projectCode:
-      row.projectCode ??
-      row.project_Code ??
-      "",
+  // PROJECT
+  projectTitle:
+    row.project_Title ??
+    row.projectTitle ??
+    row.Project_Title ??
+    row.ProjectTitle ??
+    "",
 
-    projectTitle:
-      row.project_Title ??
-      row.projectTitle ??
-      "",
+  projectCode:
+    row.projectCode ??
+    row.project_Code ??
+    "",
 
-    client:
-      row.Client_Title ??
-      row.client ??
-      "",
+  // CLIENT
+  client:
+    row.client_Title ??
+    row.Client_Title ??
+    row.client ??
+    "",
 
-    subClient:
-      row.Sub_Client_Name ??
-      row.subClient ??
-      "",
+  // SUB CLIENT
+  subClient:
+    row.sub_Client_Name ??
+    row.Sub_Client_Name ??
+    row.subClient ??
+    "",
 
-    taskId:
-      row.Task_ID ??
-      row.Task_id ??
-      row.taskId ??
-      "",
+  // TASK
+  taskTitle:
+    row.task_Title ??
+    row.Task_Title ??
+    row.TaskTitle ??
+    row.taskTitle ??
+    "",
 
-    taskTitle:
-      row.Task_Title ??
-      row.taskTitle ??
-      "",
+  taskId:
+    row.task_ID ??
+    row.Task_ID ??
+    row.Task_id ??
+    row.taskId ??
+    "",
 
-    type:
-      Number(row.Billing_type) === 0
-        ? "Non-Billable"
-        : "Billable",
+  // TYPE
+  type:
+  Number(row.billing_type) === 0
+    ? "Non-Billable"
+    : "Billable",
 
-    startDate:
-      row.StartDate ??
-      row.startDate ??
-      "",
+  // DATES
+  startDate:
+    row.startDate ??
+    row.StartDate ??
+    "",
 
-    endDate:
-      row.EndDate ??
-      row.endDate ??
-      "",
+  endDate:
+    row.endDate ??
+    row.EndDate ??
+    "",
 
-    employeeName:
-      row.Employee_Name ??
-      row.employeeName ??
-      "",
+  // EMPLOYEE
+  employeeName:
+    row.employee_Name ??
+    row.Employee_Name ??
+    row.emp_Name ??
+    row.Emp_Name ??
+    row.employeeName ??
+    "",
 
-    designation:
-      row.EmpDesignation ??
-      row.designation ??
-      "",
+  designation:
+    row.empDesignation ??
+    row.EmpDesignation ??
+    row.employee_Designation ??
+    row.Employee_Designation ??
+    row.employeeDesignation ??
+    row.EmployeeDesignation ??
+    row.designation ??
+    "",
 
-    team:
-      row.Teams_Name ??
-      row.team ??
-      "",
+  // FUNCTION
+  function:
+    row.teams_Name ??
+    row.Teams_Name ??
+    row.Function_Name ??
+    row.functionName ??
+    row.function ??
+    "",
 
-    plannedHours:
-      row.planneHours ??
-      row.Planned_hours ??
-      0,
+  // HOURS
+  plannedHours:
+    row.planneHours ??
+    row.plannedHours ??
+    row.Planned_hours ??
+    0,
 
-    actualHours:
-      row.logHours ??
-      row.ActualHours ??
-      0,
+  actualHours:
+    row.logHours ??
+    row.actualHours ??
+    row.ActualHours ??
+    0,
 
-    plannedCost:
-      row.Planned_Cost ??
-      0,
+  // COST
+  unitCost:
+    row.empValue ??
+    row.unitCost ??
+    row.Unit_Cost ??
+    0,
 
-    actualCost:
-      row.Actual_Cost ??
-      0,
+  plannedCost:
+    row.planned_Cost ??
+    row.Planned_Cost ??
+    0,
 
-    difference:
-      (Number(row.Actual_Cost ?? 0) -
-        Number(row.Planned_Cost ?? 0)),
-  };
+  actualCost:
+    row.actual_Cost ??
+    row.Actual_Cost ??
+    0,
+
+  difference:
+    Number(row.actual_Cost ?? row.Actual_Cost ?? 0) -
+    Number(row.planned_Cost ?? row.Planned_Cost ?? 0),
+};
 
   return (
     <TableRow className="border-b transition-colors hover:bg-accent/30">
+
       {REPORT_COLUMNS.map((column) => {
+
         return (
           <TableCell
             key={column.key}
@@ -215,7 +254,9 @@ function ReportTableRow({ row }) {
               : tableRow[column.key] ?? "—"}
           </TableCell>
         );
+
       })}
+
     </TableRow>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { format } from "date-fns";
 import ReportToolbar from "./components/ReportToolbar";
 import ReportTable from "./components/ReportTable";
@@ -12,6 +12,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   fetchProjectsDropdown,
   fetchTaskList,
+  fetchProjectList,
 } from "@/store/slices/summaryReportSlice";
 import {
   getTaskAllocationReport,
@@ -28,7 +29,10 @@ import ProjectDetailsModal from "./components/ProjectDetailsModal";
 
 const getEmpIdFromToken = () => {
   try {
-    const token = localStorage.getItem("token");
+    const storedEmpId = sessionStorage.getItem("empId");
+    if (storedEmpId) return storedEmpId;
+
+    const token = sessionStorage.getItem("accessToken");
 
     if (!token) {
       return null;
@@ -36,7 +40,14 @@ const getEmpIdFromToken = () => {
 
     const payload = JSON.parse(atob(token.split(".")[1]));
 
-    return payload.empId || payload.EmpId || payload.emp_id || null;
+    return (
+      payload.empId ||
+      payload.EmpId ||
+      payload.emp_id ||
+      payload.employeeId ||
+      payload.employee_ID ||
+      null
+    );
   } catch (error) {
     console.error("Error reading empId from token:", error);
     return null;
@@ -51,7 +62,10 @@ const {
   projects: reduxProjects,
   projectsLoading,
   projectsError,
-
+  projectList,
+  projectListLoading,
+  projectListTotal,
+  projectListTotalPages,
   taskData,
   taskTotalRecords,
   taskPageNumber,
@@ -61,12 +75,21 @@ const {
   taskError,
 } = useSelector((state) => state.summaryReport);
 
+const projectRows = projectList || [];
+
 const projects = reduxProjects || [];
 
 useEffect(() => {
   console.log("FETCHING PROJECTS...");
   dispatch(fetchProjectsDropdown());
 }, [dispatch]);
+
+const handleViewProject = (project) => {
+  console.log("SELECTED PROJECT:", project);
+
+  setSelectedProjectDetails(project);
+  setProjectModalOpen(true);
+};
 
   const [empId, setEmpId] = useState(null);
   // Tab state
@@ -77,6 +100,9 @@ useEffect(() => {
   const [startDate, setStartDate] = useState(() => new Date(new Date().setDate(new Date().getDate() - 30)));
   const [endDate, setEndDate] = useState(() => new Date());
   const [search, setSearch] = useState("");
+
+  const [employeeTaskModalOpen, setEmployeeTaskModalOpen] = useState(false);
+const [selectedEmployee, setSelectedEmployee] = useState(null);
 
   // Pagination state
   const [pageSize, setPageSize] = useState(10);
@@ -90,41 +116,64 @@ useEffect(() => {
 
   // Project Report State
   const [projectSearch, setProjectSearch] = useState("");
-  const [projectPageSize, setProjectPageSize] = useState(10);
-  const [projectData, setProjectData] = useState([]);
-  const [projectTotal, setProjectTotal] = useState(0);
-  const [projectIsLoading, setProjectIsLoading] = useState(false);
+const [projectPageSize, setProjectPageSize] = useState(10);
+const [projectPage, setProjectPage] = useState(1);
 
 const [selectedProjectDetails, setSelectedProjectDetails] = useState(null);
 const [projectModalOpen, setProjectModalOpen] = useState(false);
 
-  // Data state
-  const [reportData, setReportData] = useState([]);
-  const [total, setTotal] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const [selectedEmployee, setSelectedEmployee] = useState(null);
 const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
 
   // usePagination hooks (server-driven — data slice comes from API, hook drives UI only)
-  const reportPagination = usePagination({ data: reportData, pageSize });
-  const employeePagination = usePagination({ data: employeeData, pageSize: employeePageSize });
-  const projectPagination = usePagination({ data: projectData, pageSize: projectPageSize });
+  const reportPagination = usePagination({
+    data: taskData,
+    pageSize,
+    totalItems: taskTotalRecords,
+  });
+  const employeePagination = usePagination({
+    data: employeeData,
+    pageSize: employeePageSize,
+    totalItems: employeeTotal,
+  });
+
+  const projectPagination = {
+  page: projectPage,
+  setPage: setProjectPage,
+};
 
   useEffect(() => {
   const token = sessionStorage.getItem("accessToken");
+  const storedEmpId = sessionStorage.getItem("empId");
 
-  if (!token) {
+  if (!token && !storedEmpId) {
     console.log("ACCESS TOKEN NOT AVAILABLE");
     return;
   }
 
   try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
+    const payload = token
+      ? JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")))
+      : {};
 
-    const loggedEmpId = Number(payload.empId);
-    const empType = Number(payload.userType);
+    const loggedEmpId = Number(
+      sessionStorage.getItem("empId") ||
+      payload.empId ||
+      payload.EmpId ||
+      payload.emp_id ||
+      payload.employeeId ||
+      payload.employee_ID ||
+      0
+    );
+    const empType = Number(
+      sessionStorage.getItem("userType") ||
+      payload.userType ||
+      payload.UserType ||
+      payload.user_Type ||
+      payload.user_type ||
+      0
+    );
 
     console.log("TASK API EMP ID:", loggedEmpId);
     console.log("TASK API EMP TYPE:", empType);
@@ -169,37 +218,6 @@ const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
 ]);
 
   /**
-   * Fetch report data whenever filters or pagination changes
-   */
-  const fetchReportData = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const filters = {
-        empId,
-        projectId: selectedProject,
-        startDate: startDate ? format(startDate, "yyyy-MM-dd") : null,
-        endDate: endDate ? format(endDate, "yyyy-MM-dd") : null,
-        search,
-        sortBy: "projectCode",
-        sortDirection: "asc",
-        page: reportPagination.page,
-        pageSize,
-      };
-
-      const result = await getTaskAllocationReport(filters);
-      setReportData(result.data);
-      setTotal(result.total);
-    } catch (err) {
-      setError(err.message || "Failed to load report data");
-      console.error("Error fetching report:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [selectedProject, startDate, endDate, search, reportPagination.page, pageSize]);
-
-  /**
    * Fetch projects for filter dropdown on mount
    */
 
@@ -222,35 +240,64 @@ const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
   useEffect(() => {
   if (activeTab !== "project") return;
 
-  setProjectData([
-    {
-      projectId: 6783,
-      projectTitle: "Operations Tasks_Shijin_Internal",
-      projectCode: "017",
-    },
-    {
-      projectId: 6784,
-      projectTitle: "AIM XR Static Banner_New1_MAT-US-ELA-00218",
-      projectCode: "841",
-    },
-    {
-      projectId: 6785,
-      projectTitle: "Learning & Upskilling",
-      projectCode: "903",
-    },
-  ]);
+  const token = sessionStorage.getItem("accessToken");
+  const storedEmpId = sessionStorage.getItem("empId");
 
-  setProjectTotal(3);
-}, [activeTab]);
+  let loggedEmpId = Number(storedEmpId || 0);
+  let empType = Number(sessionStorage.getItem("userType") || 0);
 
-  /**
-   * Fetch report data whenever pagination changes
-   */
-  useEffect(() => {
-  if (!empId) return;
+  try {
+    if (token) {
+      const payload = JSON.parse(
+        atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))
+      );
 
-  fetchReportData();
-}, [fetchReportData, empId]);
+      loggedEmpId =
+        loggedEmpId ||
+        Number(
+          payload.empId ||
+          payload.EmpId ||
+          payload.emp_id ||
+          payload.employeeId ||
+          payload.employee_ID ||
+          0
+        );
+
+      empType =
+        empType ||
+        Number(
+          payload.userType ||
+          payload.UserType ||
+          payload.user_Type ||
+          payload.user_type ||
+          0
+        );
+    }
+  } catch (error) {
+    console.error("FAILED TO READ JWT:", error);
+  }
+
+  if (!loggedEmpId) {
+    console.error("PROJECT API: Employee ID not available");
+    return;
+  }
+
+  dispatch(
+    fetchProjectList({
+      empId: loggedEmpId,
+      empType,
+      searchText: projectSearch,
+      pageNumber: projectPage,
+      pageSize: projectPageSize,
+    })
+  );
+}, [
+  activeTab,
+  dispatch,
+  projectPage,
+  projectPageSize,
+  projectSearch,
+]);
 
   /**
    * Fetch employee list
@@ -261,6 +308,8 @@ const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
 
       const filters = {
         search: employeeSearch,
+        startDate: startDate ? format(startDate, "yyyy-MM-dd") : "",
+        endDate: endDate ? format(endDate, "yyyy-MM-dd") : "",
         page: employeePagination.page,
         pageSize: employeePageSize,
       };
@@ -273,7 +322,13 @@ const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
     } finally {
       setEmployeeIsLoading(false);
     }
-  }, [employeeSearch, employeePagination.page, employeePageSize]);
+  }, [
+    employeeSearch,
+    startDate,
+    endDate,
+    employeePagination.page,
+    employeePageSize,
+  ]);
 
   /**
    * Fetch employee data when filters change
@@ -363,6 +418,77 @@ const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
     }
   };
 
+  const projectTotalItems = projectListTotal || 0;
+
+const projectTotalPages = projectListTotalPages || 1;
+
+const projectStartIndex =
+  projectTotalItems === 0
+    ? 0
+    : (projectPage - 1) * projectPageSize + 1;
+
+const projectEndIndex =
+  projectTotalItems === 0
+    ? 0
+    : Math.min(
+        projectPage * projectPageSize,
+        projectTotalItems
+      );
+
+const projectHasPrev = projectPage > 1;
+
+const projectHasNext =
+  projectPage < projectTotalPages;
+
+const projectPrevPage = () => {
+  if (projectHasPrev) {
+    setProjectPage((prev) => prev - 1);
+  }
+};
+
+const projectNextPage = () => {
+  if (projectHasNext) {
+    setProjectPage((prev) => prev + 1);
+  }
+};
+
+const projectGoToPage = (pageNumber) => {
+  if (
+    pageNumber >= 1 &&
+    pageNumber <= projectTotalPages
+  ) {
+    setProjectPage(pageNumber);
+  }
+};
+
+const projectPageNumbers = [];
+
+if (projectTotalPages <= 5) {
+  for (let i = 1; i <= projectTotalPages; i++) {
+    projectPageNumbers.push(i);
+  }
+} else {
+  if (projectPage <= 3) {
+    projectPageNumbers.push(1, 2, 3, "…", projectTotalPages);
+  } else if (projectPage >= projectTotalPages - 2) {
+    projectPageNumbers.push(
+      1,
+      "…",
+      projectTotalPages - 2,
+      projectTotalPages - 1,
+      projectTotalPages
+    );
+  } else {
+    projectPageNumbers.push(
+      1,
+      "…",
+      projectPage,
+      "…",
+      projectTotalPages
+    );
+  }
+}
+
   return (
     <div className="space-y-4 p-4 sm:p-6">
       <div className="flex gap-0 border-b border-border">
@@ -435,19 +561,19 @@ const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
 />
 
             {/* Pagination */}
-            {reportData.length > 0 && (
+            {taskTotalRecords > 0 && (
               <DataPagination {...reportPagination} />
             )}
           </div>
 
           {/* Summary Stats */}
-          {/* {reportData.length > 0 && (
+          {/* {taskData.length > 0 && (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
               <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
                 <p className="text-xs font-medium text-muted-foreground uppercase">
                   Total Records
                 </p>
-                <p className="mt-1 text-2xl font-bold text-foreground">{total}</p>
+                <p className="mt-1 text-2xl font-bold text-foreground">{taskTotalRecords}</p>
               </div>
 
               <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
@@ -455,7 +581,7 @@ const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
                   Total Planned Cost
                 </p>
                 <p className="mt-1 text-2xl font-bold text-foreground">
-                  ${reportData
+                  ${taskData
                     .reduce((sum, item) => sum + item.plannedCost, 0)
                     .toLocaleString()}
                 </p>
@@ -466,7 +592,7 @@ const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
                   Total Actual Cost
                 </p>
                 <p className="mt-1 text-2xl font-bold text-foreground">
-                  ${reportData
+                  ${taskData
                     .reduce((sum, item) => sum + item.actualCost, 0)
                     .toLocaleString()}
                 </p>
@@ -477,12 +603,12 @@ const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
                   Total Difference
                 </p>
                 <p className={`mt-1 text-2xl font-bold ${
-                  reportData.reduce((sum, item) => sum + item.difference, 0) > 0
+                  taskData.reduce((sum, item) => sum + item.difference, 0) > 0
                     ? "text-red-600"
                     : "text-green-600"
                 }`}>
-                  {reportData.reduce((sum, item) => sum + item.difference, 0) > 0 ? "+" : ""}
-                  ${Math.abs(reportData.reduce((sum, item) => sum + item.difference, 0)).toLocaleString()}
+                  {taskData.reduce((sum, item) => sum + item.difference, 0) > 0 ? "+" : ""}
+                  ${Math.abs(taskData.reduce((sum, item) => sum + item.difference, 0)).toLocaleString()}
                 </p>
               </div>
             </div>
@@ -508,41 +634,37 @@ const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
           {/* Employee Table Card */}
           <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
   <EmployeeTable
-    rows={employeeData}
-    isLoading={employeeIsLoading}
-    emptyMessage={
-      employeeSearch
-        ? "No employees match your search"
-        : "No employees available"
-    }
-    onViewEmployee={(employee) => {
-      setSelectedEmployee(employee);
-      setEmployeeModalOpen(true);
-    }}
-  />
+  rows={employeeData}
+  isLoading={employeeIsLoading}
+  onViewEmployee={(employee) => {
+    console.log("SELECTED EMPLOYEE:", employee);
+
+    setSelectedEmployee(employee);
+    setEmployeeTaskModalOpen(true);
+  }}
+/>
 
   {employeeData.length > 0 && (
     <DataPagination {...employeePagination} />
   )}
 
   <EmployeeTaskModal
-  open={employeeModalOpen}
-  onOpenChange={setEmployeeModalOpen}
+  open={employeeTaskModalOpen}
+  onOpenChange={setEmployeeTaskModalOpen}
   employee={selectedEmployee}
+  startDate={startDate}
+  endDate={endDate}
+  taskRows={taskData}
 />
 </div>
         </>
       )}
 
-      
-
       {/* Project Report Tab Content */}
-      {activeTab === "project" && (
+{activeTab === "project" && (
   <>
     {/* Toolbar */}
-
     <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-
       <EmployeeToolbar
         search={projectSearch}
         setSearch={setProjectSearch}
@@ -551,26 +673,31 @@ const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
         setPage={projectPagination.setPage}
         onExport={() => {}}
       />
-
     </div>
 
     {/* Table */}
-
     <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-
       <ProjectTable
-        rows={projectData}
-        isLoading={projectIsLoading}
-        onViewProject={(project) => {
-          setSelectedProjectDetails(project);
-          setProjectModalOpen(true);
-        }}
-      />
-
-      {projectData.length > 0 && (
-        <DataPagination {...projectPagination} />
-      )}
-
+  rows={projectList || []}
+  isLoading={projectListLoading}
+  emptyMessage="No projects found"
+  onViewProject={handleViewProject}
+/>
+      {projectListTotal > 0 && (
+  <DataPagination
+    page={projectPage}
+    totalPages={projectTotalPages}
+    totalItems={projectTotalItems}
+    startIndex={projectStartIndex}
+    endIndex={projectEndIndex}
+    hasPrev={projectHasPrev}
+    hasNext={projectHasNext}
+    prevPage={projectPrevPage}
+    nextPage={projectNextPage}
+    goToPage={projectGoToPage}
+    pageNumbers={projectPageNumbers}
+  />
+)}
     </div>
 
     <ProjectDetailsModal

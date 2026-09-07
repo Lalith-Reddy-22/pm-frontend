@@ -1,100 +1,98 @@
-/**
- * Report Table Columns Configuration
- */
+"use client";
 
 export const REPORT_COLUMNS = [
   {
     key: "projectCode",
     label: "Project Code",
     sortable: true,
-    className: "w-28 min-w-[100px]",
+    className: "w-[140px] min-w-[120px]",
   },
 
   {
     key: "projectTitle",
     label: "Project Title",
     sortable: true,
-    className: "min-w-[280px]",
+    className: "min-w-[320px]",
   },
 
   {
     key: "client",
     label: "Client",
     sortable: true,
-    className: "min-w-[160px]",
+    className: "min-w-[180px]",
   },
 
   {
     key: "subClient",
     label: "Sub Client",
     sortable: true,
-    className: "min-w-[160px]",
+    className: "min-w-[180px]",
   },
 
   {
     key: "taskId",
     label: "Task ID",
     sortable: true,
-    className: "w-28 min-w-[100px]",
+    className: "w-[120px] min-w-[100px]",
   },
 
   {
     key: "taskTitle",
     label: "Task Title",
     sortable: true,
-    className: "min-w-[280px]",
+    className: "min-w-[320px]",
   },
 
   {
     key: "type",
     label: "Type",
     sortable: true,
-    className: "w-[140px]",
+    className: "w-[140px] min-w-[120px]",
   },
 
   {
     key: "startDate",
     label: "Start Date",
     sortable: true,
-    className: "w-28 min-w-[100px]",
+    className: "w-[140px] min-w-[120px]",
   },
 
   {
     key: "endDate",
     label: "End Date",
     sortable: true,
-    className: "w-28 min-w-[100px]",
+    className: "w-[140px] min-w-[120px]",
   },
 
   {
     key: "employeeName",
-    label: "Employee Name",
+    label: "Employee",
     sortable: true,
-    className: "min-w-[220px]",
+    className: "min-w-[250px]",
   },
 
   {
     key: "designation",
     label: "Designation",
     sortable: true,
-    className: "min-w-[180px]",
+    className: "min-w-[160px]",
   },
 
   {
-    key: "team",
+    key: "function",
     label: "Function",
     sortable: true,
-    className: "min-w-[160px]",
+    className: "min-w-[150px]",
   },
 
   {
     key: "plannedHours",
     label: "Planned Hours",
     sortable: true,
-    className: "w-32 min-w-[110px] text-right",
+    className: "w-[140px] min-w-[120px] text-right",
     render: (value) => (
       <span className="font-medium">
-        {Number(value || 0).toFixed(2)}h
+        {value ?? 0}h
       </span>
     ),
   },
@@ -103,10 +101,22 @@ export const REPORT_COLUMNS = [
     key: "actualHours",
     label: "Actual Hours",
     sortable: true,
-    className: "w-32 min-w-[110px] text-right",
+    className: "w-[140px] min-w-[120px] text-right",
     render: (value) => (
       <span className="font-medium">
-        {Number(value || 0).toFixed(2)}h
+        {value ?? 0}h
+      </span>
+    ),
+  },
+
+  {
+    key: "unitCost",
+    label: "Unit Cost",
+    sortable: true,
+    className: "w-[140px] min-w-[120px] text-right",
+    render: (value) => (
+      <span className="font-medium">
+        ${Number(value ?? 0).toLocaleString()}
       </span>
     ),
   },
@@ -115,10 +125,10 @@ export const REPORT_COLUMNS = [
     key: "plannedCost",
     label: "Planned Cost",
     sortable: true,
-    className: "w-32 min-w-[120px] text-right",
+    className: "w-[150px] min-w-[130px] text-right",
     render: (value) => (
       <span className="font-medium">
-        ${Number(value || 0).toLocaleString()}
+        ${Number(value ?? 0).toLocaleString()}
       </span>
     ),
   },
@@ -127,10 +137,10 @@ export const REPORT_COLUMNS = [
     key: "actualCost",
     label: "Actual Cost",
     sortable: true,
-    className: "w-32 min-w-[120px] text-right",
+    className: "w-[150px] min-w-[130px] text-right",
     render: (value) => (
       <span className="font-medium">
-        ${Number(value || 0).toLocaleString()}
+        ${Number(value ?? 0).toLocaleString()}
       </span>
     ),
   },
@@ -139,9 +149,9 @@ export const REPORT_COLUMNS = [
     key: "difference",
     label: "Difference",
     sortable: true,
-    className: "w-32 min-w-[120px] text-right",
+    className: "w-[150px] min-w-[130px] text-right",
     render: (value) => {
-      const numberValue = Number(value || 0);
+      const numberValue = Number(value ?? 0);
       const isPositive = numberValue > 0;
 
       return (
@@ -159,7 +169,10 @@ export const REPORT_COLUMNS = [
 ];
 
 export function getColumnLabel(key) {
-  const column = REPORT_COLUMNS.find((col) => col.key === key);
+  const column = REPORT_COLUMNS.find(
+    (col) => col.key === key
+  );
+
   return column ? column.label : key;
 }
 

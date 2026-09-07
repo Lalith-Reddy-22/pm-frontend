@@ -10,15 +10,17 @@ export default function EmployeeRow({
   t,
   isDark,
 }) {
+  console.log("EMP DATA:", emp);
   const isInactive = emp.status === "Inactive";
 
   return (
     <tr className={`group border-b border-border transition-colors ${isInactive ? "bg-slate-100 text-slate-500 dark:bg-slate-950/60 dark:text-slate-400" : "bg-card hover:bg-accent/30"}`}>
       <td className="px-6 py-3">
         <Link
-          href={`/employee/${emp.id}`}
-          className="group flex w-fit items-center gap-3"
-        >
+  href={`/employee/${emp.id.split("-")[0]}`}
+  className="group flex w-fit items-center gap-3"
+>
+        
           <div
             className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold ${avatar}`}
           >

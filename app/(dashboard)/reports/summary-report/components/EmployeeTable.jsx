@@ -89,8 +89,18 @@ export default function EmployeeTable({
               <TableRow key={row.id ?? idx} className="group border-b border-border transition-colors hover:bg-accent/30">
                 <TableCell className="px-6 py-3 text-center text-sm text-foreground w-12">
                   <button
-  onClick={() => onViewEmployee(row)}
-  className="rounded-md p-1 text-muted-foreground transition hover:bg-muted hover:text-foreground"
+  type="button"
+  onClick={() => {
+    console.log("PLUS CLICKED");
+    console.log("EMPLOYEE ROW:", row);
+
+    if (onViewEmployee) {
+      onViewEmployee(row);
+    } else {
+      console.error("onViewEmployee is NOT provided");
+    }
+  }}
+  className="relative z-50 cursor-pointer rounded-md p-1 text-muted-foreground transition hover:bg-muted hover:text-foreground"
 >
   <Plus size={16} />
 </button>

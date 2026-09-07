@@ -27,7 +27,7 @@ export default function TaskToolbar({ search, setSearch, setPage, onAddTask, dat
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
-              setPage(1);
+              setPage();
             }}
             placeholder="Task title, project code, or employee…"
             className="h-8 w-56 pl-9 text-sm sm:w-72 focus-visible:border-[#E12729] focus-visible:ring-[#E12729]/20"
@@ -35,10 +35,16 @@ export default function TaskToolbar({ search, setSearch, setPage, onAddTask, dat
         </div>
 
         <WeekRangePicker
-          start={dateRange.from ?? new Date()}
-          end={dateRange.to ?? new Date()}
-          onChange={(s, e) => { setDateRange({ from: s, to: e }); setPage(1); }}
-        />
+  start={dateRange?.from ?? new Date()}
+  end={dateRange?.to ?? new Date()}
+  onChange={(s, e) => {
+    setDateRange({
+      from: s,
+      to: e,
+    });
+    setPage(1);
+  }}
+/>
       </div>
 
       {/* ── Right: Export + Add Task ── */}

@@ -13,6 +13,7 @@ export default function TimesheetTable({
   t,
   isDark,
   updateActual,
+  onComment,
   filtered,
   clampedPage,
   pageSize,
@@ -67,21 +68,22 @@ export default function TimesheetTable({
           <tbody>
             {pageRows.map((task) => (
               <TaskRowPair
-                key={task.id}
-                task={task}
-                border={border}
-                rowLabelColor={rowLabelColor}
-                inputBg={inputBg}
-                t={t}
-                isDark={isDark}
-                onActualChange={updateActual}
-              />
+  key={task.id}
+  task={task}
+  border={border}
+  rowLabelColor={rowLabelColor}
+  inputBg={inputBg}
+  t={t}
+  isDark={isDark}
+  onActualChange={updateActual}
+  onComment={onComment} // ✅ add this
+/>
             ))}
 
             {pageRows.length === 0 && (
               <tr>
                 <td
-                  colSpan={8}
+        colSpan={weekDates.length + 3}
                   className={`px-4 py-10 text-center text-sm ${t.textMuted}`}
                 >
                   No tasks match your search.
