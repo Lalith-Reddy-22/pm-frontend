@@ -13,6 +13,9 @@ import financialYearReducer from "./slices/financialYearSlice";
 import buyingCenterReducer from "./slices/buyingCenterSlice";
 import timesheetReducer from "./slices/timesheetSlice";
 import employeeReducer from "./slices/employeeSlice";
+import financeProjectReducer from "./slices/financeProjectSlice";
+import financeRateCardReducer from "./slices/financeRateCardSlice";
+import financeRateCardBuyingCenterReducer from "./slices/financeRateCardBuyingCenterSlice";
 
 export const store = configureStore({
   reducer: {
@@ -30,5 +33,8 @@ export const store = configureStore({
     buyingCenter: buyingCenterReducer,
     timesheet: timesheetReducer,
     employee: employeeReducer,
+    financeProject: financeProjectReducer,
+    financeRateCard: financeRateCardReducer,
+    financeRateCardBuyingCenter: financeRateCardBuyingCenterReducer,
   },
 });

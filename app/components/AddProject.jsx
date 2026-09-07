@@ -1,671 +1,338 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { ArrowLeft, Save, Plus } from "lucide-react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import DatePicker from "./DatePicker";
-import CustomSelect from "@/components/ui/CustomSelect";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchClients } from "@/store/slices/clientSlice";
-import { fetchFinancialYears } from "@/store/slices/financialYearSlice";
-import { fetchBuyingCenters } from "@/store/slices/buyingCenterSlice";
+import {
+  ArrowLeft, FolderOpen, Save, DollarSign, Calendar,
+  Globe, ShoppingCart, Hash, Tag, Users, Building2, AlignLeft,
+} from "lucide-react";
+import { useTheme } from "@/app/context/ThemeContext";
+import { getProjectLookups } from "@/services/financeClientService";
+import axiosClient from "@/services/axiosClient";
+import SmartSelect from "@/app/components/SmartSelect";
 
-export default function AddProject({
-  isEditMode,
-  projectId,
-  projectDetails,
-  projectDetailsLoading,
-  projectDetailsError,
-}) {
+const STATUS_MAP   = { Active: 1, Inactive: 2, Completed: 3, "On Hold": 4 };
+const BILLING_MAP  = { Billable: 1, "Non-Billable": 2, Internal: 3 };
+const STATUS_OPTS  = ["Active", "Inactive", "Completed", "On Hold"].map((s) => ({ value: s, label: s }));
+const BILLING_OPTS = ["Billable", "Non-Billable", "Internal"].map((s) => ({ value: s, label: s }));
 
-  const dispatch = useDispatch();
+// Stable — prevents focus loss on every keystroke
+function Field({ label, icon: Icon, children, span, t }) {
+  return (
+    <div className={span ? "col-span-2" : ""}>
+      <label className={`block text-xs font-medium mb-1 ${t.textMuted}`}>{label}</label>
+      <div className={`flex items-center gap-1.5 border ${t.clientBorder} rounded-lg px-2.5 py-1.5 ${t.clientInputBg}`}>
+        {Icon && <Icon className="w-3 h-3 text-red-500 shrink-0" />}
+        {children}
+      </div>
+    </div>
+  );
+}
 
-const {
-  clients,
-  loading: clientsLoading,
-  error: clientsError,
-} = useSelector((state) => state.client);
-
-const {
-  financialYears,
-  loading: financialYearsLoading,
-  error: financialYearsError,
-} = useSelector((state) => state.financialYear);
-
-const {
-  buyingCenters,
-  loading: buyingCentersLoading,
-  error: buyingCentersError,
-} = useSelector((state) => state.buyingCenter);
-
-console.log("FINANCIAL YEARS FROM REDUX:", financialYears);
-
-useEffect(() => {
-  dispatch(fetchClients());
-  dispatch(fetchFinancialYears());
-  dispatch(fetchBuyingCenters());
-}, [dispatch]);
-
+export default function AddProject() {
+  const { t } = useTheme();
   const router = useRouter();
 
-  const [formData, setFormData] = useState({
-    projectName: "",
-    region: "",
-    projectStatus: "",
-    client: "",
-    projectCode: "",
-    type: "",
-    subClient: "",
-    startDate: "",
-    endDate: "",
-    projectOwner: "",
-
-    includeBuyingCenter: true,
-    buyingCenter: "",
-    financialYear: "",
-    purchaseOrderValue: "",
-    predictedCost: "",
-    outsourcingCost: "",
+  const [form, setForm] = useState({
+    projectName:         "",
+    region:              "",
+    projectStatus:       "Active",
+    clientId:            "",
+    projectCode:         "",
+    type:                "Billable",
+    subClient:           "",
+    startDate:           "",
+    endDate:             "",
+    projectOwner:        "",
+    description:         "",
+    includeBuyingCenter: false,
+    buyingCenterId:      "",
+    financialYearId:     "",
+    purchaseOrderValue:  "",
+    predictedCost:       "",
+    outsourcingCost:     "",
   });
 
-  const PROJECT_STATUS_OPTIONS = [
-  {
-    value: "",
-    label: "Select Status",
-  },
-  {
-    value: "Active",
-    label: "Active",
-  },
-  {
-    value: "Completed",
-    label: "Completed",
-  },
-  {
-    value: "On Hold",
-    label: "On Hold",
-  },
-];
+  const [clients, setClients]             = useState([]);
+  const [managers, setManagers]           = useState([]);
+  const [buyingCenters, setBuyingCenters] = useState([]);
+  const [financialYears, setFinancialYears] = useState([]);
+  const [saving, setSaving]               = useState(false);
+  const [error, setError]                 = useState("");
 
-const clientOptions = [
-  {
-    value: "",
-    label: "Select Client",
-  },
+  useEffect(() => {
+    getProjectLookups()
+      .then((data) => {
+        setClients(data.clients ?? []);
+        setManagers(data.projectManagers ?? []);
+        setBuyingCenters(data.buyingCenters ?? []);
+        setFinancialYears(data.financialYears ?? []);
+      })
+      .catch(() => {});
+  }, []);
 
-  ...clients.map((client) => ({
-    value: String(client.client_Id),
-    label: client.client_Title,
-  })),
-];
+  const setField = (key) => (e)   => setForm((prev) => ({ ...prev, [key]: e.target.value }));
+  const setVal   = (key) => (val) => setForm((prev) => ({ ...prev, [key]: val }));
+  const toggle   = (key) => ()    => setForm((prev) => ({ ...prev, [key]: !prev[key] }));
+  const goBack   = () => router.back();
 
-const BUYING_CENTER_OPTIONS = [
-  {
-    value: "",
-    label: "Select Buying Center",
-  },
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.projectName.trim()) { setError("Project Name is required.");      return; }
+    if (!form.clientId)           { setError("Please select a Client.");         return; }
+    if (!form.projectStatus)      { setError("Please select a Project Status."); return; }
 
-  ...buyingCenters.map((item) => ({
-    value: String(item.bId),
-    label: item.bName,
-  })),
-];
+    setError("");
+    setSaving(true);
+    const empId = typeof window !== "undefined" ? sessionStorage.getItem("empId") : null;
 
-const financialYearOptions = [
-  {
-    value: "",
-    label: "Select Financial Year",
-  },
-  ...financialYears.map((year) => ({
-    value: String(year.id),
-    label: year.financial_Year,
-  })),
-];
+    try {
+      const payload = {
+        projectCode:           form.projectCode || null,
+        clientId:              form.clientId      ? Number(form.clientId)      : null,
+        projectTitle:          form.projectName,
+        startDate:             form.startDate     || null,
+        endDate:               form.endDate       || null,
+        projectManagerIds:     form.projectOwner  || null,
+        buyingCenterId:        form.buyingCenterId  ? Number(form.buyingCenterId)  : null,
+        financialYearId:       form.financialYearId ? Number(form.financialYearId) : null,
+        predictedValue:        Number(form.predictedCost)      || 0,
+        outsourcingValue:      Number(form.outsourcingCost)    || 0,
+        totalValue:            Number(form.purchaseOrderValue) || 0,
+        projectStatus:         STATUS_MAP[form.projectStatus]  ?? 1,
+        billingType:           BILLING_MAP[form.type]          ?? 1,
+        region:                form.region      || null,
+        subClientName:         form.subClient   || null,
+        description:           form.description || null,
+        includeInBuyingCenter: form.includeBuyingCenter,
+        createdBy:             empId ? Number(empId) : 0,
+      };
 
-
-const TYPE_OPTIONS = [
-  {
-    value: "",
-    label: "Select Type",
-  },
-   {
-    value: "billable",
-    label: "Billable",
-  },
-  {
-    value: "nonbillable",
-    label: "Non-Billable",
-  },
-];
-
-const PROJECT_OWNER_OPTIONS = [
-  { value: "7", label: "Suresh Waghmore" },
-  { value: "10", label: "Shijin Pulikkotil" },
-  { value: "11", label: "Hari Prabhakaran" },
-  { value: "13", label: "Sunil Kadhamba" },
-  { value: "22", label: "Binoj" },
-  { value: "52", label: "Pavithra G" },
-  { value: "71", label: "Rajesh Hariharan" },
-  { value: "78", label: "Vishwanath BJ" },
-  { value: "21", label: "Sonali Sulakhe" },
-  { value: "45", label: "Shuja Jacob" },
-  { value: "60", label: "Karishma Reji" },
-  { value: "67", label: "Jigar Gohel" },
-  { value: "104", label: "Rosmin Thomas" },
-  { value: "110", label: "Pavitha Admin" },
-  { value: "115", label: "Aditi Dash" },
-  { value: "117", label: "Prajwal P Kunte" },
-  { value: "128", label: "Akshay Mohan" },
-  { value: "140", label: "Shruti Appaji" },
-  { value: "129", label: "Bhuvinaya Sriramkumar" },
-  { value: "136", label: "Rishabh Pandey" },
-  { value: "168", label: "Rajesh Balasundara" },
-  { value: "170", label: "Michelle Trussel" },
-  { value: "1174", label: "Sristi Das" },
-  { value: "1180", label: "Shreya Nagaraj" },
-  { value: "1181", label: "Akshaya K" },
-  { value: "1183", label: "Jaclyn Pallotti" },
-  { value: "171", label: "Shilpa Mistry" },
-];
-
-  const handleChange = (field, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+      await axiosClient.post("/finance-project", payload);
+      router.push("/finance/project-lists");
+    } catch (e) {
+      const errData = e.response?.data;
+      const msg =
+        errData?.errors
+          ? Object.entries(errData.errors).map(([k, v]) => `${k}: ${[v].flat().join(", ")}`).join(" | ")
+          : errData?.title || errData?.detail || errData?.message || e.message || "Failed to create project.";
+      setError(msg);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const parseDate = (value) => {
-  if (!value) return "";
-
-  const date = new Date(value);
-
-  if (isNaN(date.getTime())) {
-    return "";
-  }
-
-  return date;
-};
-
-useEffect(() => {
-  if (!isEditMode || !projectDetails) {
-    return;
-  }
-
-  const buyingCenterId = Number(projectDetails.b_Id);
-
-  const projectType =
-    buyingCenterId === 0 || buyingCenterId === 25
-      ? "nonbillable"
-      : "billable";
-
-  console.log("========== EDIT PROJECT ==========");
-  console.log("PROJECT ID:", projectDetails.project_Id);
-  console.log("B_ID:", projectDetails.b_Id);
-  console.log("BUYING CENTER ID:", buyingCenterId);
-  console.log("CALCULATED TYPE:", projectType);
-  console.log("CLIENT ID:", projectDetails.client_Id);
-  console.log("CLIENT NAME:", projectDetails.client_Title);
-  console.log("FINANCIAL YEAR ID:", projectDetails.financial_Year_Id);
-  console.log("=================================");
-
-  setFormData((prev) => ({
-    ...prev,
-
-    projectName: projectDetails.project_Title || "",
-
-    region: "",
-
-    projectStatus: projectDetails.project_Status_Text || "",
-
-    client: projectDetails.client_Id
-      ? String(projectDetails.client_Id)
-      : "",
-
-    projectCode: projectDetails.projectCode || "",
-
-    // B_Id 0 and 25 = Non-Billable
-    type: projectType,
-
-    // Sub Client = selected Client
-    subClient: projectDetails.client_Title || "",
-
-    startDate: parseDate(projectDetails.startDate),
-    endDate: parseDate(projectDetails.endDate),
-
-    projectOwner: projectDetails.projectOwner || "",
-
-    includeBuyingCenter: true,
-
-    buyingCenter: projectDetails.b_Id
-  ? String(projectDetails.b_Id)
-  : "",
-
-    financialYear: projectDetails.financial_Year_Id
-      ? String(projectDetails.financial_Year_Id)
-      : "",
-
-    purchaseOrderValue: projectDetails.totalValue ?? "",
-
-    predictedCost: projectDetails.predicted_Value ?? "",
-
-    outsourcingCost: projectDetails.outsourcing_Value ?? "",
-  }));
-}, [isEditMode, projectDetails]);
+  const clientOptions      = clients.map((c) => ({ value: String(c.client_ID), label: c.client_Title }));
+  const managerOptions     = managers.map((m) => ({ value: String(m.empId), label: m.employee_Name }));
+  const buyingCtrOptions   = buyingCenters.map((bc) => ({ value: String(bc.bId), label: bc.bName }));
+  const financialYrOptions = financialYears.map((y) => ({ value: String(y.id), label: y.financial_Year }));
 
   return (
-    <div className="space-y-6 p-4 sm:p-6">
+    <div className={`${t.mainBg} h-full flex flex-col overflow-hidden`}>
 
-      {/* Header */}
-
-      <div className="flex items-center justify-between">
-
-        <div>
-
-          <button
-            onClick={() => router.back()}
-            className="flex items-center gap-2 text-sm text-[#E12729] cursor-pointer"
-          >
-            <ArrowLeft size={18} />
-            Back to Projects
-          </button>
-
+      {/* ── Top bar ── */}
+      <div className="shrink-0 px-6 pt-4 pb-3">
+        <button onClick={goBack} className="flex items-center gap-1.5 text-sm mb-3 text-red-500 hover:text-red-600">
+          <ArrowLeft className="w-4 h-4" /> Back
+        </button>
+        <div className="flex items-center gap-3">
+          <div className={`p-2.5 rounded-xl ${t.clientIconBg}`}>
+            <FolderOpen className="w-5 h-5 text-red-500" />
+          </div>
+          <div>
+            <h1 className={`text-base font-bold ${t.textPrimary}`}>Add Project</h1>
+            <p className={`text-xs ${t.textMuted} mt-0.5`}>Fill in the details to create a new project</p>
+          </div>
         </div>
-
+        {error && (
+          <div className="mt-3 px-4 py-2.5 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-lg text-sm text-red-600 dark:text-red-400">
+            {error}
+          </div>
+        )}
       </div>
 
-      {/* Main Layout */}
+      {/* ── Form body ── */}
+      <form onSubmit={handleSubmit} className="flex-1 flex flex-col overflow-hidden px-6 pb-4">
+        <div className="flex-1 grid grid-cols-2 gap-4 overflow-hidden min-h-0">
 
-      <div className="grid grid-cols-12 gap-6">
-
-        {/* Left Section */}
-
-        <div className="col-span-12 xl:col-span-8">
-
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-
-            <h2 className="mb-6 text-xl font-semibold text-gray-800">
-              Project Information
-            </h2>
-
-            <div className="grid grid-cols-2 gap-5">
-
-              {/* Project Name */}
-
-              <div className="col-span-2">
-
-                <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Project Name
-                </label>
-
-                <input
-                  value={formData.projectName}
-                  onChange={(e) =>
-                    handleChange("projectName", e.target.value)
-                  }
-                  placeholder="Enter Project Name"
-                  className="h-8 w-full rounded-md border border-gray-300 px-4 outline-none focus:border-red-500"
-                />
-
+          {/* ── LEFT: Project Information ── */}
+          <div className={`${t.cardBg} ${t.cardShadow} rounded-2xl flex flex-col overflow-hidden min-h-0`}>
+            <div className={`shrink-0 flex items-center gap-3 px-5 py-3 border-b ${t.clientBorder}`}>
+              <div className={`p-1.5 rounded-lg ${t.clientMutedBg}`}>
+                <FolderOpen className="w-3.5 h-3.5 text-red-500" />
               </div>
-
-              {/* Region */}
-
-              <div>
-
-                <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Region
-                </label>
-
-                <input
-                  value={formData.region}
-                  onChange={(e) =>
-                    handleChange("region", e.target.value)
-                  }
-                  placeholder="Enter Region"
-                  className="h-8 w-full rounded-md border border-gray-300 px-4 outline-none focus:border-red-500"
-                />
-
-              </div>
-
-              {/* Status */}
-
-              <div>
-
-                <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Project Status
-                </label>
-
-                <CustomSelect
-  value={formData.projectStatus}
-  onChange={(value) =>
-    handleChange("projectStatus", value)
-  }
-  placeholder="Select Status"
-  options={PROJECT_STATUS_OPTIONS}
-/>
-
-              </div>
-
-              {/* Client */}
-
-              <div>
-
-                <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Client
-                </label>
-
-                <CustomSelect
-  label="Client"
-  options={clientOptions}
-  value={formData.client}
-  onChange={(value) => {
-    const selectedClient = clients.find(
-      (client) =>
-        String(client.client_Id) === String(value)
-    );
-
-    setFormData((prev) => ({
-      ...prev,
-      client: value,
-      subClient: selectedClient?.client_Title || "",
-    }));
-  }}
-/>
-
-              </div>
-
-              {/* Project Code */}
-
-              <div>
-
-                <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Project Code
-                </label>
-
-                <input
-                  value={formData.projectCode}
-                  onChange={(e) =>
-                    handleChange("projectCode", e.target.value)
-                  }
-                  placeholder="Enter Project Code"
-                  className="h-8 w-full rounded-md border border-gray-300 px-4 outline-none focus:border-red-500"
-                />
-
-              </div>
-
-              {/* Type */}
-
-              <div>
-
-                <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Type
-                </label>
-
-                <CustomSelect
-  value={formData.type}
-  onChange={(value) =>
-    handleChange("type", value)
-  }
-  placeholder="Select Type"
-  options={TYPE_OPTIONS}
-/>
-
-              </div>
-
-              {/* Sub Client */}
-
-              <div>
-
-                <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Sub Client
-                </label>
-
-                <input
-  type="text"
-  value={formData.subClient}
-  onChange={(e) =>
-    handleChange("subClient", e.target.value)
-  }
-  placeholder="Enter Sub Client"
-  className="h-8 w-full rounded-md border border-gray-300 px-4 outline-none focus:border-red-500"
-/>
-
-              </div>
-
-              {/* Start Date */}
-
-              <div>
-
-                <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Start Date
-                </label>
-
-                <DatePicker
-                  value={formData.startDate ? new Date(formData.startDate) : null}
-                  onChange={(date) => handleChange("startDate", date)}
-                  placeholder="Select Start Date"
-                />
-
-              </div>
-
-              {/* End Date */}
-
-              <div>
-
-                <label className="mb-2 block text-sm font-medium text-gray-700">
-                  End Date
-                </label>
-
-                <DatePicker
-                  value={formData.endDate ? new Date(formData.endDate) : null}
-                  onChange={(date) => handleChange("endDate", date)}
-                  placeholder="Select End Date"
-                />
-
-              </div>
-
-              {/* Project Owner */}
-
-              <div className="col-span-2">
-
-                <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Project Owner
-                </label>
-
-                <CustomSelect
-  value={formData.projectOwner}
-  onChange={(value) => handleChange("projectOwner", value)}
-  placeholder="Select Project Owner"
-  options={PROJECT_OWNER_OPTIONS}
-/>
-
-              </div>
-
-              <div className="flex items-center justify-start gap-3">
-
-            <button
-              type="button"
-              onClick={() => {
-                if (!formData.projectName.trim()) {
-                  alert("Project Name is required");
-                  return;
-                }
-
-                if (!formData.client) {
-                  alert("Please select Client");
-                  return;
-                }
-
-                if (!formData.projectStatus) {
-                  alert("Please select Project Status");
-                  return;
-                }
-
-                console.log("Create Project", formData);
-
-                // TODO:
-                // await axios.post("/api/projects", formData);
-              }}
-              className="flex items-center gap-2 rounded-xl bg-[#E12729] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700"
-            >
-  {isEditMode ? "Update Project" : "Create Project"}
-            </button>
-
-          </div>
-
+              <span className={`font-semibold text-sm ${t.textPrimary}`}>Project Information</span>
             </div>
+            <div className="flex-1 overflow-y-auto px-5 py-4">
+              <div className="grid grid-cols-2 gap-3">
 
+                <Field t={t} label="Project Name" icon={FolderOpen} span>
+                  <input required value={form.projectName} onChange={setField("projectName")}
+                    placeholder="Enter project name"
+                    className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText}`} />
+                </Field>
+
+                <Field t={t} label="Region" icon={Globe}>
+                  <input value={form.region} onChange={setField("region")}
+                    placeholder="Enter region"
+                    className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText}`} />
+                </Field>
+
+                <Field t={t} label="Project Status" icon={Tag}>
+                  <SmartSelect
+                    value={form.projectStatus}
+                    onChange={setVal("projectStatus")}
+                    options={STATUS_OPTS}
+                    placeholder="Select status"
+                  />
+                </Field>
+
+                <Field t={t} label="Client" icon={Building2}>
+                  <SmartSelect
+                    value={form.clientId}
+                    onChange={setVal("clientId")}
+                    options={clientOptions}
+                    placeholder="— Select client —"
+                  />
+                </Field>
+
+                <Field t={t} label="Project Code" icon={Hash}>
+                  <input value={form.projectCode} onChange={setField("projectCode")}
+                    placeholder="Enter project code"
+                    className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText}`} />
+                </Field>
+
+                <Field t={t} label="Type" icon={Tag}>
+                  <SmartSelect
+                    value={form.type}
+                    onChange={setVal("type")}
+                    options={BILLING_OPTS}
+                    placeholder="Select type"
+                  />
+                </Field>
+
+                <Field t={t} label="SubClient" icon={Building2}>
+                  <input value={form.subClient} onChange={setField("subClient")}
+                    placeholder="Enter sub client"
+                    className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText}`} />
+                </Field>
+
+                <Field t={t} label="Start Date" icon={Calendar}>
+                  <input type="date" value={form.startDate} onChange={setField("startDate")}
+                    className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText}`} />
+                </Field>
+
+                <Field t={t} label="End Date" icon={Calendar}>
+                  <input type="date" value={form.endDate} onChange={setField("endDate")}
+                    className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText}`} />
+                </Field>
+
+                <Field t={t} label="Project Owner" icon={Users} span>
+                  <SmartSelect
+                    value={form.projectOwner}
+                    onChange={setVal("projectOwner")}
+                    options={managerOptions}
+                    placeholder="— Select owner —"
+                  />
+                </Field>
+
+                <Field t={t} label="Description" icon={AlignLeft} span>
+                  <textarea rows={3} value={form.description} onChange={setField("description")}
+                    placeholder="Enter project description"
+                    className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText} resize-none`} />
+                </Field>
+
+              </div>
+            </div>
+          </div>
+
+          {/* ── RIGHT: Budget Details ── */}
+          <div className={`${t.cardBg} ${t.cardShadow} rounded-2xl flex flex-col overflow-hidden min-h-0`}>
+            <div className={`shrink-0 flex items-center justify-between px-5 py-3 border-b ${t.clientBorder}`}>
+              <div className="flex items-center gap-3">
+                <div className={`p-1.5 rounded-lg ${t.clientMutedBg}`}>
+                  <DollarSign className="w-3.5 h-3.5 text-red-500" />
+                </div>
+                <span className={`font-semibold text-sm ${t.textPrimary}`}>Budget Details</span>
+              </div>
+              <button type="button" onClick={toggle("includeBuyingCenter")} className="flex items-center gap-2">
+                <div className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
+                  form.includeBuyingCenter ? "bg-red-600 border-red-600" : `border-gray-400 ${t.clientInputBg}`
+                }`}>
+                  {form.includeBuyingCenter && (
+                    <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 12 12" fill="none">
+                      <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  )}
+                </div>
+                <span className={`text-xs font-medium ${t.textPrimary} flex items-center gap-1`}>
+                  <ShoppingCart className="w-3.5 h-3.5 text-red-500" /> Include Buying Center
+                </span>
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto px-5 py-4">
+              {form.includeBuyingCenter ? (
+                <div className="grid grid-cols-2 gap-3">
+
+                  <Field t={t} label="Buying Center" icon={ShoppingCart} span>
+                    <SmartSelect
+                      value={form.buyingCenterId}
+                      onChange={setVal("buyingCenterId")}
+                      options={buyingCtrOptions}
+                      placeholder="— Select buying center —"
+                    />
+                  </Field>
+
+                  <Field t={t} label="Financial Year" icon={Calendar} span>
+                    <SmartSelect
+                      value={form.financialYearId}
+                      onChange={setVal("financialYearId")}
+                      options={financialYrOptions}
+                      placeholder="— Select year —"
+                    />
+                  </Field>
+
+                  <Field t={t} label="Purchase Order Value ($)" icon={DollarSign} span>
+                    <input type="text" inputMode="decimal" placeholder="0.00"
+                      value={form.purchaseOrderValue} onChange={setField("purchaseOrderValue")}
+                      className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText}`} />
+                  </Field>
+
+                  <Field t={t} label="Predicted Cost ($)" icon={DollarSign} span>
+                    <input type="text" inputMode="decimal" placeholder="0.00"
+                      value={form.predictedCost} onChange={setField("predictedCost")}
+                      className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText}`} />
+                  </Field>
+
+                  <Field t={t} label="Outsourcing Cost ($)" icon={DollarSign} span>
+                    <input type="text" inputMode="decimal" placeholder="0.00"
+                      value={form.outsourcingCost} onChange={setField("outsourcingCost")}
+                      className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText}`} />
+                  </Field>
+
+                </div>
+              ) : (
+                <div className={`h-full flex flex-col items-center justify-center gap-2 ${t.textMuted}`}>
+                  <ShoppingCart className="w-8 h-8 opacity-30" />
+                  <p className="text-xs text-center opacity-50">Check &quot;Include Buying Center&quot; to fill in budget details</p>
+                </div>
+              )}
+            </div>
           </div>
 
         </div>
 
-                {/* Right Section */}
-
-        <div className="col-span-12 xl:col-span-4">
-
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm top-6">
-
-  {/* Include Buying Center */}
-
-  <div className="flex items-center gap-2 rounded-xl bg-gray-50 px-4 py-3">
-
-    <input
-      type="checkbox"
-      checked={formData.includeBuyingCenter}
-      onChange={(e) =>
-        handleChange("includeBuyingCenter", e.target.checked)
-      }
-      className="h-5 w-5 accent-red-600"
-    />
-
-    <span className="text-sm font-medium text-gray-700">
-      Include Buying Center
-    </span>
-
-  </div>
-
-  {/* Budget Details Heading */}
-
-  <h2 className="mt-5 mb-6 text-xl font-semibold text-gray-800">
-    Budget Details
-  </h2>
-
-  {/* Show only when Include Buying Center is checked */}
-
-  {formData.includeBuyingCenter && (
-
-    <div className="space-y-5">
-
-      {/* Buying Center */}
-
-      <div>
-
-        <label className="mb-2 block text-sm font-medium text-gray-700">
-          Buying Center
-        </label>
-
-        <CustomSelect
-  value={formData.buyingCenter}
-  onChange={(value) => handleChange("buyingCenter", value)}
-  placeholder="Select Buying Center"
-  options={BUYING_CENTER_OPTIONS}
-/>
-
-      </div>
-
-      {/* Financial Year */}
-
-      <div>
-
-        <label className="mb-2 block text-sm font-medium text-gray-700">
-          Financial Year
-        </label>
-
-        <CustomSelect
-  label="Financial Year"
-  options={financialYearOptions}
-  value={formData.financialYear}
-  onChange={(value) => {
-    setFormData((prev) => ({
-      ...prev,
-      financialYear: value,
-    }));
-  }}
-/>
-
-      </div>
-
-      {/* Purchase Order */}
-
-      <div>
-
-        <label className="mb-2 block text-sm font-medium text-gray-700">
-          Purchase Order Value
-        </label>
-
-        <input
-          type="number"
-          placeholder="0.00"
-          value={formData.purchaseOrderValue}
-          onChange={(e) =>
-            handleChange("purchaseOrderValue", e.target.value)
-          }
-          className="h-8 w-full rounded-md border border-gray-300 px-4 outline-none transition focus:border-red-500"
-        />
-
-      </div>
-
-      {/* Predicted Cost */}
-
-      <div>
-
-        <label className="mb-2 block text-sm font-medium text-gray-700">
-          Predicted Cost
-        </label>
-
-        <input
-          type="number"
-          placeholder="0.00"
-          value={formData.predictedCost}
-          onChange={(e) =>
-            handleChange("predictedCost", e.target.value)
-          }
-          className="h-8 w-full rounded-md border border-gray-300 px-4 outline-none transition focus:border-red-500"
-        />
-
-      </div>
-
-      {/* Outsourcing Cost */}
-
-      <div>
-
-        <label className="mb-2 block text-sm font-medium text-gray-700">
-          Outsourcing Cost
-        </label>
-
-        <input
-          type="number"
-          placeholder="0.00"
-          value={formData.outsourcingCost}
-          onChange={(e) =>
-            handleChange("outsourcingCost", e.target.value)
-          }
-          className="h-8 w-full rounded-md border border-gray-300 px-4 outline-none transition focus:border-red-500"
-        />
-
-      </div>
-
-    </div>
-
-  )}
-
-</div>
-
+        {/* ── Action bar ── */}
+        <div className="shrink-0 flex justify-between pt-3">
+          <button
+            type="submit"
+            disabled={saving}
+            className="flex items-center gap-1.5 px-5 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white rounded-lg text-sm font-medium transition-colors"
+          >
+            <Save className="w-4 h-4" /> {saving ? "Creating…" : "Create Project"}
+          </button>
         </div>
-
-      </div>
-
+      </form>
     </div>
   );
 }

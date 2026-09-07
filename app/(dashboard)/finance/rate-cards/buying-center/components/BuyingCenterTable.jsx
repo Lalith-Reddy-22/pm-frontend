@@ -69,58 +69,52 @@ export default function BuyingCenterTable({ buyingCenters, onClone }) {
               </td>
             </tr>
           ) : (
-            buyingCenters.map((center) => (
-              <tr
-                key={center.id}
-                className="border-b border-gray-100 transition-colors hover:bg-gray-50"
-              >
-                {/* Buying Center */}
-                <td className="px-6 py-4">
-                  <div className="font-semibold text-gray-900">
-                    {center.name}
-                  </div>
+            buyingCenters.map((center) => {
+              const isActive = center.isActive === 1 || center.isActive === true;
+              return (
+                <tr
+                  key={center.bId}
+                  className="border-b border-gray-100 transition-colors hover:bg-gray-50"
+                >
+                  {/* Buying Center */}
+                  <td className="px-6 py-4">
+                    <div className="font-semibold text-gray-900">
+                      {center.bName}
+                    </div>
 
-                  <button
-                   onClick={() => onClone(center)}
-                   className="mt-1 text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline cursor-pointer">
-                    Clone Rate Card
-                  </button>
-                </td>
+                    <button
+                      onClick={() => onClone(center)}
+                      className="mt-1 text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline cursor-pointer"
+                    >
+                      Clone Rate Card
+                    </button>
+                  </td>
 
-                {/* Created Date */}
-                <td className="px-6 py-4 text-sm text-gray-700">
-                  {center.createdDate}
-                </td>
+                  {/* Created Date */}
+                  <td className="px-6 py-4 text-sm text-gray-700">
+                    {center.created_Date}
+                  </td>
 
-                {/* Status */}
-                <td className="px-6 py-4">
-                  <span
-                    className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
-                      center.status === "Active"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
-                    }`}
-                  >
-                    {center.status}
-                  </span>
-                </td>
+                  {/* Status */}
+                  <td className="px-6 py-4">
+                    <span
+                      className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
+                        isActive
+                          ? "bg-green-100 text-green-700"
+                          : "bg-red-100 text-red-700"
+                      }`}
+                    >
+                      {isActive ? "Active" : "Inactive"}
+                    </span>
+                  </td>
 
-                {/* Created By */}
-                <td className="px-6 py-4 text-sm text-gray-700">
-                  {center.createdBy}
-                </td>
-
-                {/* Actions */}
-                {/* <td className="px-6 py-4 text-center">
-                  <button className="rounded-lg p-2 transition hover:bg-gray-100">
-                    <MoreVertical
-                      size={18}
-                      className="text-gray-500"
-                    />
-                  </button>
-                </td> */}
-              </tr>
-            ))
+                  {/* Created By */}
+                  <td className="px-6 py-4 text-sm text-gray-700">
+                    {center.created_By}
+                  </td>
+                </tr>
+              );
+            })
           )}
         </tbody>
       </table>

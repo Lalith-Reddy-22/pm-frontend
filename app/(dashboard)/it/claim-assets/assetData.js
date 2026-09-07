@@ -1,4 +1,4 @@
-import { Laptop, Tablet, Smartphone, Monitor, Printer, Headphones, CheckCircle, Clock, XCircle } from "lucide-react";
+import { Laptop, Tablet, Smartphone, Monitor, Printer, Headphones, CheckCircle, Clock, XCircle, Cpu, HardDrive, Keyboard, Mouse, Camera, Watch } from "lucide-react";
 
 export const ICON_MAP = {
   Laptop:            Laptop,
@@ -11,6 +11,28 @@ export const ICON_MAP = {
   Printer:           Printer,
   Headphones:        Headphones,
 };
+
+/**
+ * Maps Font Awesome class strings returned by the API (e.g. "fa-solid fa-laptop")
+ * to Lucide React icon components so we don't need the FA library.
+ * Falls back to Laptop for any unrecognised class.
+ */
+export function faClassToLucide(faClass = "") {
+  const cls = (faClass ?? "").toLowerCase();
+  if (cls.includes("laptop") || cls.includes("macbook"))        return Laptop;
+  if (cls.includes("tablet") || cls.includes("ipad"))           return Tablet;
+  if (cls.includes("mobile") || cls.includes("phone") || cls.includes("iphone")) return Smartphone;
+  if (cls.includes("desktop") || cls.includes("monitor") || cls.includes("display")) return Monitor;
+  if (cls.includes("printer"))                                  return Printer;
+  if (cls.includes("headphone") || cls.includes("headset"))     return Headphones;
+  if (cls.includes("camera"))                                   return Camera;
+  if (cls.includes("keyboard"))                                 return Keyboard;
+  if (cls.includes("mouse"))                                    return Mouse;
+  if (cls.includes("watch"))                                    return Watch;
+  if (cls.includes("hdd") || cls.includes("hard-drive") || cls.includes("storage")) return HardDrive;
+  if (cls.includes("cpu") || cls.includes("microchip") || cls.includes("chip"))     return Cpu;
+  return Laptop; // sensible default
+}
 
 export const ASSETS = [
   { id: 1,  name: "Laptop",                      category: "Laptop",          available: true,  assignedTo: null,              assignedDate: null         },

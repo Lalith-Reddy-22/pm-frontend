@@ -38,3 +38,33 @@ export async function getDailyReports({
 
   return response.data;
 }
+
+export async function getProjectsDropdown() {
+  const response = await axiosClient.get("/Reports/projects-dropdown");
+  return response.data;
+}
+
+export async function getTaskList({
+  empId,
+  empType,
+  startDate,
+  endDate,
+  projectId = 0,
+  searchText = "",
+  pageNumber = 1,
+  pageSize = 10,
+}) {
+  const response = await axiosClient.get("/Reports/task-list", {
+    params: {
+      empId,
+      empType,
+      startDate,
+      endDate,
+      projectId,
+      searchText,
+      pageNumber,
+      pageSize,
+    },
+  });
+  return response.data;
+}
