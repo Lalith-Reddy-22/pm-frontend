@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
 import RateCardTabs from "../components/RateCardTabs";
 import BuyingCenterTopBar from "./components/BuyingCenterTopBar";
@@ -9,23 +10,37 @@ import AddBuyingCenterModal from "./components/AddBuyingCenterModal";
 import CloneRateCardModal from "./components/CloneRateCardModal";
 import Pagination from "../../../../components/pagination";
 import { usePagination } from "../../../../../hooks/usePagination";
-
-import { buyingCenters } from "./data";
+import {
+  fetchBuyingCenters,
+  cloneBuyingCenterThunk,
+} from "@/store/slices/financeRateCardBuyingCenterSlice";
 
 export default function BuyingCenterPage() {
+  const dispatch = useDispatch();
+  const { buyingCenters, loading, error, cloning, cloneError } = useSelector(
+    (state) => state.financeRateCardBuyingCenter
+  );
+
   const [search, setSearch] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
   const [showCloneModal, setShowCloneModal] = useState(false);
-const [selectedCenter, setSelectedCenter] = useState(null);
-const [cloneName, setCloneName] = useState("");
+  const [selectedCenter, setSelectedCenter] = useState(null);
+  const [cloneName, setCloneName] = useState("");
+
+  // Fetch once — skip if already loaded
+  useEffect(() => {
+    if (buyingCenters.length === 0) {
+      dispatch(fetchBuyingCenters());
+    }
+  }, [dispatch, buyingCenters.length]);
 
   const filteredBuyingCenters = useMemo(() => {
-    const q = search.toLowerCase();
-
+    const q = search.trim().toLowerCase();
+    if (!q) return buyingCenters;
     return buyingCenters.filter((item) =>
-      item.name.toLowerCase().includes(q)
+      (item.bName ?? "").toLowerCase().includes(q)
     );
-  }, [search]);
+  }, [buyingCenters, search]);
 
   const {
     paginatedData,
@@ -42,10 +57,25 @@ const [cloneName, setCloneName] = useState("");
     prevPage,
     nextPage,
     pageNumbers,
-  } = usePagination({
-    data: filteredBuyingCenters,
-    pageSize: 10,
-  });
+  } = usePagination({ data: filteredBuyingCenters, pageSize: 10 });
+
+  const handleSearch = (val) => { setSearch(val); setPage(1); };
+
+  const handleClone = () => {
+    if (!cloneName.trim() || !selectedCenter) return;
+    const createdBy = Number(
+      typeof window !== "undefined" ? sessionStorage.getItem("empId") : 0
+    ) || 0;
+    dispatch(
+      cloneBuyingCenterThunk({
+        orgBId: selectedCenter.bId,
+        buyCenterName: cloneName.trim(),
+        createdBy,
+      })
+    ).unwrap()
+      .then(() => setShowCloneModal(false))
+      .catch(() => {/* cloneError shown in modal */});
+  };
 
   return (
     <div className="space-y-4 p-4 sm:p-6">
@@ -55,55 +85,74 @@ const [cloneName, setCloneName] = useState("");
 
         <BuyingCenterTopBar
           search={search}
-          setSearch={setSearch}
+          setSearch={handleSearch}
           pageSize={pageSize}
           setPageSize={setPageSize}
           onAdd={() => setShowAddModal(true)}
         />
 
-<BuyingCenterTable
-  buyingCenters={paginatedData}
-  onClone={(center) => {
-    setSelectedCenter(center);
-    setCloneName("");
-    setShowCloneModal(true);
-  }}
-/>
-        <Pagination
-          page={page}
-          totalPages={totalPages}
-          totalItems={totalItems}
-          startIndex={startIndex}
-          endIndex={endIndex}
-          hasPrev={hasPrev}
-          hasNext={hasNext}
-          prevPage={prevPage}
-          nextPage={nextPage}
-          pageNumbers={pageNumbers}
-          setPage={setPage}
-        />
+        {/* Loading */}
+        {loading && (
+          <div className="flex items-center justify-center py-16">
+            <p className="text-sm text-gray-400">Loading buying centers…</p>
+          </div>
+        )}
+
+        {/* Error */}
+        {!loading && error && (
+          <div className="flex items-center justify-center py-16">
+            <p className="text-sm text-red-500">{error}</p>
+          </div>
+        )}
+
+        {/* Table + Pagination */}
+        {!loading && !error && (
+          <>
+            <BuyingCenterTable
+              buyingCenters={paginatedData}
+              onClone={(center) => {
+                setSelectedCenter(center);
+                setCloneName("");
+                setShowCloneModal(true);
+              }}
+            />
+
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              totalItems={totalItems}
+              startIndex={startIndex}
+              endIndex={endIndex}
+              hasPrev={hasPrev}
+              hasNext={hasNext}
+              prevPage={prevPage}
+              nextPage={nextPage}
+              pageNumbers={pageNumbers}
+              setPage={setPage}
+            />
+          </>
+        )}
 
         <AddBuyingCenterModal
-  open={showAddModal}
-  onClose={() => setShowAddModal(false)}
-  onSave={(data) => {
-    console.log(data);
-    // TODO: Call your API here
-  }}
-/>
+          open={showAddModal}
+          onClose={() => setShowAddModal(false)}
+          onSave={(data) => {
+            // TODO: call POST API then dispatch(fetchBuyingCenters())
+            console.log("Add buying center:", data);
+            setShowAddModal(false);
+          }}
+        />
 
-<CloneRateCardModal
-  open={showCloneModal}
-  onClose={() => setShowCloneModal(false)}
-  cloningName={selectedCenter?.name || ""}
-  cloneName={cloneName}
-  setCloneName={setCloneName}
-  onClone={() => {
-    console.log("Clone:", cloneName);
-
-    setShowCloneModal(false);
-  }}
-/>
+        <CloneRateCardModal
+          open={showCloneModal}
+          onClose={() => setShowCloneModal(false)}
+          cloningName={selectedCenter?.bName ?? ""}
+          cloneName={cloneName}
+          setCloneName={setCloneName}
+          onClone={handleClone}
+          cloning={cloning}
+          cloneError={cloneError}
+        />
 
       </div>
     </div>

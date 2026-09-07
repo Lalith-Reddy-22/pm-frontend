@@ -1,14 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSelector, useDispatch } from "react-redux";
 import { ArrowLeft, Briefcase } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useTheme } from "../../../../../context/ThemeContext";
 import DataPagination from "@/components/DataPagination";
-import { api } from "@/lib/api";
-import { setTasksCache } from "@/lib/store/financeSlice";
+import { fetchProjectTasks } from "@/store/slices/financeClientSlice";
 import { buildPageNumbers } from "@/lib/utils";
 
 const PAGE_SIZE = 10;
@@ -25,52 +24,35 @@ export default function ProjectTasksPage() {
   const router = useRouter();
   const { clientId, projectIndex: projId } = useParams();
   const dispatch   = useDispatch();
-  const tasksCache = useSelector(s => s.finance.tasksCache);
+
+  const { tasksCache, tasksLoading, tasksError } = useSelector((s) => s.financeClient);
 
   const [search, setSearch] = useState("");
   const [page, setPage]     = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState("");
 
-  const cacheKey    = `${projId}-${page}-${search}`;
-  const cached      = tasksCache[cacheKey];
-  const tasks       = cached?.tasks       ?? [];
-  const totalCount  = cached?.totalCount  ?? 0;
-  const totalPages  = cached?.totalPages  ?? 0;
+  const cacheKey     = `${projId}-${page}-${search}`;
+  const cached       = tasksCache[cacheKey];
+  const tasks        = cached?.tasks      ?? [];
+  const totalCount   = cached?.totalCount ?? 0;
+  const totalPages   = cached?.totalPages ?? 0;
   const projectTitle = cached?.tasks?.[0]?.project_Title ?? "";
   const projectCode  = cached?.tasks?.[0]?.projectCode   ?? "";
   const clientTitle  = cached?.tasks?.[0]?.client_Title  ?? "";
 
-  const fetchTasks = useCallback(() => {
-    if (!projId || tasksCache[cacheKey]) return;
-
-    setLoading(true);
-    setError("");
-    const params = new URLSearchParams({
-      projId,
-      pageNumber: page,
-      pageSize:   PAGE_SIZE,
-      ...(search ? { searchText: search } : {}),
-    });
-    api.get(`/api/v1/finance-client/project-task-report?${params}`)
-      .then(res => {
-        dispatch(setTasksCache({ key: cacheKey, data: {
-          tasks:      res.tasks ?? [],
-          totalCount: res.totalCount,
-          totalPages: res.totalPages,
-        }}));
-      })
-      .catch(e => setError(e.message))
-      .finally(() => setLoading(false));
+  useEffect(() => {
+    if (!projId || cached) return;
+    dispatch(fetchProjectTasks({ projId, pageNumber: page, pageSize: PAGE_SIZE, searchText: search, cacheKey }));
   }, [projId, page, search, cacheKey]);
 
-  useEffect(() => { fetchTasks(); }, [fetchTasks]);
-
   const handleSearch = (val) => { setSearch(val); setPage(1); };
-  if (error) return (
+
+  if (tasksError) return (
     <div className="flex flex-col items-center justify-center min-h-screen gap-3">
-      <p className="text-red-500 font-medium">{error}</p>
-      <button onClick={() => { setError(""); fetchTasks(); }} className="text-sm text-red-500 underline">Retry</button>
+      <p className="text-red-500 font-medium">{tasksError}</p>
+      <button
+        onClick={() => dispatch(fetchProjectTasks({ projId, pageNumber: page, pageSize: PAGE_SIZE, searchText: search, cacheKey }))}
+        className="text-sm text-red-500 underline"
+      >Retry</button>
     </div>
   );
 
@@ -125,7 +107,7 @@ export default function ProjectTasksPage() {
                 </tr>
               </thead>
               <tbody>
-                {loading ? (
+                {tasksLoading && !cached ? (
                   <tr><td colSpan={HEADERS.length} className={`py-8 text-center ${t.textMuted}`}>Loading...</td></tr>
                 ) : tasks.length === 0 ? (
                   <tr><td colSpan={HEADERS.length} className={`py-8 text-center ${t.textMuted}`}>No tasks found.</td></tr>

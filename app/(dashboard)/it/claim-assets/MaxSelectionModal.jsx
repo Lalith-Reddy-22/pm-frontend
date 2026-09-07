@@ -1,12 +1,12 @@
 "use client";
 
-import { X, Laptop } from "lucide-react";
-import { ICON_MAP, ASSETS } from "./assetData";
+import { X } from "lucide-react";
+import { faClassToLucide } from "./assetData";
 import { useTheme } from "../../../context/ThemeContext";
 
-export default function MaxSelectionModal({ selected, onRemove, onClose }) {
+export default function MaxSelectionModal({ selected, assets = [], onRemove, onClose }) {
   const { t } = useTheme();
-  const selectedAssets = ASSETS.filter(a => selected.includes(a.id));
+  const selectedAssets = assets.filter(a => selected.includes(a.id));
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
@@ -31,7 +31,7 @@ export default function MaxSelectionModal({ selected, onRemove, onClose }) {
         {/* Selected list */}
         <div className="px-6 py-4 space-y-2">
           {selectedAssets.map(asset => {
-            const Icon = ICON_MAP[asset.category] ?? Laptop;
+            const Icon = faClassToLucide(asset.product_Icon);
             return (
               <div
                 key={asset.id}
@@ -41,8 +41,8 @@ export default function MaxSelectionModal({ selected, onRemove, onClose }) {
                   <Icon size={17} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-medium truncate ${t.textPrimary}`}>{asset.name}</p>
-                  <p className={`text-xs ${t.textSecondary}`}>{asset.category}</p>
+                  <p className={`text-sm font-medium truncate ${t.textPrimary}`}>{asset.product_Name}</p>
+                  <p className={`text-xs ${t.textSecondary}`}>{asset.brandName}</p>
                 </div>
                 <button
                   onClick={() => onRemove(asset.id)}

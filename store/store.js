@@ -6,13 +6,10 @@ import leaveReducer from "./slices/leaveSlice";
 import resourceAllocationReducer from "./slices/resourceAllocationSlice";
 import taskReducer from "./slices/taskSlice";
 import summaryReportReducer from "./slices/summaryReportSlice";
-import financeReducer from "@/lib/store/financeSlice";
-import projectReducer from "./slices/projectSlice";
-import clientReducer from "./slices/clientSlice";
-import financialYearReducer from "./slices/financialYearSlice";
-import buyingCenterReducer from "./slices/buyingCenterSlice";
-import timesheetReducer from "./slices/timesheetSlice";
-import employeeReducer from "./slices/employeeSlice";
+import financeClientReducer from "./slices/financeClientSlice";
+import financeProjectReducer from "./slices/financeProjectSlice";
+import financeRateCardReducer from "./slices/financeRateCardSlice";
+import financeRateCardBuyingCenterReducer from "./slices/financeRateCardBuyingCenterSlice";
 
 export const store = configureStore({
   reducer: {
@@ -20,15 +17,12 @@ export const store = configureStore({
     dailyReport: dailyReportReducer,
     weekUtilization: weekUtilizationReducer,
     leave: leaveReducer,
-     resourceAllocation: resourceAllocationReducer,
-     task: taskReducer,
-     summaryReport: summaryReportReducer,
-     finance: financeReducer,
-     project: projectReducer,
-     client: clientReducer,
-     financialYear: financialYearReducer,
-     buyingCenter: buyingCenterReducer,
-     timesheet: timesheetReducer,
-     employee: employeeReducer,
+    resourceAllocation: resourceAllocationReducer,
+    task: taskReducer,
+    summaryReport: summaryReportReducer,
+    financeClient: financeClientReducer,
+    financeProject: financeProjectReducer,
+    financeRateCard: financeRateCardReducer,
+    financeRateCardBuyingCenter: financeRateCardBuyingCenterReducer,
   },
 });

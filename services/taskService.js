@@ -33,3 +33,10 @@ export async function getTasks({
 
   return response.data;
 }
+
+export async function getTaskProjects({ empId, userType }) {
+  const response = await axiosClient.get("/Task/projects", {
+    params: { empId, userType },
+  });
+  return response.data;
+}

@@ -7,9 +7,12 @@ import { ArrowLeft, Briefcase, DollarSign, BarChart2, TrendingDown, PieChart, Se
 import { Card, CardContent } from "@/components/ui/card";
 import { useTheme } from "../../../../context/ThemeContext";
 import DataPagination from "@/components/DataPagination";
-import { api } from "@/lib/api";
-import { setFinancialYears, setSelectedYear, setProjectsCache, setClientSummaryCache } from "@/lib/store/financeSlice";
-import { getCurrentFinYearId } from "@/lib/getCurrentFinYear";
+import {
+  fetchFinancialYears,
+  fetchClientProjects,
+  fetchClientProjectSummary,
+  setSelectedYear,
+} from "@/store/slices/financeClientSlice";
 import { buildPageNumbers } from "@/lib/utils";
 
 function StatusBadge({ status, isDark }) {
@@ -67,105 +70,85 @@ export default function ClientProjectsPage() {
   const searchParams  = useSearchParams();
   const dispatch      = useDispatch();
 
-  const { financialYears, selectedYear, projectsCache, clientSummaryCache } = useSelector(s => s.finance);
+  const {
+    financialYears,
+    selectedYear,
+    projectsCache,
+    clientSummaryCache,
+    projectsLoading,
+    projectsError,
+  } = useSelector((s) => s.financeClient);
 
   const urlYear = searchParams.get("finYrId");
   const [localYear, setLocalYear] = useState(urlYear || selectedYear || "");
 
-  // Sync localYear when Redux selectedYear loads (e.g. navigating directly without finYrId in URL)
+  // Sync localYear when Redux selectedYear loads
   useEffect(() => {
-    if (!localYear && selectedYear) setLocalYear(selectedYear);
+    if (!localYear && selectedYear) setLocalYear(String(selectedYear));
   }, [selectedYear]);
+
   const [search, setSearch]             = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [page, setPage]                 = useState(1);
-  const [loading, setLoading]           = useState(false);
-  const [error, setError]               = useState("");
-  const fetchingRef    = useRef(false);
+
   const fetchingSumRef = useRef(false);
 
   const cacheKey   = `${clientId}-${localYear}-${page}-${search}-${statusFilter}`;
   const summaryKey = `${clientId}-${localYear}`;
-  const data        = projectsCache[cacheKey] ?? { projects: [], totalCount: 0, totalPages: 0 };
-  const summary     = clientSummaryCache[summaryKey];
-  const clientTitle = data.projects?.[0]?.client_Title ?? summary?.clientTitle ?? "";
+  const cached     = projectsCache[cacheKey];
+  const summary    = clientSummaryCache[summaryKey];
 
-  // Fetch unfiltered summary once per clientId+year — keeps stat tiles stable across filters/pages
+  const { projects = [], totalCount = 0, totalPages = 0 } = cached ?? {};
+  const clientTitle = projects?.[0]?.client_Title ?? summary?.clientTitle ?? "";
+
+  // Fetch financial years once
   useEffect(() => {
-    console.log("SUMMARY GUARD:", { localYear, clientId, summaryKey, cached: !!clientSummaryCache[summaryKey], fetching: fetchingSumRef.current });
+    if (financialYears.length > 0) return;
+    dispatch(fetchFinancialYears());
+  }, []);
+
+  // Set localYear from Redux once years load
+  useEffect(() => {
+    if (localYear || !selectedYear) return;
+    setLocalYear(String(selectedYear));
+  }, [selectedYear]);
+
+  // Fetch summary once per clientId+year
+  useEffect(() => {
     if (!localYear || !clientId || clientSummaryCache[summaryKey] || fetchingSumRef.current) return;
     fetchingSumRef.current = true;
-    const params = new URLSearchParams({ clientId, finYrId: localYear, pageNumber: 1, pageSize: 1000 });
-    api.get(`/api/v1/finance-client/projects?${params}`)
-      .then(res => {
-        const all = res.projects ?? [];
-        const totalPO = all.reduce((s, p) => s + (p.pO_Value_Numeric ?? 0), 0);
-        const avgPredictedPct = all.length ? all.reduce((s, p) => s + (p.predicted_percentage ?? 0), 0) / all.length : 0;
-        const avgActualPct    = all.length ? all.reduce((s, p) => s + (p.actual_percentage    ?? 0), 0) / all.length : 0;
-        return dispatch(setClientSummaryCache({ key: summaryKey, data: {
-          clientTitle: all[0]?.client_Title ?? "",
-          totalPO,
-          avgPredictedPct,
-          avgActualPct,
-        }}));
-      })
-      .catch(console.error)
+    dispatch(fetchClientProjectSummary({ clientId, finYrId: localYear, summaryKey }))
       .finally(() => { fetchingSumRef.current = false; });
   }, [localYear, clientId, summaryKey]);
 
-  // Fetch financial years for the dropdown only — runs in parallel, never blocks projects
+  // Fetch paginated/filtered projects
   useEffect(() => {
-    if (financialYears.length > 0) return;
-    api.get("/api/v1/finance/financial-years")
-      .then(years => {
-        dispatch(setFinancialYears(years));
-        if (!localYear && years.length > 0) {
-          const id = getCurrentFinYearId(years);
-          setLocalYear(id);
-          dispatch(setSelectedYear(id));
-        }
-      })
-      .catch(console.error);
-  }, []);
-
-  useEffect(() => {
-    if (!localYear || !clientId || projectsCache[cacheKey] || fetchingRef.current) return;
-
-    fetchingRef.current = true;
-    setLoading(true);
-    setError("");
-    const params = new URLSearchParams({ clientId, finYrId: localYear, pageNumber: page, pageSize: PAGE_SIZE });
-    if (search)       params.set("searchText",    search);
-    if (statusFilter) params.set("projectStatus", statusFilter);
-    api.get(`/api/v1/finance-client/projects?${params}`)
-      .then(res => {
-        dispatch(setProjectsCache({ key: cacheKey, data: {
-          projects:        res.projects               ?? [],
-          totalCount:      res.totalCount             ?? 0,
-          totalPages:      res.totalPages             ?? 0,
-          totalPO:         res.totalPO_Value          ?? 0,
-          avgPredictedPct: res.avg_Predicted_Percentage ?? 0,
-          avgActualPct:    res.avg_Actual_Percentage    ?? 0,
-        }}));
-      })
-      .catch(e => setError(e.message))
-      .finally(() => { setLoading(false); fetchingRef.current = false; });
+    if (!localYear || !clientId || cached) return;
+    dispatch(fetchClientProjects({
+      clientId,
+      finYrId:       localYear,
+      pageNumber:    page,
+      pageSize:      PAGE_SIZE,
+      searchText:    search,
+      projectStatus: statusFilter,
+      cacheKey,
+    }));
   }, [clientId, localYear, page, search, statusFilter, cacheKey]);
 
   const handleSearch = (val) => { setSearch(val); setPage(1); };
   const handleStatus = (val) => { setStatusFilter(val); setPage(1); };
-  const handleYear = (val) => { setLocalYear(val); dispatch(setSelectedYear(val)); setPage(1); };
+  const handleYear   = (val) => { setLocalYear(val); dispatch(setSelectedYear(val)); setPage(1); };
 
-  const { projects, totalCount, totalPages } = data;
   const totalPO         = summary?.totalPO         ?? 0;
   const avgPredictedPct = summary?.avgPredictedPct ?? 0;
   const avgActualPct    = summary?.avgActualPct    ?? 0;
-  const variance = avgActualPct - avgPredictedPct;
+  const variance        = avgActualPct - avgPredictedPct;
 
-  if (error) return (
+  if (projectsError) return (
     <div className="flex flex-col items-center justify-center min-h-screen gap-3">
-      <p className="text-red-500 font-medium">{error}</p>
-      <button onClick={() => { setError(""); fetchingRef.current = false; }} className="text-sm text-red-500 underline">Retry</button>
+      <p className="text-red-500 font-medium">{projectsError}</p>
+      <button onClick={() => dispatch(fetchClientProjects({ clientId, finYrId: localYear, pageNumber: page, pageSize: PAGE_SIZE, searchText: search, projectStatus: statusFilter, cacheKey }))}
+        className="text-sm text-red-500 underline">Retry</button>
     </div>
   );
 
@@ -243,7 +226,7 @@ export default function ClientProjectsPage() {
                 </tr>
               </thead>
               <tbody>
-                {loading && !projectsCache[cacheKey] ? (
+                {projectsLoading && !cached ? (
                   <tr><td colSpan={HEADERS.length} className={`py-8 text-center text-sm ${t.textMuted}`}>Loading...</td></tr>
                 ) : projects.length === 0 ? (
                   <tr><td colSpan={HEADERS.length} className={`py-8 text-center text-sm ${t.textMuted}`}>No projects found</td></tr>

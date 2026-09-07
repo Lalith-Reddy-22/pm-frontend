@@ -1,219 +1,281 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import {
-  ArrowLeft, FolderOpen, Save, X, DollarSign, Calendar,
+  ArrowLeft, FolderOpen, Save, DollarSign, Calendar,
   Globe, ShoppingCart, Hash, Tag, Users, Building2,
 } from "lucide-react";
 import { useTheme } from "../../../../../context/ThemeContext";
-import { PROJECTS } from "../../data";
+import {
+  getFinanceProjectById,
+  updateFinanceProject,
+  getProjectLookups,
+} from "@/services/financeClientService";
+import SmartSelect from "@/app/components/SmartSelect";
+
+// Defined outside the component so React sees a stable identity across renders,
+// which prevents inputs from losing focus on every keystroke.
+function Field({ label, icon: Icon, children, span, t }) {
+  return (
+    <div className={span ? "col-span-2" : ""}>
+      <label className={`block text-xs font-medium mb-1 ${t.textMuted}`}>{label}</label>
+      <div className={`flex items-center gap-1.5 border ${t.clientBorder} rounded-lg px-2.5 py-1.5 ${t.clientInputBg}`}>
+        {Icon && <Icon className="w-3 h-3 text-red-500 shrink-0" />}
+        {children}
+      </div>
+    </div>
+  );
+}
+
+const STATUS_OPTIONS  = ["Active", "Inactive", "Completed", "On Hold"].map((s) => ({ value: s, label: s }));
+const BILLING_OPTIONS = ["Billable", "Non-Billable", "Internal"].map((s) => ({ value: s, label: s }));
 
 export default function EditProjectPage() {
   const { t } = useTheme();
   const router = useRouter();
   const { projectId } = useParams();
 
-  const project = PROJECTS.find((p) => String(p.id) === String(projectId));
+  const [form, setForm]               = useState(null);
+  const [loading, setLoading]         = useState(true);
+  const [saving, setSaving]           = useState(false);
+  const [error, setError]             = useState("");
+  const [clients, setClients]         = useState([]);
+  const [employees, setEmployees]     = useState([]);
+  const [buyingCenters, setBuyingCenters] = useState([]);
+  const [financialYears, setFinancialYears] = useState([]);
 
-  const [form, setForm] = useState(
-    project ? {
-      title:                project.title,
-      client:               project.client,
-      region:               project.region,
-      status:               project.status ?? "Active",
-      projectCode:          project.projectCode ?? "",
-      type:                 project.type ?? "Billable",
-      subClient:            project.subClient ?? "",
-      projectOwner:         project.projectOwner ?? "",
-      startDate:            project.startDate,
-      endDate:              project.endDate,
-      buyingCenter:         project.buyingCenter ?? "",
-      financialYear:        project.financialYear ?? "",
-      poValue:              project.poValue,
-      predictedCost:        project.predictedCost ?? 0,
-      outsourcingCost:      project.outsourcingCost,
-      includeInBuyingCenter: project.includeInBuyingCenter ?? false,
-    } : {}
-  );
+  useEffect(() => {
+    getProjectLookups()
+      .then((data) => {
+        setClients(data.clients ?? []);
+        setEmployees(data.projectManagers ?? []);
+        setBuyingCenters(data.buyingCenters ?? []);
+        setFinancialYears(data.financialYears ?? []);
+      })
+      .catch(() => {});
+  }, []);
 
-  if (!project) {
-    return (
-      <div className={`${t.mainBg} min-h-screen flex items-center justify-center`}>
-        <p className={`${t.textMuted} text-sm`}>Project not found.</p>
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (!projectId) return;
+    setLoading(true);
+    getFinanceProjectById(projectId)
+      .then((p) => {
+        const statusMap = { 1: "Active", 2: "Inactive", 3: "Completed", 4: "On Hold" };
+        const typeMap   = { 1: "Billable", 2: "Non-Billable", 3: "Internal" };
+        setForm({
+          title:                 p.project_Title      ?? "",
+          client:                p.client_Id != null ? String(p.client_Id) : "",
+          region:                p.region             ?? "",
+          status:                statusMap[p.project_Status] ?? "Active",
+          projectCode:           p.projectCode        ?? "",
+          type:                  typeMap[p.billing_type] ?? "Billable",
+          subClient:             p.sub_Client_Name    ?? "",
+          projectOwner:          (p.project_manager != null && p.project_manager !== "") ? String(p.project_manager) : "",
+          startDate:             p.start_date ? p.start_date.split("T")[0] : "",
+          endDate:               p.end_date   ? p.end_date.split("T")[0]   : "",
+          buyingCenter:          (p.b_Id != null && p.b_Id !== 0) ? String(p.b_Id) : "",
+          financialYear:         p.financial_Year_Id != null ? String(p.financial_Year_Id) : "",
+          poValue:               p.total_Value       != null ? String(p.total_Value)       : "",
+          predictedCost:         p.predicted_Value   != null ? String(p.predicted_Value)   : "",
+          outsourcingCost:       p.outsourcing_Value != null ? String(p.outsourcing_Value) : "",
+          includeInBuyingCenter: p.includeInBuyingCenter ?? false,
+        });
+      })
+      .catch((e) => setError(e.response?.data?.message || e.message || "Failed to load project."))
+      .finally(() => setLoading(false));
+  }, [projectId]);
 
-  const set = (key) => (e) => setForm((prev) => ({ ...prev, [key]: e.target.value }));
-  const toggle = (key) => () => setForm((prev) => ({ ...prev, [key]: !prev[key] }));
+  const setField   = (key) => (e)    => setForm((prev) => ({ ...prev, [key]: e.target.value }));
+  const setVal     = (key) => (val)  => setForm((prev) => ({ ...prev, [key]: val }));
+  const toggle     = (key) => ()     => setForm((prev) => ({ ...prev, [key]: !prev[key] }));
+  const goBack     = () => router.push("/finance/project-lists");
 
-  const handleSubmit = (e) => {
+  const statusMap  = { Active: 1, Inactive: 2, Completed: 3, "On Hold": 4 };
+  const billingMap = { Billable: 1, "Non-Billable": 2, Internal: 3 };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: persist changes
-    router.push("/finance/project-lists");
+    setSaving(true);
+    setError("");
+    try {
+      const payload = {
+        projectTitle:          form.title,
+        clientId:              form.client      ? Number(form.client)      : null,
+        region:                form.region,
+        projectStatus:         statusMap[form.status]  ?? 1,
+        projectCode:           form.projectCode,
+        billingType:           billingMap[form.type]   ?? 1,
+        subClientName:         form.subClient,
+        projectManagerIds:     form.projectOwner || null,
+        startDate:             form.startDate    || null,
+        endDate:               form.endDate      || null,
+        buyingCenterId:        form.buyingCenter  ? Number(form.buyingCenter)  : null,
+        financialYearId:       form.financialYear ? Number(form.financialYear) : null,
+        totalValue:            Number(form.poValue),
+        predictedValue:        Number(form.predictedCost),
+        outsourcingValue:      Number(form.outsourcingCost),
+        includeInBuyingCenter: form.includeInBuyingCenter,
+      };
+      await updateFinanceProject({ projectId, payload });
+      router.push("/finance/project-lists");
+    } catch (e) {
+      const errData = e.response?.data;
+      const msg =
+        errData?.errors
+          ? Object.entries(errData.errors).map(([k, v]) => `${k}: ${[v].flat().join(", ")}`).join(" | ")
+          : errData?.title || errData?.detail || errData?.message || e.message || "Failed to save. Please try again.";
+      setError(msg);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const Field = ({ label, icon: Icon, children, span }) => (
-    <div className={span ? "col-span-2" : ""}>
-      <label className={`block text-xs font-medium mb-1.5 ${t.textMuted}`}>{label}</label>
-      <div className={`flex items-center gap-2 border ${t.clientBorder} rounded-lg px-3 py-2 ${t.clientInputBg}`}>
-        {Icon && <Icon className="w-3.5 h-3.5 text-red-500 shrink-0" />}
-        {children}
-      </div>
+  if (loading) return (
+    <div className={`${t.mainBg} h-full flex items-center justify-center`}>
+      <p className={`${t.textMuted} text-sm`}>Loading project...</p>
     </div>
   );
 
-  return (
-    <div className={`${t.mainBg} min-h-screen px-6 py-6`}>
-      {/* Back */}
-      <button
-        onClick={() => router.push("/finance/project-lists")}
-        className="flex items-center gap-1.5 text-sm mb-6 text-red-500 hover:text-red-600"
-      >
-        <ArrowLeft className="w-4 h-4" /> Back to Project Lists
-      </button>
+  if (error && !form) return (
+    <div className={`${t.mainBg} h-full flex items-center justify-center flex-col gap-3`}>
+      <p className="text-red-500 text-sm">{error}</p>
+      <button onClick={goBack} className="text-sm text-red-500 hover:text-red-600">← Back to Project Lists</button>
+    </div>
+  );
 
-      {/* Header */}
-      <div className="flex items-center gap-4 mb-6">
-        <div className={`p-3 rounded-xl ${t.clientIconBg}`}>
-          <FolderOpen className="w-6 h-6 text-red-500" />
+  if (!form) return (
+    <div className={`${t.mainBg} h-full flex items-center justify-center`}>
+      <p className={`${t.textMuted} text-sm`}>Project not found.</p>
+    </div>
+  );
+
+  const clientOptions      = clients.map((c) => ({ value: String(c.client_ID), label: c.client_Title }));
+  const employeeOptions    = employees.map((e) => ({ value: String(e.empId), label: e.employee_Name }));
+  const buyingCtrOptions   = buyingCenters.map((bc) => ({ value: String(bc.bId), label: bc.bName }));
+  const financialYrOptions = financialYears.map((y) => ({ value: String(y.id), label: y.financial_Year }));
+
+  return (
+    <div className={`${t.mainBg} h-full flex flex-col overflow-hidden`}>
+
+      {/* ── Top bar ── */}
+      <div className="shrink-0 px-6 pt-4 pb-3">
+        <button onClick={goBack} className="flex items-center gap-1.5 text-sm mb-3 text-red-500 hover:text-red-600">
+          <ArrowLeft className="w-4 h-4" /> Back to Project Lists
+        </button>
+        <div className="flex items-center gap-3">
+          <div className={`p-2.5 rounded-xl ${t.clientIconBg}`}>
+            <FolderOpen className="w-5 h-5 text-red-500" />
+          </div>
+          <div>
+            <h1 className={`text-base font-bold ${t.textPrimary}`}>Edit Project</h1>
+            <p className={`text-xs ${t.textMuted} mt-0.5 max-w-2xl truncate`}>{form.title}</p>
+          </div>
         </div>
-        <div>
-          <h1 className={`text-xl font-bold ${t.textPrimary}`}>Edit Project</h1>
-          <p className={`text-xs ${t.textMuted} mt-0.5 max-w-2xl truncate`}>{project.title}</p>
-        </div>
+        {error && (
+          <div className="mt-3 px-4 py-2.5 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-lg text-sm text-red-600 dark:text-red-400">
+            {error}
+          </div>
+        )}
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-2 gap-5 items-start">
+      {/* ── Form body ── */}
+      <form onSubmit={handleSubmit} className="flex-1 flex flex-col overflow-hidden px-6 pb-4">
+        <div className="flex-1 grid grid-cols-2 gap-4 overflow-hidden min-h-0">
 
           {/* ── LEFT: Project Information ── */}
-          <div className={`${t.cardBg} ${t.cardShadow} rounded-2xl p-6`}>
-            <div className={`flex items-center gap-3 pb-4 mb-5 border-b ${t.clientBorder}`}>
-              <div className={`p-2 rounded-lg ${t.clientMutedBg}`}>
-                <FolderOpen className="w-4 h-4 text-red-500" />
+          <div className={`${t.cardBg} ${t.cardShadow} rounded-2xl flex flex-col overflow-hidden min-h-0`}>
+            <div className={`shrink-0 flex items-center gap-3 px-5 py-3 border-b ${t.clientBorder}`}>
+              <div className={`p-1.5 rounded-lg ${t.clientMutedBg}`}>
+                <FolderOpen className="w-3.5 h-3.5 text-red-500" />
               </div>
               <span className={`font-semibold text-sm ${t.textPrimary}`}>Project Information</span>
             </div>
+            <div className="flex-1 overflow-y-auto px-5 py-4">
+              <div className="grid grid-cols-2 gap-3">
 
-            <div className="grid grid-cols-2 gap-4">
-              {/* Project Name — full width */}
-              <Field label="Project Name" icon={FolderOpen} span>
-                <input
-                  required
-                  value={form.title}
-                  onChange={set("title")}
-                  className={`flex-1 bg-transparent outline-none text-sm ${t.clientInputText}`}
-                />
-              </Field>
+                <Field t={t} label="Project Name" icon={FolderOpen} span>
+                  <input required value={form.title} onChange={setField("title")}
+                    className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText}`} />
+                </Field>
 
-              <Field label="Region" icon={Globe}>
-                <input
-                  value={form.region}
-                  onChange={set("region")}
-                  className={`flex-1 bg-transparent outline-none text-sm ${t.clientInputText}`}
-                />
-              </Field>
+                <Field t={t} label="Region" icon={Globe}>
+                  <input value={form.region} onChange={setField("region")}
+                    className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText}`} />
+                </Field>
 
-              <Field label="Project Status" icon={Tag}>
-                <select
-                  value={form.status}
-                  onChange={set("status")}
-                  className={`flex-1 bg-transparent outline-none text-sm ${t.clientInputText}`}
-                >
-                  <option>Active</option>
-                  <option>Inactive</option>
-                  <option>Completed</option>
-                  <option>On Hold</option>
-                </select>
-              </Field>
+                <Field t={t} label="Project Status" icon={Tag}>
+                  <SmartSelect
+                    value={form.status}
+                    onChange={setVal("status")}
+                    options={STATUS_OPTIONS}
+                    placeholder="Select status"
+                  />
+                </Field>
 
-              <Field label="Client" icon={Building2}>
-                <input
-                  value={form.client}
-                  onChange={set("client")}
-                  className={`flex-1 bg-transparent outline-none text-sm ${t.clientInputText}`}
-                />
-              </Field>
+                <Field t={t} label="Client" icon={Building2}>
+                  <SmartSelect
+                    value={form.client}
+                    onChange={setVal("client")}
+                    options={clientOptions}
+                    placeholder="— Select client —"
+                  />
+                </Field>
 
-              <Field label="Project Code" icon={Hash}>
-                <input
-                  value={form.projectCode}
-                  onChange={set("projectCode")}
-                  className={`flex-1 bg-transparent outline-none text-sm ${t.clientInputText}`}
-                />
-              </Field>
+                <Field t={t} label="Project Code" icon={Hash}>
+                  <input value={form.projectCode} onChange={setField("projectCode")}
+                    className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText}`} />
+                </Field>
 
-              <Field label="Type" icon={Tag}>
-                <select
-                  value={form.type}
-                  onChange={set("type")}
-                  className={`flex-1 bg-transparent outline-none text-sm ${t.clientInputText}`}
-                >
-                  <option>Billable</option>
-                  <option>Non-Billable</option>
-                  <option>Internal</option>
-                </select>
-              </Field>
+                <Field t={t} label="Type" icon={Tag}>
+                  <SmartSelect
+                    value={form.type}
+                    onChange={setVal("type")}
+                    options={BILLING_OPTIONS}
+                    placeholder="Select type"
+                  />
+                </Field>
 
-              <Field label="SubClient" icon={Building2}>
-                <input
-                  value={form.subClient}
-                  onChange={set("subClient")}
-                  className={`flex-1 bg-transparent outline-none text-sm ${t.clientInputText}`}
-                />
-              </Field>
+                <Field t={t} label="SubClient" icon={Building2}>
+                  <input value={form.subClient} onChange={setField("subClient")}
+                    className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText}`} />
+                </Field>
 
-              <Field label="Start Date" icon={Calendar}>
-                <input
-                  type="date"
-                  value={form.startDate}
-                  onChange={set("startDate")}
-                  className={`flex-1 bg-transparent outline-none text-sm ${t.clientInputText}`}
-                />
-              </Field>
+                <Field t={t} label="Start Date" icon={Calendar}>
+                  <input type="date" value={form.startDate} onChange={setField("startDate")}
+                    className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText}`} />
+                </Field>
 
-              <Field label="End Date" icon={Calendar}>
-                <input
-                  type="date"
-                  value={form.endDate}
-                  onChange={set("endDate")}
-                  className={`flex-1 bg-transparent outline-none text-sm ${t.clientInputText}`}
-                />
-              </Field>
+                <Field t={t} label="End Date" icon={Calendar}>
+                  <input type="date" value={form.endDate} onChange={setField("endDate")}
+                    className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText}`} />
+                </Field>
 
-              {/* Project Owner — full width */}
-              <Field label="Project Owner" icon={Users} span>
-                <input
-                  value={form.projectOwner}
-                  onChange={set("projectOwner")}
-                  className={`flex-1 bg-transparent outline-none text-sm ${t.clientInputText}`}
-                />
-              </Field>
+                <Field t={t} label="Project Owner" icon={Users} span>
+                  <SmartSelect
+                    value={form.projectOwner}
+                    onChange={setVal("projectOwner")}
+                    options={employeeOptions}
+                    placeholder="— Select owner —"
+                  />
+                </Field>
+
+              </div>
             </div>
           </div>
 
           {/* ── RIGHT: Budget Details ── */}
-          <div className={`${t.cardBg} ${t.cardShadow} rounded-2xl p-6`}>
-            <div className={`flex items-center justify-between pb-4 mb-5 border-b ${t.clientBorder}`}>
+          <div className={`${t.cardBg} ${t.cardShadow} rounded-2xl flex flex-col overflow-hidden min-h-0`}>
+            <div className={`shrink-0 flex items-center justify-between px-5 py-3 border-b ${t.clientBorder}`}>
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${t.clientMutedBg}`}>
-                  <DollarSign className="w-4 h-4 text-red-500" />
+                <div className={`p-1.5 rounded-lg ${t.clientMutedBg}`}>
+                  <DollarSign className="w-3.5 h-3.5 text-red-500" />
                 </div>
                 <span className={`font-semibold text-sm ${t.textPrimary}`}>Budget Details</span>
               </div>
-
-              {/* Include in Buying Center checkbox — top-right of card */}
-              <button
-                type="button"
-                onClick={toggle("includeInBuyingCenter")}
-                className="flex items-center gap-2 group"
-              >
+              <button type="button" onClick={toggle("includeInBuyingCenter")} className="flex items-center gap-2">
                 <div className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
-                  form.includeInBuyingCenter
-                    ? "bg-red-600 border-red-600"
-                    : `border-gray-400 ${t.clientInputBg}`
+                  form.includeInBuyingCenter ? "bg-red-600 border-red-600" : `border-gray-400 ${t.clientInputBg}`
                 }`}>
                   {form.includeInBuyingCenter && (
                     <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 12 12" fill="none">
@@ -222,79 +284,67 @@ export default function EditProjectPage() {
                   )}
                 </div>
                 <span className={`text-xs font-medium ${t.textPrimary} flex items-center gap-1`}>
-                  <ShoppingCart className="w-3.5 h-3.5 text-red-500" />
-                  Include Buying Center
+                  <ShoppingCart className="w-3.5 h-3.5 text-red-500" /> Include Buying Center
                 </span>
               </button>
             </div>
+            <div className="flex-1 overflow-y-auto px-5 py-4">
+              {form.includeInBuyingCenter ? (
+                <div className="grid grid-cols-2 gap-3">
 
-            <div className="grid grid-cols-2 gap-4">
-              <Field label="Buying Center" icon={ShoppingCart} span>
-                <input
-                  value={form.buyingCenter}
-                  onChange={set("buyingCenter")}
-                  className={`flex-1 bg-transparent outline-none text-sm ${t.clientInputText}`}
-                />
-              </Field>
+                  <Field t={t} label="Buying Center" icon={ShoppingCart} span>
+                    <SmartSelect
+                      value={form.buyingCenter}
+                      onChange={setVal("buyingCenter")}
+                      options={buyingCtrOptions}
+                      placeholder="— Select buying center —"
+                    />
+                  </Field>
 
-              <Field label="Financial Year" icon={Calendar} span>
-                <select
-                  value={form.financialYear}
-                  onChange={set("financialYear")}
-                  className={`flex-1 bg-transparent outline-none text-sm ${t.clientInputText}`}
-                >
-                  <option>CY-2026</option>
-                  <option>CY-2025</option>
-                  <option>CY-2024</option>
-                  <option>FY-2026-2027</option>
-                  <option>FY-2025-2026</option>
-                </select>
-              </Field>
+                  <Field t={t} label="Financial Year" icon={Calendar} span>
+                    <SmartSelect
+                      value={form.financialYear}
+                      onChange={setVal("financialYear")}
+                      options={financialYrOptions}
+                      placeholder="— Select year —"
+                    />
+                  </Field>
 
-              <Field label="Purchase Order Value ($)" icon={DollarSign} span>
-                <input
-                  type="number"
-                  value={form.poValue}
-                  onChange={set("poValue")}
-                  className={`flex-1 bg-transparent outline-none text-sm ${t.clientInputText}`}
-                />
-              </Field>
+                  <Field t={t} label="Purchase Order Value ($)" icon={DollarSign} span>
+                    <input type="text" inputMode="decimal" value={form.poValue} onChange={setField("poValue")}
+                      className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText}`} />
+                  </Field>
 
-              <Field label="Predicted Cost ($)" icon={DollarSign} span>
-                <input
-                  type="number"
-                  value={form.predictedCost}
-                  onChange={set("predictedCost")}
-                  className={`flex-1 bg-transparent outline-none text-sm ${t.clientInputText}`}
-                />
-              </Field>
+                  <Field t={t} label="Predicted Cost ($)" icon={DollarSign} span>
+                    <input type="text" inputMode="decimal" value={form.predictedCost} onChange={setField("predictedCost")}
+                      className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText}`} />
+                  </Field>
 
-              <Field label="Outsourcing Cost ($)" icon={DollarSign} span>
-                <input
-                  type="number"
-                  value={form.outsourcingCost}
-                  onChange={set("outsourcingCost")}
-                  className={`flex-1 bg-transparent outline-none text-sm ${t.clientInputText}`}
-                />
-              </Field>
+                  <Field t={t} label="Outsourcing Cost ($)" icon={DollarSign} span>
+                    <input type="text" inputMode="decimal" value={form.outsourcingCost} onChange={setField("outsourcingCost")}
+                      className={`flex-1 bg-transparent outline-none text-xs ${t.clientInputText}`} />
+                  </Field>
+
+                </div>
+              ) : (
+                <div className={`h-full flex flex-col items-center justify-center gap-2 ${t.textMuted}`}>
+                  <ShoppingCart className="w-8 h-8 opacity-30" />
+                  <p className="text-xs text-center opacity-50">Check &quot;Include Buying Center&quot; to fill in budget details</p>
+                </div>
+              )}
             </div>
           </div>
+
         </div>
 
-        {/* Actions */}
-        <div className="flex justify-between pt-1">
-          <button
-            type="button"
-            onClick={() => router.push("/finance/project-lists")}
-            className={`flex items-center gap-1.5 px-4 py-2 border ${t.clientBorder} rounded-lg text-sm ${t.clientMutedText} ${t.clientRowHover}`}
-          >
-            <X className="w-4 h-4" /> Cancel
-          </button>
+        {/* ── Action bar ── */}
+        <div className="shrink-0 flex justify-between pt-3">
           <button
             type="submit"
-            className="flex items-center gap-1.5 px-5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium"
+            disabled={saving}
+            className="flex items-center gap-1.5 px-5 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white rounded-lg text-sm font-medium transition-colors"
           >
-            <Save className="w-4 h-4" /> Save Changes
+            <Save className="w-4 h-4" /> {saving ? "Saving…" : "Save Changes"}
           </button>
         </div>
       </form>

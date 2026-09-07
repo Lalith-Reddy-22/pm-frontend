@@ -1,5 +1,10 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axiosClient from "@/services/axiosClient";
+import {
+  loginUser,
+  forgotPasswordRequest,
+  verifyOtpRequest,
+  resetPasswordRequest,
+} from "@/services/authService";
 
 /* =========================================================
    LOGIN
@@ -9,21 +14,18 @@ export const login = createAsyncThunk(
   "auth/login",
   async ({ email, password }, { rejectWithValue }) => {
     try {
-      const response = await axiosClient.post("/auth/login", {
-        emailId: email,
-        password: password,
-      });
-
-      return response.data;
+      const data = await loginUser(email, password);
+      return data;
     } catch (error) {
       console.error(
         "LOGIN ERROR:",
-        error.response?.data
+        error.response?.data ?? error.message
       );
 
       return rejectWithValue(
         error.response?.data?.message ||
           error.response?.data?.title ||
+          error.message ||
           "Invalid email or password."
       );
     }
@@ -38,23 +40,18 @@ export const forgotPassword = createAsyncThunk(
   "auth/forgotPassword",
   async ({ email }, { rejectWithValue }) => {
     try {
-      const response = await axiosClient.post(
-        "/auth/forgot-password",
-        {
-          email,
-        }
-      );
-
-      return response.data;
+      const data = await forgotPasswordRequest(email);
+      return data;
     } catch (error) {
       console.error(
         "FORGOT PASSWORD ERROR:",
-        error.response?.data
+        error.response?.data ?? error.message
       );
 
       return rejectWithValue(
         error.response?.data?.message ||
           error.response?.data?.title ||
+          error.message ||
           "Failed to send reset link."
       );
     }
@@ -69,24 +66,18 @@ export const verifyOtp = createAsyncThunk(
   "auth/verifyOtp",
   async ({ email, otp }, { rejectWithValue }) => {
     try {
-      const response = await axiosClient.post(
-        "/auth/verify-otp",
-        {
-          email,
-          otp,
-        }
-      );
-
-      return response.data;
+      const data = await verifyOtpRequest({ email, otp });
+      return data;
     } catch (error) {
       console.error(
         "VERIFY OTP ERROR:",
-        error.response?.data
+        error.response?.data ?? error.message
       );
 
       return rejectWithValue(
         error.response?.data?.message ||
           error.response?.data?.title ||
+          error.message ||
           "Invalid OTP."
       );
     }
@@ -104,25 +95,18 @@ export const resetPassword = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const response = await axiosClient.post(
-        "/auth/reset-password",
-        {
-          email,
-          newPassword,
-          otp,
-        }
-      );
-
-      return response.data;
+      const data = await resetPasswordRequest({ email, newPassword, otp });
+      return data;
     } catch (error) {
       console.error(
         "RESET PASSWORD ERROR:",
-        error.response?.data
+        error.response?.data ?? error.message
       );
 
       return rejectWithValue(
         error.response?.data?.message ||
           error.response?.data?.title ||
+          error.message ||
           "Failed to reset password."
       );
     }
