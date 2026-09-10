@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/table";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchDailyReports } from "@/store/slices/dailyReportSlice";
+import { exportFile } from "@/store/slices/exportSlice";
 
 // ---------------------------------------------------------
 // PRIORITY STYLES
@@ -220,6 +221,48 @@ const filteredReports = useMemo(() => {
     )
   );
 }, [reports, globalFilter]);
+
+const handleExport = (format) => {
+  const rows = table
+    .getFilteredRowModel()
+    .rows
+    .map((row) => row.original);
+
+  const columns = [
+    { key: "resourceName", header: "Resource" },
+    { key: "id", header: "Task ID" },
+    { key: "taskTitle", header: "Task Title" },
+    { key: "owner", header: "Task Owner" },
+    { key: "allocatedHours", header: "Allocated Hours" },
+    { key: "client", header: "Client" },
+    { key: "projectTitle", header: "Project Title" },
+    { key: "startTime", header: "Start Time" },
+    { key: "endTime", header: "End Time" },
+  ];
+
+  const data = rows.map((row) => ({
+    resourceName: row.resourceName ?? "",
+    id: row.id ?? "",
+    taskTitle: row.taskTitle ?? "",
+    owner: row.owner ?? "",
+    allocatedHours: row.allocatedHours ?? 0,
+    client: row.client ?? "",
+    projectTitle: row.projectCode
+      ? `${row.projectCode} - ${row.projectTitle}`
+      : row.projectTitle ?? "",
+    startTime: row.startTime ?? "",
+    endTime: row.endTime ?? "",
+  }));
+
+  dispatch(
+    exportFile({
+      fileName: "daily-report",
+      format,
+      columns,
+      data,
+    })
+  );
+};
 
   useEffect(() => {
     setPagination((prev) => ({
@@ -601,335 +644,58 @@ const endIndex =
 
 
             <ExportDropdown
-            border="border-border"
+  border="border-border"
+  t={{
+    cardBg: "bg-card",
+    textPrimary: "text-foreground",
+  }}
+  isDark={isDark}
+  showExport={showExport}
+  setShowExport={setShowExport}
 
-              t={{
-                cardBg: "bg-card",
-                textPrimary:
-                  "text-foreground",
-              }}
+  handleCopy={async () => {
+    const csv =
+      table
+        .getFilteredRowModel()
+        .rows
+        .map((row) => row.original)
+        .map((row) => [
+          row.resourceName,
+          row.id,
+          row.taskTitle,
+          row.owner,
+          row.allocatedHours,
+          row.client,
+          row.projectCode
+            ? `${row.projectCode} - ${row.projectTitle}`
+            : row.projectTitle,
+          row.startTime,
+          row.endTime,
+        ])
+        .map((row) =>
+          row
+            .map(
+              (cell) =>
+                `"${String(cell ?? "").replace(/"/g, '""')}"`
+            )
+            .join(",")
+        )
+        .join("\n");
 
-              isDark={isDark}
+    await navigator.clipboard.writeText(
+      [
+        "Resource,Task ID,Task Title,Task Owner,Allocated Hours,Client,Project Title,Start Time,End Time",
+        csv,
+      ].join("\n")
+    );
+  }}
 
-              showExport={showExport}
+  handlePrint={() => window.print()}
 
-              setShowExport={
-                setShowExport
-              }
+  handlePDF={() => handleExport("pdf")}
 
-
-              handleCopy={async () => {
-                const csv =
-                  table
-                    .getFilteredRowModel()
-                    .rows
-                    .map(
-                      (row) =>
-                        row.original
-                    )
-                    .map((row) => [
-                      row.resourceName,
-                      row.id,
-                      row.taskTitle,
-                      row.owner,
-                      row.allocatedHours,
-                      row.client,
-                      row.projectCode
-                        ? `${row.projectCode} - ${row.projectTitle}`
-                        : row.projectTitle,
-                      row.startTime,
-                      row.endTime,
-                    ])
-                    .map(
-                      (row) =>
-                        row
-                          .map(
-                            (cell) =>
-                              `"${String(
-                                cell ?? ""
-                              ).replace(
-                                /"/g,
-                                '""'
-                              )}"`
-                          )
-                          .join(",")
-                    )
-                    .join("\n");
-
-                await navigator.clipboard.writeText(
-                  [
-                    "Resource,Task ID,Task Title,Task Owner,Allocated Hours,Client,Project Title,Start Time,End Time",
-                    csv,
-                  ].join("\n")
-                );
-              }}
-
-
-
-              handlePrint={() =>
-                window.print()
-              }
-
-
-
-              handlePDF={() => {
-                const {
-                  jsPDF,
-                } = require("jspdf");
-
-                const autoTable =
-                  require(
-                    "jspdf-autotable"
-                  );
-
-                const doc =
-                  new jsPDF({
-                    unit: "pt",
-                    format: "a4",
-                  });
-
-                autoTable(doc, {
-                  head: [[
-                    "Resource",
-                    "Task ID",
-                    "Task Title",
-                    "Task Owner",
-                    "Hours",
-                    "Client",
-                    "Project Title",
-                    "Start",
-                    "End",
-                  ]],
-
-                  body:
-                    table
-                      .getFilteredRowModel()
-                      .rows
-                      .map(
-                        (row) => [
-                          row.original
-                            .resourceName,
-
-                          row.original
-                            .id,
-
-                          row.original
-                            .taskTitle,
-
-                          row.original
-                            .owner,
-
-                          `${row.original.allocatedHours} hrs`,
-
-                          row.original
-                            .client,
-
-                          row.original
-                            .projectCode
-                            ? `${row.original.projectCode} - ${row.original.projectTitle}`
-                            : row.original.projectTitle,
-
-                          row.original
-                            .startTime,
-
-                          row.original
-                            .endTime,
-                        ]
-                      ),
-
-                  styles: {
-                    fontSize: 9,
-                    cellPadding: 6,
-                  },
-
-                  headStyles: {
-                    fillColor: [
-                      226,
-                      36,
-                      41,
-                    ],
-                  },
-
-                  startY: 40,
-                });
-
-                doc.save(
-                  "daily-report.pdf"
-                );
-              }}
-
-
-              handleCSV={() => {
-                const rows =
-                  table
-                    .getFilteredRowModel()
-                    .rows
-                    .map(
-                      (row) =>
-                        row.original
-                    );
-
-                const csv = [
-                  [
-                    "Resource",
-                    "Task ID",
-                    "Task Title",
-                    "Task Owner",
-                    "Allocated Hours",
-                    "Client",
-                    "Project Title",
-                    "Start Time",
-                    "End Time",
-                  ],
-
-                  ...rows.map(
-                    (row) => [
-                      row.resourceName,
-                      row.id,
-                      row.taskTitle,
-                      row.owner,
-                      `${row.allocatedHours} hrs`,
-                      row.client,
-                      row.projectCode
-                        ? `${row.projectCode} - ${row.projectTitle}`
-                        : row.projectTitle,
-                      row.startTime,
-                      row.endTime,
-                    ]
-                  ),
-                ]
-                  .map(
-                    (row) =>
-                      row
-                        .map(
-                          (cell) =>
-                            `"${String(
-                              cell ?? ""
-                            ).replace(
-                              /"/g,
-                              '""'
-                            )}"`
-                        )
-                        .join(",")
-                  )
-                  .join("\n");
-
-                const blob =
-                  new Blob(
-                    [csv],
-                    {
-                      type: "text/csv;charset=utf-8;",
-                    }
-                  );
-
-                const url =
-                  URL.createObjectURL(
-                    blob
-                  );
-
-                const link =
-                  document.createElement(
-                    "a"
-                  );
-
-                link.href = url;
-
-                link.download =
-                  "daily-report.csv";
-
-                link.click();
-
-                URL.revokeObjectURL(
-                  url
-                );
-              }}
-
-              handleExcel={() => {
-                const rows =
-                  table
-                    .getFilteredRowModel()
-                    .rows
-                    .map(
-                      (row) =>
-                        row.original
-                    );
-
-                const csv = [
-                  [
-                    "Resource",
-                    "Task ID",
-                    "Task Title",
-                    "Task Owner",
-                    "Allocated Hours",
-                    "Client",
-                    "Project Title",
-                    "Start Time",
-                    "End Time",
-                  ],
-
-                  ...rows.map(
-                    (row) => [
-                      row.resourceName,
-                      row.id,
-                      row.taskTitle,
-                      row.owner,
-                      `${row.allocatedHours} hrs`,
-                      row.client,
-                      row.projectCode
-                        ? `${row.projectCode} - ${row.projectTitle}`
-                        : row.projectTitle,
-                      row.startTime,
-                      row.endTime,
-                    ]
-                  ),
-                ]
-                  .map(
-                    (row) =>
-                      row
-                        .map(
-                          (cell) =>
-                            `"${String(
-                              cell ?? ""
-                            ).replace(
-                              /"/g,
-                              '""'
-                            )}"`
-                        )
-                        .join(",")
-                  )
-                  .join("\n");
-
-                const blob =
-                  new Blob(
-                    [csv],
-                    {
-                      type: "application/vnd.ms-excel;charset=utf-8;",
-                    }
-                  );
-
-                const url =
-                  URL.createObjectURL(
-                    blob
-                  );
-
-                const link =
-                  document.createElement(
-                    "a"
-                  );
-
-                link.href = url;
-
-                link.download =
-                  "daily-report.xls";
-
-                link.click();
-
-                URL.revokeObjectURL(
-                  url
-                );
-              }}
-
-            />
+  handleCSV={() => handleExport("csv")}
+/>
 
           </div>
 

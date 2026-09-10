@@ -9,18 +9,11 @@ export const fetchEmployeeDetails = createAsyncThunk(
   "employee/fetchEmployeeDetails",
   async (empId, { rejectWithValue }) => {
     try {
-      console.log("FETCH EMPLOYEE DETAILS - EMP ID:", empId);
-
       const response = await api.get(
         `/api/v1/employee/details?empId=${empId}`
       );
-
-      console.log("FETCH EMPLOYEE DETAILS - RESPONSE:", response);
-
       return response;
     } catch (error) {
-      console.error("FETCH EMPLOYEE DETAILS - ERROR:", error);
-
       return rejectWithValue(
         error.response?.data?.message ||
           error.response?.data?.title ||
@@ -53,19 +46,10 @@ export const fetchEmployeeProjectDetails = createAsyncThunk(
         )}`
       );
 
-      console.log(
-        "FETCH EMPLOYEE PROJECTS RESPONSE:",
-        response
-      );
-
       // IMPORTANT:
       // api.get() already returns the JSON body
       return response;
     } catch (error) {
-      console.error(
-        "FETCH EMPLOYEE PROJECTS ERROR:",
-        error
-      );
 
       return rejectWithValue(
         error.response?.data?.message ||
@@ -161,13 +145,8 @@ export const updateEmployee = createAsyncThunk(
         `/api/v1/employee/${empId}`,
         employeeData
       );
-
-      console.log("UPDATE EMPLOYEE RESPONSE:", response);
-
       return response;
     } catch (error) {
-      console.error("UPDATE EMPLOYEE ERROR:", error);
-
       return rejectWithValue(
         error.response?.data?.message ||
           error.response?.data?.title ||
@@ -182,19 +161,12 @@ export const fetchEmployeeRateCard = createAsyncThunk(
   "employee/fetchEmployeeRateCard",
   async (empId, { rejectWithValue }) => {
     try {
-      console.log("===== FETCH EMPLOYEE RATE CARD =====");
-      console.log("Employee ID:", empId);
 
       const response = await api.get(
         `/api/employees/${empId}/rate-card`
       );
-
-      console.log("RATE CARD RESPONSE:", response);
-
       return response;
     } catch (error) {
-      console.error("RATE CARD ERROR:", error);
-
       return rejectWithValue(
         error.response?.data?.message ||
           error.response?.data?.title ||
@@ -209,9 +181,6 @@ export const updateEmployeeRateCard = createAsyncThunk(
   "employee/updateEmployeeRateCard",
   async ({ empId, buyingCenters }, { rejectWithValue }) => {
     try {
-      console.log("===== UPDATE EMPLOYEE RATE CARD =====");
-      console.log("Employee ID:", empId);
-      console.log("Buying Centers:", buyingCenters);
 
       const response = await api.post(
         `/api/employees/${empId}/rate-card`,
@@ -220,12 +189,8 @@ export const updateEmployeeRateCard = createAsyncThunk(
         }
       );
 
-      console.log("RATE CARD UPDATE RESPONSE:", response);
-
       return response;
     } catch (error) {
-      console.error("RATE CARD UPDATE ERROR:", error);
-
       return rejectWithValue(
         error.response?.data?.message ||
           error.response?.data?.title ||
@@ -296,12 +261,8 @@ const employeeSlice = createSlice({
       })
 
       .addCase(fetchEmployeeDetails.fulfilled, (state, action) => {
-  console.log("REDUX EMPLOYEE FULFILLED:", action.payload);
-
   state.loading = false;
   state.data = action.payload;
-
-  console.log("REDUX EMPLOYEE DATA SET:", state.data);
 })
       .addCase(fetchEmployeeDetails.rejected, (state, action) => {
         state.loading = false;
@@ -319,16 +280,6 @@ const employeeSlice = createSlice({
       })
 
       .addCase(fetchEmployeeProjectDetails.fulfilled, (state, action) => {
-  console.log(
-    "===== REDUX PROJECT RESPONSE =====",
-    action.payload
-  );
-
-  console.log(
-    "PROJECTS FROM RESPONSE:",
-    action.payload?.projects
-  );
-
   state.projectsLoading = false;
 
   state.projects = action.payload?.projects || [];
@@ -339,11 +290,6 @@ const employeeSlice = createSlice({
     pageSize: action.payload?.pageSize || 10,
     totalPages: action.payload?.totalPages || 0,
   };
-
-  console.log(
-    "PROJECTS STORED IN REDUX:",
-    state.projects
-  );
 })
 
       .addCase(fetchEmployeeProjectDetails.rejected, (state, action) => {
@@ -378,9 +324,6 @@ const employeeSlice = createSlice({
 })
 
 .addCase(fetchEmployeeTasks.fulfilled, (state, action) => {
-  console.log("===== REDUX EMPLOYEE TASKS =====");
-  console.log("TASK RESPONSE:", action.payload);
-
   state.employeeTasksLoading = false;
 
   state.employeeTasks = action.payload?.tasks || [];
@@ -423,11 +366,6 @@ const employeeSlice = createSlice({
 .addCase(updateEmployeeRateCard.fulfilled, (state, action) => {
   state.rateCardUpdateLoading = false;
   state.rateCardUpdateError = null;
-
-  console.log(
-    "===== RATE CARD UPDATE SUCCESS =====",
-    action.payload
-  );
 })
 .addCase(updateEmployeeRateCard.rejected, (state, action) => {
   state.rateCardUpdateLoading = false;

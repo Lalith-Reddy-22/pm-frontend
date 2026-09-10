@@ -80,14 +80,26 @@ function transformApiData(employees, dept) {
       });
     }
 
-    return {
-      id: emp.empId,
-      name: emp.employee_Name || "Unknown",
-      dept,
-      dailyData,
-      total_planned: Number(emp.total_planned ?? 0),
-      total_logged: Number(emp.total_logged ?? 0),
-    };
+    const totalPlanned = Number(emp.total_planned ?? 0);
+const totalLogged = Number(emp.total_logged ?? 0);
+
+const utilization =
+  totalPlanned > 0
+    ? Math.round((totalLogged / totalPlanned) * 100)
+    : 0;
+
+return {
+  id: emp.empId,
+  name: emp.employee_Name || "Unknown",
+  dept,
+  dailyData,
+
+  total_planned: totalPlanned,
+  total_logged: totalLogged,
+
+  // Logged Hours / Planned Hours * 100
+  utilization,
+};
   });
 }
 
@@ -287,6 +299,24 @@ const filtered = useMemo(() => {
   return rows;
 }, [allData, search, sortDir]);
 
+const overallUtilization = useMemo(() => {
+  if (!allData.length) return 0;
+
+  const totalPlanned = allData.reduce(
+    (sum, row) => sum + Number(row.total_planned || 0),
+    0
+  );
+
+  const totalLogged = allData.reduce(
+    (sum, row) => sum + Number(row.total_logged || 0),
+    0
+  );
+
+  if (totalPlanned <= 0) return 0;
+
+  return Math.round((totalLogged / totalPlanned) * 100);
+}, [allData]);
+
   const {
     paginatedData: pageRows,
     page, setPage,
@@ -359,21 +389,64 @@ function loadResourceAllocation() {
         </div>
       </div>
 
-      {/* ── Search ── */}
-      <div className={`px-6 py-3 flex justify-end border-b ${isDark ? "border-white/5" : "border-gray-100"}`}>
-        <div className="flex items-center gap-2">
-          <span className={`text-sm ${t.textSecondary}`}>Search:</span>
-          <input
-            value={search}
-            onChange={handleSearch}
-            className={`w-44 px-3 py-1.5 rounded-lg text-sm border outline-none transition-colors
-              ${isDark
-                ? "bg-white/5 border-white/10 text-gray-200 placeholder-gray-600 focus:border-red-500/50"
-                : "bg-white border-gray-300 text-gray-800 placeholder-gray-400 focus:border-red-400"
-              }`}
-          />
-        </div>
-      </div>
+      {/* ── Utilization + Search ── */}
+<div
+  className={`px-6 py-3 flex items-center justify-between border-b ${
+    isDark ? "border-white/5" : "border-gray-100"
+  }`}
+>
+  {/* Left: Utilization */}
+  <div className="flex items-center gap-2 text-sm">
+    <span className={t.textSecondary}>
+      Utilization:
+    </span>
+
+    {/* Utilization bar */}
+    <div
+      className={`relative h-1.5 w-10 rounded-full overflow-hidden ${
+        isDark ? "bg-white/10" : "bg-gray-200"
+      }`}
+    >
+      <div
+        className="absolute left-0 top-0 h-full rounded-full bg-red-500"
+        style={{
+          width: `${Math.min(overallUtilization, 100)}%`,
+        }}
+      />
+    </div>
+
+    {/* Percentage */}
+    <span className={t.textSecondary}>
+      {overallUtilization}%
+    </span>
+
+    {/* Info */}
+    <span
+      title="(Logged Hours / Planned Hours) * 100"
+      className={`cursor-help ${t.textMuted}`}
+    >
+      ⓘ
+    </span>
+  </div>
+
+  {/* Right: Search */}
+  <div className="flex items-center gap-2">
+    <span className={`text-sm ${t.textSecondary}`}>
+      Search:
+    </span>
+
+    <input
+      value={search}
+      onChange={handleSearch}
+      className={`w-44 px-3 py-1.5 rounded-lg text-sm border outline-none transition-colors
+        ${
+          isDark
+            ? "bg-white/5 border-white/10 text-gray-200 placeholder-gray-600 focus:border-red-500/50"
+            : "bg-white border-gray-300 text-gray-800 placeholder-gray-400 focus:border-red-400"
+        }`}
+    />
+  </div>
+</div>
 
       {/* ── Table ── */}
       <div className="overflow-x-auto flex-1">
@@ -398,14 +471,39 @@ function loadResourceAllocation() {
               return ( 
                 <tr key={row.id} className={trCls}>
                   {/* Name cell */}
-                  <td className={`px-4 py-3 sticky left-0 z-10 ${isDark ? "text-gray-200 bg-[#111111]" : "text-gray-800 bg-white"}`}>
-                    <div className="font-medium">{row.name}</div>
-                    <div className="flex items-center gap-1 mt-0.5 text-xs">
-                      <span className={t.textSecondary}>P : {row.total_planned}</span>
-                      <span className={t.textMuted}>|</span>
-                      <span className={row.total_logged > row.total_planned ? "text-red-500" : t.textMuted}>L : {row.total_logged}</span>
-                    </div>
-                  </td>
+                  <td
+  className={`px-4 py-3 sticky left-0 z-10 ${
+    isDark
+      ? "text-gray-200 bg-[#111111]"
+      : "text-gray-800 bg-white"
+  }`}
+>
+  {/* Employee Name */}
+  <div className="font-medium">
+    {row.name}
+  </div>
+
+  {/* Planned / Logged */}
+  <div className="flex items-center gap-1 mt-0.5 text-xs">
+    <span className={t.textSecondary}>
+      P : {row.total_planned}
+    </span>
+
+    <span className={t.textMuted}>
+      |
+    </span>
+
+    <span
+      className={
+        row.total_logged > row.total_planned
+          ? "text-red-500"
+          : t.textMuted
+      }
+    >
+      L : {row.total_logged}
+    </span>
+  </div>
+</td>
                   {/* Day cells */}
                   {weekDays.map((day) => {
   const key = getLocalDateKey(day);

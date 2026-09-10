@@ -1,9 +1,9 @@
 "use client";
 
-import { ArrowUpRight, Building2 } from "lucide-react";
+import { Building2 } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 
-export default function ClientTile({ name, onClick }) {
+export default function ClientTile({ name }) {
   const { t, isDark } = useTheme();
 
   const getInitials = (value = "") => {
@@ -19,56 +19,31 @@ export default function ClientTile({ name, onClick }) {
   };
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
+    <div
       className={`
-        group relative w-full overflow-hidden rounded-2xl
-        text-left transition-all duration-200
+        flex w-full overflow-hidden rounded-2xl
         ${t.cardBg}
         ${
           isDark
-            ? "border border-white/10 hover:border-white/20 hover:bg-white/[0.04]"
-            : "border border-gray-200 bg-white hover:border-gray-300 hover:shadow-lg"
+            ? "border border-white/10"
+            : "border border-gray-200 bg-white"
         }
       `}
     >
-      <div className="p-5">
-        {/* Top section */}
-        <div className="flex items-start justify-between">
-          {/* Client avatar */}
-          <div
-            className={`
-              flex h-12 w-12 items-center justify-center
-              rounded-xl text-sm font-bold
-              transition-transform duration-200
-              group-hover:scale-105
-              ${
-                isDark
-                  ? "bg-white/10 text-white"
-                  : "bg-gray-100 text-gray-700"
-              }
-            `}
-          >
-            {getInitials(name)}
-          </div>
-
-          {/* Arrow */}
-          <div
-            className={`
-              flex h-8 w-8 items-center justify-center rounded-full
-              opacity-50 transition-all duration-200
-              group-hover:translate-x-0.5 group-hover:-translate-y-0.5
-              group-hover:opacity-100
-              ${
-                isDark
-                  ? "bg-white/5 text-gray-300"
-                  : "bg-gray-50 text-gray-500"
-              }
-            `}
-          >
-            <ArrowUpRight size={16} />
-          </div>
+      <div className="flex w-full flex-col items-center justify-center p-5 text-center">
+        {/* Client avatar */}
+        <div
+          className={`
+            flex h-10 w-10 items-center justify-center
+            rounded-xl text-sm font-bold
+            ${
+              isDark
+                ? "bg-white/10 text-white"
+                : "bg-red-400 text-white"
+            }
+          `}
+        >
+          {getInitials(name)}
         </div>
 
         {/* Client information */}
@@ -94,16 +69,6 @@ export default function ClientTile({ name, onClick }) {
           </div>
         </div>
       </div>
-
-      {/* Bottom accent */}
-      <div
-        className={`
-          h-1 w-full origin-left scale-x-0
-          transition-transform duration-200
-          group-hover:scale-x-100
-          ${isDark ? "bg-white/30" : "bg-gray-900"}
-        `}
-      />
-    </button>
+    </div>
   );
 }

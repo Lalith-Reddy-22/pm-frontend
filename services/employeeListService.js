@@ -30,8 +30,26 @@ export async function getEmployeeList(filters = {}) {
       },
     });
     payload = response.data;
-  } catch (error) {
-    if (![401, 503].includes(error.response?.status)) throw error;
+    console.log("EMPLOYEE LIST RAW API RESPONSE:", payload);
+    } catch (error) {
+    console.error(
+      "EMPLOYEE LIST API STATUS:",
+      error.response?.status
+    );
+
+    console.error(
+      "EMPLOYEE LIST API DATA:",
+      error.response?.data
+    );
+
+    console.error(
+      "EMPLOYEE LIST VALIDATION ERRORS:",
+      error.response?.data?.errors
+    );
+
+    if (![401, 503].includes(error.response?.status)) {
+      throw error;
+    }
 
     const response = await axiosClient.get("/employee");
     const employees = Array.isArray(response.data) ? response.data : [];
@@ -59,9 +77,17 @@ export async function getEmployeeList(filters = {}) {
   }
 
   const records = Array.isArray(payload)
-    ? payload
-    : payload?.data ?? payload?.employees ?? payload?.items ?? [];
+  ? payload
+  : payload?.data ??
+    payload?.Data ??
+    payload?.employees ??
+    payload?.Employees ??
+    payload?.items ??
+    payload?.Items ??
+    [];
+    
   const data = records.map((employee, index) => ({
+    
     ...employee,
     id:
       employee.id ??
@@ -77,15 +103,30 @@ export async function getEmployeeList(filters = {}) {
       employee.emp_Name ??
       "",
   }));
-  const total = payload?.totalCount ?? payload?.totalRecords ?? data.length;
+  const total =
+  payload?.totalCount ??
+  payload?.TotalCount ??
+  payload?.totalRecords ??
+  payload?.TotalRecords ??
+  data.length;
 
-  return {
-    data,
-    total,
-    page: payload?.pageNumber ?? page,
-    pageSize: payload?.pageSize ?? pageSize,
-    totalPages: payload?.totalPages ?? Math.ceil(total / pageSize),
-  };
+  
+return {
+  data,
+  total,
+  page:
+    payload?.pageNumber ??
+    payload?.PageNumber ??
+    page,
+  pageSize:
+    payload?.pageSize ??
+    payload?.PageSize ??
+    pageSize,
+  totalPages:
+    payload?.totalPages ??
+    payload?.TotalPages ??
+    Math.ceil(total / pageSize),
+};
 }
 
 /**

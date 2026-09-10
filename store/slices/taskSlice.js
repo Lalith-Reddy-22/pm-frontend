@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { getTasks, getTaskProjects } from "@/services/taskService";
+import axiosClient from "@/services/axiosClient";
 
 export const fetchTasks = createAsyncThunk(
   "task/fetchTasks",
@@ -296,38 +297,78 @@ export const deleteTask = createAsyncThunk(
 const initialState = {
   tasks: [],
 
+  // =====================================================
+  // SELECTED TASK
+  // =====================================================
+
   selectedTask: null,
   selectedTaskLoading: false,
   selectedTaskError: null,
+
+  // =====================================================
+  // TASK DETAILS - CREATE / UPDATE PAGE
+  // =====================================================
+
+  taskDetails: null,
+  taskDetailsLoading: false,
+  taskDetailsError: null,
+
+  // =====================================================
+  // PAGINATION
+  // =====================================================
 
   totalCount: 0,
   pageNumber: 1,
   pageSize: 10,
   totalPages: 0,
 
+  // =====================================================
+  // PROJECTS
+  // =====================================================
+
   projects: [],
   projectsLoading: false,
   projectsError: null,
+
+  // =====================================================
+  // EMPLOYEES
+  // =====================================================
 
   employeeNames: [],
   employeeNamesLoading: false,
   employeeNamesError: null,
 
-    taskTemplates: [],
+  // =====================================================
+  // TASK TEMPLATES
+  // =====================================================
+
+  taskTemplates: [],
   taskTemplatesLoading: false,
   taskTemplatesError: null,
 
   createTemplateLoading: false,
   createTemplateError: null,
 
+  // =====================================================
+  // GENERAL
+  // =====================================================
+
   loading: false,
   error: null,
 
-  rescheduleLoading: false,
-rescheduleError: null,
+  // =====================================================
+  // RESCHEDULE
+  // =====================================================
 
-deleteLoading: false,
-deleteError: null,
+  rescheduleLoading: false,
+  rescheduleError: null,
+
+  // =====================================================
+  // DELETE
+  // =====================================================
+
+  deleteLoading: false,
+  deleteError: null,
 };
 
 const taskSlice = createSlice({
@@ -355,30 +396,39 @@ const taskSlice = createSlice({
     })
 
     .addCase(fetchTasks.fulfilled, (state, action) => {
-      state.loading = false;
+  state.loading = false;
 
-      state.tasks = (action.payload?.tasks || []).map((item) => ({
-        id: item.task_Id,
-        title: item.task_Title || "",
-        projectTitle: item.project_Title || "",
-        projectCode: item.projectCode || "",
-        priority: item.tskpriority || "",
+  state.tasks = (action.payload?.tasks || []).map((item) => ({
+    id: item.task_Id,
+    title: item.task_Title || "",
 
-        employees: item.employee_Names
-          ? item.employee_Names
-              .split(",")
-              .map((name) => name.trim())
-          : [],
+    // ADD THIS
+    projectId: Number(
+      item.projectId ??
+      item.ProjectId ??
+      item.project_ID ??
+      0
+    ),
 
-        startDate: item.start_Date_Formatted || "",
-        endDate: item.end_Date_Formatted || "",
-      }));
+    projectTitle: item.project_Title || "",
+    projectCode: item.projectCode || "",
+    priority: item.tskpriority || "",
 
-      state.totalCount = action.payload?.totalCount || 0;
-      state.pageNumber = action.payload?.pageNumber || 1;
-      state.pageSize = action.payload?.pageSize || 10;
-      state.totalPages = action.payload?.totalPages || 0;
-    })
+    employees: item.employee_Names
+      ? item.employee_Names
+          .split(",")
+          .map((name) => name.trim())
+      : [],
+
+    startDate: item.start_Date_Formatted || "",
+    endDate: item.end_Date_Formatted || "",
+  }));
+
+  state.totalCount = action.payload?.totalCount || 0;
+  state.pageNumber = action.payload?.pageNumber || 1;
+  state.pageSize = action.payload?.pageSize || 10;
+  state.totalPages = action.payload?.totalPages || 0;
+})
 
     .addCase(fetchTasks.rejected, (state, action) => {
       state.loading = false;
@@ -479,6 +529,10 @@ const taskSlice = createSlice({
   state.selectedTaskLoading = true;
   state.selectedTaskError = null;
   state.selectedTask = null;
+
+  state.taskDetailsLoading = true;
+  state.taskDetailsError = null;
+  state.taskDetails = null;
 })
 
 .addCase(fetchTaskById.fulfilled, (state, action) => {
@@ -491,6 +545,8 @@ const taskSlice = createSlice({
     "========== FETCH TASK BY ID RESPONSE =========="
   );
   console.log(item);
+  
+  state.taskDetails = item;
 
   state.selectedTask = {
     id: item.taskId,
@@ -522,6 +578,12 @@ const taskSlice = createSlice({
     action.payload || "Failed to load task.";
 
   state.selectedTask = null;
+
+  state.taskDetailsLoading = false;
+  state.taskDetailsError =
+    action.payload || "Failed to load task.";
+
+  state.taskDetails = null;
 })
 
 .addCase(fetchAllProjects.pending, (state) => {

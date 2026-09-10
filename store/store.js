@@ -1,15 +1,19 @@
 import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "./slices/authSlice";
 import dailyReportReducer from "./slices/dailyReportSlice";
+import projectReducer from "./slices/projectSlice";
 import weekUtilizationReducer from "./slices/weekUtilizationSlice";
 import leaveReducer from "./slices/leaveSlice";
 import resourceAllocationReducer from "./slices/resourceAllocationSlice";
 import taskReducer from "./slices/taskSlice";
+import timesheetReducer from "./slices/timesheetSlice";
 import summaryReportReducer from "./slices/summaryReportSlice";
 import financeClientReducer from "./slices/financeClientSlice";
 import financeProjectReducer from "./slices/financeProjectSlice";
 import financeRateCardReducer from "./slices/financeRateCardSlice";
 import financeRateCardBuyingCenterReducer from "./slices/financeRateCardBuyingCenterSlice";
+import employeeReducer from "./slices/employeeSlice";
+import exportReducer from "./slices/exportSlice";
 
 export const store = configureStore({
   reducer: {
@@ -19,10 +23,14 @@ export const store = configureStore({
     leave: leaveReducer,
     resourceAllocation: resourceAllocationReducer,
     task: taskReducer,
+    timesheet: timesheetReducer,
     summaryReport: summaryReportReducer,
     financeClient: financeClientReducer,
     financeProject: financeProjectReducer,
     financeRateCard: financeRateCardReducer,
     financeRateCardBuyingCenter: financeRateCardBuyingCenterReducer,
+    employee: employeeReducer,
+    project: projectReducer,
+    export: exportReducer,
   },
 });

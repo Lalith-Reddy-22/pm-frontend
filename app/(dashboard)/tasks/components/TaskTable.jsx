@@ -123,27 +123,64 @@ function TaskTableRow({
     <div className="flex items-center justify-center gap-1.5 ">
     {/* Create Task */}
     <Button
-      variant="ghost"
-      size="icon-sm"
-      aria-label="Create task"
-      onClick={() => router.push("/tasks/create")}
-      className="opacity-60 group-hover:opacity-100 hover:text-[#E12729]"
-    >
-      <Plus />
-    </Button>
+  variant="ghost"
+  size="icon-sm"
+  aria-label="Create task"
+  onClick={() => {
+    const projectId = Number(task.projectId || 0);
+
+    console.log("CREATE TASK PROJECT ID:", projectId);
+
+    if (!projectId) {
+      alert("Project ID is missing.");
+      return;
+    }
+
+    const projectTitle = task.projectTitle || "";
+
+router.push(
+  `/tasks/create?projectId=${projectId}&projectTitle=${encodeURIComponent(
+    projectTitle
+  )}`
+);
+  }}
+  className="opacity-60 group-hover:opacity-100 hover:text-[#E12729]"
+>
+  <Plus />
+</Button>
 
     {/* Update Task */}
     <Button
-      variant="ghost"
-      size="icon-sm"
-      aria-label="Update task"
-      onClick={() =>
-        router.push(`/tasks/create?taskId=${task.id}`)
-      }
-      className="opacity-60 group-hover:opacity-100 hover:text-[#E12729]"
-    >
-      <Pencil />
-    </Button>
+  variant="ghost"
+  size="icon-sm"
+  aria-label="Update task"
+  onClick={() => {
+    console.log("FULL TASK OBJECT:", task);
+    console.log("TASK OBJECT KEYS:", Object.keys(task));
+
+    const id =
+      task.task_Id ??
+      task.taskId ??
+      task.Task_Id ??
+      task.TaskId ??
+      task.Task_ID ??
+      task.id;
+
+    console.log("RESOLVED TASK ID:", id);
+
+    if (!id) {
+      alert("Task ID is missing.");
+      return;
+    }
+
+    router.push(
+      `/tasks/create?taskId=${id}`
+    );
+  }}
+  className="opacity-60 group-hover:opacity-100 hover:text-[#E12729]"
+>
+  <Pencil />
+</Button>
 
     {/* RESCHEDULE TASK */}
     <Button

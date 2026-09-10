@@ -17,17 +17,28 @@ export const login = createAsyncThunk(
       const data = await loginUser(email, password);
       return data;
     } catch (error) {
-      console.error(
-        "LOGIN ERROR:",
-        error.response?.data ?? error.message
-      );
+      console.error("========== LOGIN ERROR ==========");
+      console.error("STATUS:", error.response?.status);
+      console.error("URL:", error.config?.url);
+      console.error("RESPONSE:", error.response?.data);
+      console.error("ERROR:", error);
+      console.error("================================");
 
-      return rejectWithValue(
-        error.response?.data?.message ||
-          error.response?.data?.title ||
-          error.message ||
-          "Invalid email or password."
-      );
+      const responseData = error.response?.data;
+
+      let message = "Invalid email or password.";
+
+      if (typeof responseData === "string") {
+        message = responseData;
+      } else if (responseData?.message) {
+        message = responseData.message;
+      } else if (responseData?.title) {
+        message = responseData.title;
+      } else if (error.message) {
+        message = error.message;
+      }
+
+      return rejectWithValue(message);
     }
   }
 );

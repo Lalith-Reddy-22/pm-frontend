@@ -43,10 +43,10 @@ export default function Navbar({ onMenuClick }) {
   router.push("/login");
 };
 
-  const {
-    notifications = [],
-    notificationsLoading,
-  } = useSelector((state) => state.timesheet);
+const {
+  notifications = [],
+  notificationsLoading = false,
+} = useSelector((state) => state.timesheet || {});
 
   // =====================================================
   // GET LOGGED-IN USER
@@ -183,6 +183,7 @@ useEffect(() => {
     "/finance/clients": "Clients",
     "/finance/clients/new": "Clients",
     "/project": "Projects",
+    "/tasks/create": "Add Task",
     "/clients": "Clients",
     "/settings": "Settings",
     "/calendar": "Calendar",

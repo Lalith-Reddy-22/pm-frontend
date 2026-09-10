@@ -181,3 +181,10 @@ export function getSortableColumns() {
     .filter((col) => col.sortable)
     .map((col) => col.key);
 }
+
+export const REPORT_EXPORT_COLUMNS = REPORT_COLUMNS.map(
+  ({ key, label }) => ({
+    key,
+    header: label,
+  })
+);

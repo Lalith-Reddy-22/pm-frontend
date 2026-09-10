@@ -14,6 +14,8 @@ import {
   fetchBuyingCenters,
   cloneBuyingCenterThunk,
 } from "@/store/slices/financeRateCardBuyingCenterSlice";
+import { format } from "date-fns";
+import { exportFile } from "@/store/slices/exportSlice";
 
 export default function BuyingCenterPage() {
   const dispatch = useDispatch();
@@ -77,6 +79,49 @@ export default function BuyingCenterPage() {
       .catch(() => {/* cloneError shown in modal */});
   };
 
+  const handleExport = async (exportFormat) => {
+  try {
+    if (!exportFormat) return;
+
+    const exportData = (filteredBuyingCenters || []).map((item) => ({
+      buyingCenter:
+        item.buying_CenterName ??
+        item.buyingCenterName ??
+        item.bName ??
+        item.name ??
+        "",
+
+      description:
+        item.description ??
+        item.Description ??
+        "",
+    }));
+
+    await dispatch(
+      exportFile({
+        fileName: `buying-center-${format(
+          new Date(),
+          "yyyy-MM-dd-HHmmss"
+        )}`,
+        format: exportFormat,
+        columns: [
+          {
+            key: "buyingCenter",
+            header: "Buying Center",
+          },
+          {
+            key: "description",
+            header: "Description",
+          },
+        ],
+        data: exportData,
+      })
+    ).unwrap();
+  } catch (error) {
+    console.error("BUYING CENTER EXPORT ERROR:", error);
+  }
+};
+
   return (
     <div className="space-y-4 p-4 sm:p-6">
       <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
@@ -84,12 +129,16 @@ export default function BuyingCenterPage() {
         <RateCardTabs />
 
         <BuyingCenterTopBar
-          search={search}
-          setSearch={handleSearch}
-          pageSize={pageSize}
-          setPageSize={setPageSize}
-          onAdd={() => setShowAddModal(true)}
-        />
+  search={search}
+  setSearch={handleSearch}
+  pageSize={pageSize}
+  setPageSize={setPageSize}
+  onAdd={() => setShowAddModal(true)}
+  handleCopy={() => handleExport("copy")}
+  handlePrint={() => handleExport("print")}
+  handlePDF={() => handleExport("pdf")}
+  handleCSV={() => handleExport("csv")}
+/>
 
         {/* Loading */}
         {loading && (

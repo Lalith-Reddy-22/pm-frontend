@@ -38,7 +38,7 @@ const {
   const [page, setPage] = useState(1);
   const [showExport, setShowExport] = useState(false);
 
- useEffect(() => {
+useEffect(() => {
   if (!open || !employee) return;
 
   const employeeId =
@@ -47,22 +47,19 @@ const {
     employee?.emp_ID ??
     employee?.employeeId;
 
-  console.log("========== EMPLOYEE TASK API ==========");
-  console.log("EMPLOYEE OBJECT:", employee);
-  console.log("EMPLOYEE ID SENT:", employeeId);
-  console.log("START DATE:", startDate);
-  console.log("END DATE:", endDate);
-
-  if (!employeeId) {
-    console.error("❌ Employee ID not found:", employee);
+  if (!employeeId || Number(employeeId) <= 0) {
+    console.error("❌ Invalid Employee ID:", employeeId);
     return;
   }
 
+  console.log("========== FETCH EMPLOYEE TASKS ==========");
+  console.log("Employee Name:", employee?.name);
+  console.log("Employee ID:", employeeId);
+
   dispatch(
     fetchEmployeeTaskDetails({
-      employeeId,
-      startDate,
-      endDate,
+      employeeId: Number(employeeId),
+      searchText: search.trim(),
       pageNumber: page,
       pageSize,
     })
@@ -71,8 +68,7 @@ const {
   dispatch,
   open,
   employee,
-  startDate,
-  endDate,
+  search,
   page,
   pageSize,
 ]);
@@ -129,6 +125,58 @@ const rows = (employeeTaskDetails || []).map((row, index) => ({
     "",
 }));
 
+const totalItems = employeeTaskDetailsTotal || 0;
+
+const totalPages = Math.max(
+  1,
+  employeeTaskDetailsTotalPages ||
+    Math.ceil(totalItems / pageSize)
+);
+
+const startIndex =
+  totalItems === 0
+    ? 0
+    : (page - 1) * pageSize + 1;
+
+const endIndex =
+  totalItems === 0
+    ? 0
+    : Math.min(page * pageSize, totalItems);
+
+const hasPrev = page > 1;
+const hasNext = page < totalPages;
+
+const prevPage = () => {
+  if (hasPrev) {
+    setPage((prev) => prev - 1);
+  }
+};
+
+const nextPage = () => {
+  if (hasNext) {
+    setPage((prev) => prev + 1);
+  }
+};
+
+const goToPage = (pageNumber) => {
+  if (
+    pageNumber >= 1 &&
+    pageNumber <= totalPages
+  ) {
+    setPage(pageNumber);
+  }
+};
+
+const pageNumbers = Array.from(
+  { length: totalPages },
+  (_, index) => index + 1
+);
+
+
+useEffect(() => {
+  setPage(1);
+}, [search]);
+
 console.log("========== TASK DETAILS ==========");
 console.log("RAW TASK DETAILS:", employeeTaskDetails);
 console.log("ROWS:", rows);
@@ -180,19 +228,22 @@ if (rows?.[0]) {
             <div>
               Show
               <select
-                className="mx-2 rounded border px-2 py-1"
-                value={pageSize}
-                onChange={(e) => setPageSize(Number(e.target.value))}
-              >
-                <option>5</option>
-                <option>10</option>
-                <option>20</option>
-              </select>
+  className="mx-2 rounded border px-2 py-1"
+  value={pageSize}
+  onChange={(e) => {
+    setPageSize(Number(e.target.value));
+    setPage(1);
+  }}
+>
+  <option value={5}>5</option>
+  <option value={10}>10</option>
+  <option value={20}>20</option>
+</select>
               entries
             </div>
 
             <div className="relative">
-  <button
+  {/* <button
     onClick={() => setShowExport(!showExport)}
     className="flex items-center gap-2 rounded-md border bg-white px-4 py-2 hover:bg-gray-50"
   >
@@ -231,7 +282,7 @@ if (rows?.[0]) {
         Export PDF
       </button>
     </div>
-  )}
+  )} */}
 </div>
           </div>
 
@@ -270,33 +321,63 @@ if (rows?.[0]) {
             </thead>
 
             <tbody>
-              {employeeTaskDetailsLoading ? (
-                <tr>
-                  <td colSpan={7} className="px-5 py-8 text-center text-gray-500">
-                    Loading tasks...
-                  </td>
-                </tr>
-              ) : rows.map((row) => (
-                <tr key={row.id} className="border-b">
+  {employeeTaskDetailsLoading ? (
+    <tr>
+      <td
+        colSpan={7}
+        className="px-5 py-8 text-center text-gray-500"
+      >
+        Loading tasks...
+      </td>
+    </tr>
+  ) : rows.length > 0 ? (
+  rows.map((row, index) => (
+    <tr
+      key={row.id ?? index}
+      className="border-b"
+    >
+        <td className="px-5 py-4">
+          {row.id || "—"}
+        </td>
 
-                  <td className="px-5 py-4">{row.id}</td>
+        <td className="px-5 py-4">
+          {row.title || "—"}
+        </td>
 
-                  <td className="px-5 py-4">{row.title}</td>
+        <td className="px-5 py-4">
+          {row.start || "—"}
+        </td>
 
-                  <td className="px-5 py-4">{row.start}</td>
+        <td className="px-5 py-4">
+          {row.end || "—"}
+        </td>
 
-                  <td className="px-5 py-4">{row.end}</td>
+        <td className="px-5 py-4">
+          {row.actual ?? "—"}
+        </td>
 
-                  <td className="px-5 py-4">{row.actual}</td>
+        <td className="px-5 py-4">
+          {row.planned ?? "—"}
+        </td>
 
-                  <td className="px-5 py-4">{row.planned}</td>
-
-                  <td className="px-5 py-4">{row.tasks}</td>
-
-                </tr>
-              ))}
-
-            </tbody>
+        <td className="px-5 py-4">
+          {row.tasks || "—"}
+        </td>
+      </tr>
+    ))
+  ) : (
+    <tr>
+      <td
+        colSpan={7}
+        className="px-5 py-8 text-center text-gray-500"
+      >
+        {search.trim()
+          ? "No tasks match your search."
+          : "No tasks found."}
+      </td>
+    </tr>
+  )}
+</tbody>
 
           </table>
 
@@ -307,10 +388,16 @@ if (rows?.[0]) {
 
           <DataPagination
   page={page}
-  setPage={setPage}
-  pageSize={pageSize}
-  total={employeeTaskDetailsTotal || 0}
-  totalPages={employeeTaskDetailsTotalPages || 1}
+  totalPages={totalPages}
+  totalItems={totalItems}
+  startIndex={startIndex}
+  endIndex={endIndex}
+  hasPrev={hasPrev}
+  hasNext={hasNext}
+  prevPage={prevPage}
+  nextPage={nextPage}
+  goToPage={goToPage}
+  pageNumbers={pageNumbers}
 />
         </div>
 

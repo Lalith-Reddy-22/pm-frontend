@@ -6,6 +6,8 @@ export default function FilterSection({
   onStartDateChange,
   onEndDateChange,
   onGenerate,
+  onExportExcel,
+  exportLoading,
 }) {
   return (
     <div className="flex items-end gap-4 border-t pt-5">
@@ -44,11 +46,12 @@ export default function FilterSection({
       </button>
 
       <button
-        disabled
-        className="bg-gray-200 text-gray-400 px-6 h-10 rounded cursor-not-allowed"
-      >
-        Export to Excel
-      </button>
+  type="button"
+  onClick={onExportExcel}
+  className="bg-gray-200 text-gray-700 px-6 h-10 rounded hover:bg-gray-300"
+>
+  Export to Excel
+</button>
 
     </div>
   );

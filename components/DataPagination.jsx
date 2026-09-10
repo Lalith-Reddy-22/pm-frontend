@@ -81,34 +81,66 @@ export default function DataPagination({
         </Button>
 
         {/* Page numbers */}
-        <div className="hidden items-center gap-1 sm:flex">
-          {pageNumbers.map((p, idx) =>
-            p === "…" ? (
-              <span
-                key={`ellipsis-${idx}`}
-                className="px-1 text-sm text-muted-foreground select-none"
-              >
-                …
-              </span>
-            ) : (
-              <Button
-                key={p}
-                variant={p === page ? "default" : "outline"}
-                size="icon-sm"
-                onClick={() => goToPage(p)}
-                aria-label={`Page ${p}`}
-                aria-current={p === page ? "page" : undefined}
-                className={
-                  p === page
-                    ? "bg-[#E12729] text-white border-[#E12729] hover:bg-[#c81f21] hover:border-[#c81f21]"
-                    : ""
-                }
-              >
-                {p}
-              </Button>
-            )
-          )}
-        </div>
+<div className="hidden items-center gap-1 sm:flex">
+  {(() => {
+    const pages = [];
+
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Always show first page
+      pages.push(1);
+
+      if (page > 4) {
+        pages.push("…");
+      }
+
+      // Pages around current page
+      const start = Math.max(2, page - 1);
+      const end = Math.min(totalPages - 1, page + 1);
+
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+
+      if (page < totalPages - 3) {
+        pages.push("…");
+      }
+
+      // Always show last page
+      pages.push(totalPages);
+    }
+
+    return pages.map((p, idx) =>
+      p === "…" ? (
+        <span
+          key={`ellipsis-${idx}`}
+          className="px-1 text-sm text-muted-foreground select-none"
+        >
+          …
+        </span>
+      ) : (
+        <Button
+          key={p}
+          variant={p === page ? "default" : "outline"}
+          size="icon-sm"
+          onClick={() => goToPage(p)}
+          aria-label={`Page ${p}`}
+          aria-current={p === page ? "page" : undefined}
+          className={
+            p === page
+              ? "bg-[#E12729] text-white border-[#E12729] hover:bg-[#c81f21] hover:border-[#c81f21]"
+              : ""
+          }
+        >
+          {p}
+        </Button>
+      )
+    );
+  })()}
+</div>
 
         {/* Mobile: current / total */}
         <span className="px-2 text-sm font-medium sm:hidden">

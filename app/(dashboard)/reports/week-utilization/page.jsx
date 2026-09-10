@@ -10,6 +10,7 @@ import SectionTitle from "./components/SectionTitle";
 import SummaryTable from "./components/SummaryTable";
 import DesignationTable from "./components/DesignationTable";
 import ClientTable from "./components/ClientTable";
+import { exportFile } from "@/store/slices/exportSlice";
 
 
 export default function WeekUtilization() {
@@ -18,6 +19,97 @@ export default function WeekUtilization() {
   const [endDate, setEndDate] = useState("2026-08-14");
 
   const dispatch = useDispatch();
+
+  const handleExportExcel = async () => {
+  try {
+    if (!startDate || !endDate) {
+      alert("Please select Start Date and End Date.");
+      return;
+    }
+
+    const exportData = [
+      ...teamData.billable.map((item) => ({
+        section: "Team Wise - Billable",
+        name: item.team,
+        employee: "",
+        hours: item.hours,
+        availableHours: item.available,
+        utilization: item.utilization,
+        revenue: item.revenue,
+        cost: "",
+      })),
+
+      ...teamData.nonBillable.map((item) => ({
+        section: "Team Wise - Non Billable",
+        name: item.team,
+        employee: "",
+        hours: item.hours,
+        availableHours: item.available,
+        utilization: item.utilization,
+        revenue: item.revenue,
+        cost: "",
+      })),
+
+      ...designationData.billable.flatMap((department) =>
+        department.rows.map((item) => ({
+          section: `Designation Wise - Billable - ${department.department}`,
+          name: item.designation,
+          employee: item.employee,
+          hours: item.planHours,
+          availableHours: item.availableHours,
+          utilization: item.utilization,
+          revenue: "",
+          cost: "",
+        }))
+      ),
+
+      ...designationData.nonBillable.flatMap((department) =>
+        department.rows.map((item) => ({
+          section: `Designation Wise - Non Billable - ${department.department}`,
+          name: item.designation,
+          employee: item.employee,
+          hours: item.planHours,
+          availableHours: item.availableHours,
+          utilization: item.utilization,
+          revenue: "",
+          cost: "",
+        }))
+      ),
+
+      ...clientData.map((item) => ({
+        section: "Client Wise",
+        name: item.name,
+        employee: "",
+        hours: item.hours,
+        availableHours: "",
+        utilization: item.utilization,
+        revenue: "",
+        cost: item.cost,
+      })),
+    ];
+
+    await dispatch(
+  exportFile({
+    fileName: `week-utilization-${startDate}-to-${endDate}`,
+    format: "csv",
+    columns: [
+      { key: "section", header: "Section" },
+      { key: "name", header: "Team / Designation / Client" },
+      { key: "employee", header: "Employees" },
+      { key: "hours", header: "Plan Hours" },
+      { key: "availableHours", header: "Available Hours" },
+      { key: "utilization", header: "Utilization" },
+      { key: "revenue", header: "Revenue" },
+      { key: "cost", header: "Cost" },
+    ],
+    data: exportData,
+  })
+).unwrap();
+
+  } catch (error) {
+    console.error("EXCEL EXPORT ERROR:", error);
+  }
+};
 
 const {
   team,
@@ -109,12 +201,13 @@ const clientData = mapClientData(client);
         <Header />
 
         <FilterSection
-          startDate={startDate}
-          endDate={endDate}
-          onStartDateChange={setStartDate}
-          onEndDateChange={setEndDate}
-          onGenerate={handleGenerateReport}
-        />
+  startDate={startDate}
+  endDate={endDate}
+  onStartDateChange={setStartDate}
+  onEndDateChange={setEndDate}
+  onGenerate={handleGenerateReport}
+  onExportExcel={handleExportExcel}
+/>
 
         {error && (
           <div className="mt-4 rounded border border-red-300 bg-red-50 p-3 text-sm text-red-600">

@@ -11,13 +11,8 @@ export const fetchClients = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const data = await api.get("/api/v1/client/all");
-
-      console.log("CLIENT API RESPONSE:", data);
-
       return data.clients || [];
     } catch (error) {
-      console.error("CLIENT LIST ERROR:", error);
-
       return rejectWithValue(
         error.message || "Failed to load clients."
       );
@@ -73,9 +68,6 @@ const clientSlice = createSlice({
         state.error = null;
 
         const data = action.payload;
-
-        console.log("CLIENT DATA IN REDUX:", data);
-
         // API returns array
         state.clients = Array.isArray(data)
           ? data

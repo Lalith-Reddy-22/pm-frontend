@@ -213,14 +213,18 @@ useEffect(() => {
   }, [startDate, endDate]);
 
   // Card Totals
- const totals = useMemo(() => {
+ 
+  const totals = useMemo(() => {
   let planned = 0;
   let actual = 0;
 
-  apiTasks?.forEach((task) => {
-    task.dates?.forEach((date) => {
-      planned += Number(date.working_hours) || 0;
-      actual += Number(date.loghours) || 0;
+  data.forEach((task) => {
+    Object.values(task.planned || {}).forEach((hours) => {
+      planned += Number(hours) || 0;
+    });
+
+    Object.values(task.actual || {}).forEach((hours) => {
+      actual += Number(hours) || 0;
     });
   });
 
@@ -237,7 +241,7 @@ useEffect(() => {
     variance,
     utilization,
   };
-}, [apiTasks]);
+}, [data]);
 
   // Search
  const filtered = useMemo(() => {
@@ -252,6 +256,27 @@ useEffect(() => {
       String(task.id || "").includes(q)
   );
 }, [data, search]);
+
+function updatePlanned(taskId, dayKey, value) {
+  const num =
+    value === ""
+      ? ""
+      : Math.max(0, Math.min(24, Number(value)));
+
+  setData((prev) =>
+    prev.map((task) =>
+      task.id === taskId
+        ? {
+            ...task,
+            planned: {
+              ...task.planned,
+              [dayKey]: num,
+            },
+          }
+        : task
+    )
+  );
+}
 
   // Pagination
 const {
@@ -444,6 +469,7 @@ console.log("======================================");
   inputBg={inputBg}
   t={t}
   isDark={isDark}
+  updatePlanned={updatePlanned}
   updateActual={updateActual}
 
   onComment={(task) => {

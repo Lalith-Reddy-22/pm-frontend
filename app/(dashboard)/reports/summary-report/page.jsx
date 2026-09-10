@@ -13,18 +13,21 @@ import {
   fetchProjectsDropdown,
   fetchTaskList,
   fetchProjectList,
+  fetchProjectTaskDetails,
 } from "@/store/slices/summaryReportSlice";
 import {
   getTaskAllocationReport,
-  generateCSV,
 } from "@/services/taskAllocationReportService";
+
 import {
   getEmployeeList,
-  generateEmployeeCSV,
 } from "@/services/employeeListService";
+
+import { exportFile } from "@/store/slices/exportSlice";
 import EmployeeTaskModal from "./components/EmployeeTaskModal";
 import ProjectTable from "./components/ProjectTable";
 import ProjectDetailsModal from "./components/ProjectDetailsModal";
+import { REPORT_EXPORT_COLUMNS } from "./components/columns";
 
 
 const getEmpIdFromToken = () => {
@@ -62,10 +65,22 @@ const {
   projects: reduxProjects,
   projectsLoading,
   projectsError,
+
   projectList,
   projectListLoading,
   projectListTotal,
   projectListTotalPages,
+
+  projectTaskDetails,
+  projectTaskDetailsLoading,
+  projectTaskDetailsError,
+
+  employeeTaskDetails,
+  employeeTaskDetailsLoading,
+  employeeTaskDetailsError,
+  employeeTaskDetailsTotal,
+  employeeTaskDetailsTotalPages,
+
   taskData,
   taskTotalRecords,
   taskPageNumber,
@@ -85,10 +100,21 @@ useEffect(() => {
 }, [dispatch]);
 
 const handleViewProject = (project) => {
-  console.log("SELECTED PROJECT:", project);
+  console.log("========== VIEW PROJECT ==========");
+  console.log("PROJECT:", project);
+  console.log("PROJECT ID:", project.project_ID);
+  console.log("PROJECT CODE:", project.projectCode);
 
   setSelectedProjectDetails(project);
   setProjectModalOpen(true);
+
+  dispatch(
+    fetchProjectTaskDetails({
+      projectId: Number(project.project_ID),
+      startDate: format(startDate, "yyyy-MM-dd"),
+      endDate: format(endDate, "yyyy-MM-dd"),
+    })
+  );
 };
 
   const [empId, setEmpId] = useState(null);
@@ -350,73 +376,283 @@ const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
   /**
    * Handle export
    */
-  const handleExport = async () => {
-    try {
-      // Fetch all data for export without pagination
-      const filters = {
-        empId,
-        projectId: selectedProject,
-        startDate: startDate ? format(startDate, "yyyy-MM-dd") : null,
-        endDate: endDate ? format(endDate, "yyyy-MM-dd") : null,
-        search,
-        sortBy: "projectCode",
-        sortDirection: "asc",
-        page: 1,
-        pageSize: 10000,
-      };
+  const handleExport = async (exportFormat) => {
+  try {
+    const filters = {
+      empId,
+      projectId:
+        selectedProject === "all"
+          ? 0
+          : Number(selectedProject),
 
-      const result = await getTaskAllocationReport(filters);
-      const csv = generateCSV(result.data);
+      startDate: startDate
+        ? format(startDate, "yyyy-MM-dd")
+        : null,
 
-      // Create and trigger download
-      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-      const link = document.createElement("a");
-      const url = URL.createObjectURL(blob);
+      endDate: endDate
+        ? format(endDate, "yyyy-MM-dd")
+        : null,
 
-      link.setAttribute("href", url);
-      link.setAttribute("download", `task-allocation-report-${format(new Date(), "yyyy-MM-dd-HHmmss")}.csv`);
-      link.style.visibility = "hidden";
+      search,
+      sortBy: "projectCode",
+      sortDirection: "asc",
 
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (err) {
-      console.error("Error exporting report:", err);
-      setError("Failed to export report");
-    }
-  };
+      // Fetch all records for export
+      page: 1,
+      pageSize: 10000,
+    };
+
+    const result = await getTaskAllocationReport(filters);
+
+    const rows = result?.data || [];
+
+    const exportData = rows.map((row) => ({
+      projectCode:
+  row.projectCode ??
+  row.project_Code ??
+  "",
+
+projectTitle:
+  row.project_Title ??
+  row.projectTitle ??
+  row.Project_Title ??
+  row.ProjectTitle ??
+  "",
+
+      client:
+        row.client_Title ??
+        row.Client_Title ??
+        row.client ??
+        "",
+
+      subClient:
+        row.sub_Client_Name ??
+        row.Sub_Client_Name ??
+        row.subClient ??
+        "",
+
+      taskId:
+        row.task_ID ??
+        row.Task_ID ??
+        row.Task_id ??
+        row.taskId ??
+        "",
+
+      taskTitle:
+        row.task_Title ??
+        row.Task_Title ??
+        row.TaskTitle ??
+        row.taskTitle ??
+        "",
+
+      type:
+        Number(row.billing_type) === 0
+          ? "Non-Billable"
+          : "Billable",
+
+      startDate:
+        row.startDate ??
+        row.StartDate ??
+        "",
+
+      endDate:
+        row.endDate ??
+        row.EndDate ??
+        "",
+
+      employeeName:
+        row.employee_Name ??
+        row.Employee_Name ??
+        row.emp_Name ??
+        row.Emp_Name ??
+        row.employeeName ??
+        "",
+
+      designation:
+        row.empDesignation ??
+        row.EmpDesignation ??
+        row.employee_Designation ??
+        row.Employee_Designation ??
+        row.employeeDesignation ??
+        row.EmployeeDesignation ??
+        row.designation ??
+        "",
+
+      function:
+        row.teams_Name ??
+        row.Teams_Name ??
+        row.Function_Name ??
+        row.functionName ??
+        row.function ??
+        "",
+
+      plannedHours:
+        row.planneHours ??
+        row.plannedHours ??
+        row.Planned_hours ??
+        0,
+
+      actualHours:
+        row.logHours ??
+        row.actualHours ??
+        row.ActualHours ??
+        0,
+
+      unitCost:
+        row.empValue ??
+        row.unitCost ??
+        row.Unit_Cost ??
+        0,
+
+      plannedCost:
+        row.planned_Cost ??
+        row.Planned_Cost ??
+        0,
+
+      actualCost:
+        row.actual_Cost ??
+        row.Actual_Cost ??
+        0,
+
+      difference:
+        Number(
+          row.actual_Cost ??
+          row.Actual_Cost ??
+          0
+        ) -
+        Number(
+          row.planned_Cost ??
+          row.Planned_Cost ??
+          0
+        ),
+    }));
+
+    dispatch(
+      exportFile({
+        fileName: `task-allocation-report-${format(
+          new Date(),
+          "yyyy-MM-dd-HHmmss"
+        )}`,
+
+        format: exportFormat,
+
+        columns: REPORT_EXPORT_COLUMNS,
+
+        data: exportData,
+      })
+    );
+  } catch (err) {
+    console.error("Error exporting report:", err);
+    setError("Failed to export report");
+  }
+};
 
   /**
    * Handle employee list export
    */
-  const handleEmployeeExport = async () => {
-    try {
-      // Fetch all data for export without pagination
-      const filters = {
-        search: employeeSearch,
-        page: 1,
-        pageSize: 10000,
-      };
+  const handleEmployeeExport = async (exportFormat = "csv") => {
+  try {
+    const filters = {
+  search: employeeSearch || "",
+  startDate: startDate
+    ? format(startDate, "yyyy-MM-dd")
+    : format(new Date(), "yyyy-MM-dd"),
 
-      const result = await getEmployeeList(filters);
-      const csv = generateEmployeeCSV(result.data);
+  endDate: endDate
+    ? format(endDate, "yyyy-MM-dd")
+    : format(new Date(), "yyyy-MM-dd"),
 
-      // Create and trigger download
-      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-      const link = document.createElement("a");
-      const url = URL.createObjectURL(blob);
+  page: 1,
+  pageSize: 10000,
+};
 
-      link.setAttribute("href", url);
-      link.setAttribute("download", `employee-list-${format(new Date(), "yyyy-MM-dd-HHmmss")}.csv`);
-      link.style.visibility = "hidden";
+    console.log("EMPLOYEE EXPORT FILTERS:", filters);
 
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (err) {
-      console.error("Error exporting employee list:", err);
-    }
-  };
+    const result = await getEmployeeList(filters);
+
+    console.log("EMPLOYEE EXPORT RESULT:", result);
+
+    const exportData = (result?.data || []).map((employee) => ({
+      name:
+        employee.name ??
+        employee.employee_Name ??
+        employee.employeeName ??
+        employee.emp_Name ??
+        "",
+    }));
+
+    await dispatch(
+      exportFile({
+        fileName: `employee-list-${format(
+          new Date(),
+          "yyyy-MM-dd-HHmmss"
+        )}`,
+        format: exportFormat,
+        columns: [
+          {
+            key: "name",
+            header: "Employee Name",
+          },
+        ],
+        data: exportData,
+      })
+    ).unwrap();
+  } catch (err) {
+    console.error(
+      "EMPLOYEE EXPORT ERROR:",
+      err.response?.data || err
+    );
+  }
+};
+
+const handleProjectExport = async (exportFormat = "csv") => {
+  try {
+    // Use the project data already loaded/displayed on the page
+    const exportData = (projects || []).map((project) => ({
+      projectCode:
+        project.projectCode ??
+        project.project_Code ??
+        "",
+      projectTitle:
+        project.projectTitle ??
+        project.project_Title ??
+        project.project_Title_Name ??
+        "",
+      client:
+        project.clientName ??
+        project.client_Title ??
+        project.client ??
+        "",
+    }));
+
+    await dispatch(
+      exportFile({
+        fileName: `project-list-${format(
+          new Date(),
+          "yyyy-MM-dd-HHmmss"
+        )}`,
+        format: exportFormat,
+        columns: [
+          {
+            key: "projectCode",
+            header: "Project Code",
+          },
+          {
+            key: "projectTitle",
+            header: "Project Title",
+          },
+          {
+            key: "client",
+            header: "Client",
+          },
+        ],
+        data: exportData,
+      })
+    ).unwrap();
+  } catch (err) {
+    console.error("PROJECT EXPORT ERROR:", err);
+  }
+};
 
   const projectTotalItems = projectListTotal || 0;
 
@@ -654,7 +890,6 @@ if (projectTotalPages <= 5) {
   employee={selectedEmployee}
   startDate={startDate}
   endDate={endDate}
-  taskRows={taskData}
 />
 </div>
         </>
@@ -671,7 +906,8 @@ if (projectTotalPages <= 5) {
         pageSize={projectPageSize}
         setPageSize={setProjectPageSize}
         setPage={projectPagination.setPage}
-        onExport={() => {}}
+        searchPlaceholder="Search projects..."
+        onExport={handleProjectExport}
       />
     </div>
 
@@ -701,10 +937,12 @@ if (projectTotalPages <= 5) {
     </div>
 
     <ProjectDetailsModal
-      open={projectModalOpen}
-      onOpenChange={setProjectModalOpen}
-      project={selectedProjectDetails}
-    />
+  open={projectModalOpen}
+  onClose={() => setProjectModalOpen(false)}
+  project={selectedProjectDetails}
+  tasks={projectTaskDetails}
+  loading={projectTaskDetailsLoading}
+/>
   </>
 )}
     </div>

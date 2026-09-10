@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-
 import ProjectToolbar from "./components/ProjectToolbar";
 import ProjectTable from "./components/ProjectTable";
 import ProjectPagination from "./components/Projectpagination";
 import AddProjectModal from "./components/AddProjectModal";
 import ProjectGrid from "./components/ProjectGrid";
-
 import { fetchProjects } from "@/store/slices/projectSlice";
+import { format } from "date-fns";
+import { exportFile } from "@/store/slices/exportSlice";
 
 export default function ProjectPage() {
   const dispatch = useDispatch();
@@ -58,6 +58,43 @@ export default function ProjectPage() {
   setSearch(value);
 };
 
+
+const handleProjectExport = async (exportFormat = "csv") => {
+  try {
+    const exportData = projects.map((project) => ({
+      projectCode: project.projectCode || "",
+      projectTitle: project.projectTitle || "",
+      client: project.client || "",
+    }));
+
+    await dispatch(
+      exportFile({
+        fileName: `project-list-${format(
+          new Date(),
+          "yyyy-MM-dd-HHmmss"
+        )}`,
+        format: exportFormat,
+        columns: [
+          {
+            key: "projectCode",
+            header: "Project Code",
+          },
+          {
+            key: "projectTitle",
+            header: "Project Title",
+          },
+          {
+            key: "client",
+            header: "Client",
+          },
+        ],
+        data: exportData,
+      })
+    ).unwrap();
+  } catch (error) {
+    console.error("PROJECT EXPORT ERROR:", error);
+  }
+};
   // =====================================================
   // PAGE CHANGE
   // =====================================================
@@ -128,6 +165,7 @@ export default function ProjectPage() {
           setPage={handlePageChange}
           view={view}
           setView={setView}
+          onExport={handleProjectExport}
         />
 
       </div>

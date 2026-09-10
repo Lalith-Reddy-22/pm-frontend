@@ -334,27 +334,21 @@ const stats = [
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
-              onClick={() => router.back()}
-              className="flex h-10 w-10 items-center justify-center rounded-lg border bg-white hover:bg-gray-50"
-            >
-              <ArrowLeft size={19} />
-            </button>
-
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900">
-                Employee Details
-              </h1>
-
-              <p className="text-sm text-gray-500">
-                Employee performance and activity overview
-              </p>
-            </div>
+        type="button"
+        onClick={() => router.push("/finance/clients")}
+        disabled={loading}
+        className="flex items-center gap-1.5 text-lg text-[#E12729] cursor-pointer disabled:opacity-50"
+      >
+        <ArrowLeft className="w-5 h-4" />
+        Back to employees
+      </button>
           </div>
 
           <div className="flex gap-2">
             <Link
   href={`/employee/${employee.empId}/rate-card`}
-  className="rounded-lg border bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50"
+  className="rounded-md px-4 py-2 border border-[#E12729] bg-white text-[#E12729] hover:bg-red-50"
+
 >
   Rate Card
 </Link>
@@ -362,7 +356,7 @@ const stats = [
             <button
   type="button"
   onClick={() => setShowEditModal(true)}
-  className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white"
+  className="rounded-md bg-[#E12729] px-4 py-2 text-sm font-medium text-white cursor-pointer"
 >
   Edit Employee
 </button>
@@ -376,7 +370,7 @@ const stats = [
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
 
             <div className="flex items-center gap-5">
-              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gray-100 text-2xl font-semibold text-gray-600">
+              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gray-100 text-2xl font-semibold text-red-400 border border-red-300">
                 {employee.employee_Name
   ?.split(" ")
   .map((name) => name[0])
@@ -1392,7 +1386,7 @@ function EditEmployeeModal({ employee, empId, onClose }) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg border px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            className="rounded-lg border border-red-200 px-5 py-2 text-sm font-medium text-red-400 hover:bg-red-50"
           >
             Cancel
           </button>
@@ -1400,7 +1394,7 @@ function EditEmployeeModal({ employee, empId, onClose }) {
          <button
   type="button"
   onClick={handleUpdate}
-  className="rounded-lg bg-primary px-5 py-2 text-sm font-medium text-white"
+  className="rounded-md px-5 py-2 text-sm font-medium text-white bg-red-600"
 >
   Update Details
 </button>

@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:5000/api/v1";
+const API_URL = "http://localhost:5234/api/v1";
 
 export async function getDailyReports({
   todayDate,

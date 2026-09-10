@@ -10,6 +10,7 @@ export default function TaskRowPair({
   inputBg,
   t,
   isDark,
+  onPlannedChange,
   onActualChange,
   onComment,
 }) {
@@ -17,25 +18,13 @@ export default function TaskRowPair({
     PRIORITY_STYLES[String(task.priority || "").toUpperCase()] ??
     "bg-gray-400";
 
-  const getDateValue = (dayIndex, type) => {
-    const entry = (task.dates || []).find((date) => {
-      if (!date.allocated_Date) return false;
+  const getDateValue = (dayKey, type) => {
+  if (type === "planned") {
+    return task.planned?.[dayKey] ?? "";
+  }
 
-      const [month, day, year] = date.allocated_Date
-        .split("/")
-        .map(Number);
-
-      const d = new Date(year, month - 1, day);
-
-      return d.getDay() === dayIndex;
-    });
-
-    if (!entry) return 0;
-
-    return type === "planned"
-      ? Number(entry.working_hours) || 0
-      : Number(entry.loghours) || 0;
-  };
+  return task.actual?.[dayKey] ?? "";
+};
 
   const days = [
     { key: "mon", dayIndex: 1 },
@@ -135,9 +124,32 @@ export default function TaskRowPair({
             key={day.key}
             className="px-3 py-2 text-center"
           >
-            <span className={`text-sm ${t.textSecondary}`}>
-              {getDateValue(day.dayIndex, "planned")}
-            </span>
+            <input
+  type="number"
+  min={0}
+  max={24}
+  step={0.5}
+  value={getDateValue(day.key, "planned")}
+  onChange={(e) =>
+    onPlannedChange(
+      task.id,
+      day.key,
+      e.target.value
+    )
+  }
+  placeholder="–"
+  className={`w-14 rounded-md border ${border} ${inputBg} px-1.5 py-1 text-center text-sm ${t.textPrimary}
+    focus:outline-none focus:ring-2
+    ${
+      isDark
+        ? "focus:ring-red-500/40"
+        : "focus:ring-red-500/30"
+    }
+    focus:border-transparent
+    [appearance:textfield]
+    [&::-webkit-outer-spin-button]:appearance-none
+    [&::-webkit-inner-spin-button]:appearance-none`}
+/>
           </td>
         ))}
       </tr>
@@ -152,9 +164,9 @@ export default function TaskRowPair({
 
         {days.map((day) => {
           const actualValue = getDateValue(
-            day.dayIndex,
-            "actual"
-          );
+  day.key,
+  "actual"
+);
 
           return (
             <td

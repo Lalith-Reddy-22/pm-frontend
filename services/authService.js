@@ -5,7 +5,6 @@ export async function loginUser(email, password) {
     emailId: email,
     password: password,
   });
-
   const data = response.data;
 
   const token =
@@ -17,8 +16,12 @@ export async function loginUser(email, password) {
     data?.data?.jwt;
 
   if (typeof window !== "undefined" && token) {
-    sessionStorage.setItem("accessToken", token);
+  sessionStorage.setItem("accessToken", token);
+
+  if (data?.refreshToken) {
+    sessionStorage.setItem("refreshToken", data.refreshToken);
   }
+}
 
   return data;
 }

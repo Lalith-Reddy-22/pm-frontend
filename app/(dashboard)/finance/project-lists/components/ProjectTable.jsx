@@ -57,7 +57,7 @@ export default function ProjectTable({
         </div>
       </CardHeader>
       <CardContent className="pt-0 flex flex-col flex-1 overflow-hidden p-0">
-        <div className="overflow-auto flex-1">
+        <div className="overflow-auto flex-1 border-t border-b border-border">
           <table className="w-full text-sm">
             <thead className="sticky top-0 z-10">
               <tr className={`border-b ${t.clientBorder} ${t.clientInputBg}`}>

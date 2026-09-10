@@ -14,24 +14,60 @@ export default function EmployeeTaskDetailsModal({
   loading,
 }) {
   const [search, setSearch] = useState("");
+const [billingType, setBillingType] = useState("all");
 
   const tasks = useMemo(() => {
-  return (taskDetails?.tasks || []).map((task) => ({
-    id: task.task_Id,
-    title: task.task_Title,
-    planned: Number(task.working_hours ?? 0),
-    logged: Number(task.logged_hours ?? 0),
-    priority: task.tskpriority || "Low",
-    owner: task.taskowner || "-",
-  }));
+  return (taskDetails?.tasks || []).map((task) => {
+    const buyingCenterId = Number(
+      task.BuyingCenterId ?? task.buyingCenterId ?? 0
+    );
+
+    const billingType =
+      buyingCenterId === 0 || buyingCenterId === 25
+        ? "nonbillable"
+        : "billable";
+
+    return {
+      id: task.task_Id,
+      title: task.task_Title,
+      planned: Number(task.working_hours ?? 0),
+      logged: Number(task.logged_hours ?? 0),
+      priority: task.tskpriority || "Low",
+      owner: task.taskowner || "-",
+      buyingCenterId,
+      billingType,
+    };
+  });
 }, [taskDetails]);
 
-  const filtered = useMemo(() =>
-    tasks.filter(t =>
-      t.title.toLowerCase().includes(search.toLowerCase()) ||
-      t.owner.toLowerCase().includes(search.toLowerCase()) ||
-      String(t.id).includes(search)
-    ), [tasks, search]);
+const billableCount = useMemo(() => {
+  return tasks.filter(
+    (task) => task.billingType === "billable"
+  ).length;
+}, [tasks]);
+
+const nonBillableCount = useMemo(() => {
+  return tasks.filter(
+    (task) => task.billingType === "nonbillable"
+  ).length;
+}, [tasks]);
+
+  const filtered = useMemo(() => {
+  return tasks.filter((task) => {
+    const matchesBilling =
+      billingType === "all" ||
+      task.billingType === billingType;
+
+    const searchText = search.toLowerCase();
+
+    const matchesSearch =
+      task.title.toLowerCase().includes(searchText) ||
+      task.owner.toLowerCase().includes(searchText) ||
+      String(task.id).includes(searchText);
+
+    return matchesBilling && matchesSearch;
+  });
+}, [tasks, search, billingType]);
 
     const totalPlannedHours = useMemo(() => {
   return tasks.reduce((sum, task) => sum + task.planned, 0);
@@ -73,8 +109,50 @@ export default function EmployeeTaskDetailsModal({
         </div>
 
         <div className="flex items-center justify-between px-6 py-3">
-          <div></div>
-          <div className="flex items-center gap-2">
+
+  {/* BILLING TABS */}
+  <div className="flex items-center gap-2">
+
+    <button
+      type="button"
+      onClick={() => setBillingType("all")}
+      className={`rounded px-4 py-2 text-xs font-semibold ${
+        billingType === "all"
+          ? "bg-[#333] text-white"
+          : "border border-gray-300 bg-white text-gray-700"
+      }`}
+    >
+      All ({tasks.length})
+    </button>
+
+    <button
+      type="button"
+      onClick={() => setBillingType("billable")}
+      className={`rounded px-4 py-2 text-xs font-semibold ${
+        billingType === "billable"
+          ? "bg-[#333] text-white"
+          : "border border-gray-300 bg-white text-gray-700"
+      }`}
+    >
+      Billable ({billableCount})
+    </button>
+
+    <button
+      type="button"
+      onClick={() => setBillingType("nonbillable")}
+      className={`rounded px-4 py-2 text-xs font-semibold ${
+        billingType === "nonbillable"
+          ? "bg-[#333] text-white"
+          : "border border-gray-300 bg-white text-gray-700"
+      }`}
+    >
+      Non-Billable ({nonBillableCount})
+    </button>
+
+  </div>
+
+  {/* SEARCH */}
+  <div className="flex items-center gap-2">
             <span className="text-sm text-gray-600">Search:</span>
             <div className="flex items-center rounded border border-gray-300 px-2">
               <Search size={16} className="text-gray-400"/>

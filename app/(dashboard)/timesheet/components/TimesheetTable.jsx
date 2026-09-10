@@ -12,6 +12,7 @@ export default function TimesheetTable({
   inputBg,
   t,
   isDark,
+  updatePlanned,
   updateActual,
   onComment,
   filtered,
@@ -75,8 +76,9 @@ export default function TimesheetTable({
   inputBg={inputBg}
   t={t}
   isDark={isDark}
+  onPlannedChange={updatePlanned}
   onActualChange={updateActual}
-  onComment={onComment} // ✅ add this
+  onComment={onComment}
 />
             ))}
 

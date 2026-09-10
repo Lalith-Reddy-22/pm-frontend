@@ -7,7 +7,15 @@ import WeekRangePicker from "@/app/components/WeekRangePicker";
 import { useState } from "react";
 import ExportDropdown from "@/app/(dashboard)/employee/components/ExportDropdown";
 
-export default function TaskToolbar({ search, setSearch, setPage, onAddTask, dateRange, setDateRange }) {
+export default function TaskToolbar({
+  search,
+  setSearch,
+  setPage,
+  onAddTask,
+  dateRange,
+  setDateRange,
+  onExport,
+}) {
 
   const [showExport, setShowExport] = useState(false);
 
@@ -51,19 +59,19 @@ export default function TaskToolbar({ search, setSearch, setPage, onAddTask, dat
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative">
   <ExportDropdown
-    showExport={showExport}
-    setShowExport={setShowExport}
-    handleCopy={() => console.log("Copy")}
-    handlePrint={() => window.print()}
-    handlePDF={() => console.log("Export PDF")}
-    handleCSV={() => console.log("Export CSV")}
-    border="border-gray-200"
-    t={{
-      cardBg: "bg-white",
-      textPrimary: "text-gray-700",
-    }}
-    isDark={false}
-  />
+  showExport={showExport}
+  setShowExport={setShowExport}
+  handleCopy={() => onExport("copy")}
+  handlePrint={() => onExport("print")}
+  handlePDF={() => onExport("pdf")}
+  handleCSV={() => onExport("csv")}
+  border="border-gray-200"
+  t={{
+    cardBg: "bg-white",
+    textPrimary: "text-gray-700",
+  }}
+  isDark={false}
+/>
 </div>
         <Button className="bg-[#E12729] hover:bg-[#E12729] cursor-pointer" onClick={onAddTask}>
           + Add Task

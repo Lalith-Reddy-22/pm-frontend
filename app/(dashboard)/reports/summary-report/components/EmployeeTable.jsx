@@ -53,6 +53,23 @@ export default function EmployeeTable({
     );
   }
 
+  console.log(
+  "EMPLOYEE TABLE ROWS:",
+  rows.map((row, index) => ({
+    index,
+    id: row.id,
+    name: row.name,
+    emp_ID: row.emp_ID,
+    Emp_ID: row.Emp_ID,
+  }))
+);
+
+const duplicateIds = rows
+  .map((row) => row.id)
+  .filter((id, index, arr) => arr.indexOf(id) !== index);
+
+console.log("DUPLICATE IDS IN EMPLOYEE TABLE:", duplicateIds);
+
   return (
     <div className="overflow-auto relative max-h-[60vh] sm:max-h-[70vh] lg:max-h-[70vh] custom-scrollbar">
       <table className="w-full caption-bottom text-sm min-w-full">
@@ -86,7 +103,10 @@ export default function EmployeeTable({
             </TableRow>
           ) : (
             rows.map((row, idx) => (
-              <TableRow key={row.id ?? idx} className="group border-b border-border transition-colors hover:bg-accent/30">
+              <TableRow
+  key={row.id ?? idx}
+  className="group border-b border-border transition-colors hover:bg-accent/30"
+>
                 <TableCell className="px-6 py-3 text-center text-sm text-foreground w-12">
                   <button
   type="button"

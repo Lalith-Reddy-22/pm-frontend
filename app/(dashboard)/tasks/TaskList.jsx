@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
+import { format } from "date-fns";
 import {
   rescheduleTask,
   deleteTask,
@@ -12,6 +13,7 @@ import RescheduleModal from "./components/RescheduleModal";
 import TaskToolbar from "./components/TaskToolbar";
 import TaskTable from "./components/TaskTable";
 import AddTaskDrawer from "./components/AddTaskDrawer";
+import { exportFile } from "@/store/slices/exportSlice";
 
 export default function TaskList({
   tasks = [],
@@ -199,6 +201,44 @@ async function handleDeleteTask(task) {
   }
 }
 
+const handleExport = async (exportFormat = "csv") => {
+  try {
+    const exportData = tasks.map((task) => ({
+      taskTitle: task.title || "",
+      projectCode: task.projectCode || "",
+      projectTitle: task.projectTitle || "",
+      priority: task.priority || "",
+      startDate: task.startDate || "",
+      endDate: task.endDate || "",
+      employees: Array.isArray(task.employees)
+        ? task.employees.join(", ")
+        : task.employees || "",
+    }));
+
+    await dispatch(
+  exportFile({
+    fileName: `task-list-${format(
+      new Date(),
+      "yyyy-MM-dd-HHmmss"
+    )}`,
+    format: exportFormat,
+    columns: [
+      { key: "taskTitle", header: "Task Title" },
+      { key: "projectCode", header: "Project Code" },
+      { key: "projectTitle", header: "Project Title" },
+      { key: "priority", header: "Priority" },
+      { key: "startDate", header: "Start Date" },
+      { key: "endDate", header: "End Date" },
+      { key: "employees", header: "Employees" },
+    ],
+    data: exportData,
+  })
+).unwrap();
+  } catch (error) {
+    console.error("TASK EXPORT ERROR:", error);
+  }
+};
+
   // --------------------------------------------------
   // Local state for Project-wise Task page
   // --------------------------------------------------
@@ -220,6 +260,11 @@ async function handleDeleteTask(task) {
     externalSetDateRange ?? setLocalDateRange;
 
     const filteredTasks = tasks;
+
+    console.log("TASKS RECEIVED BY TASK LIST:", tasks);
+console.log("FIRST TASK:", tasks?.[0]);
+console.log("FIRST TASK PROJECT ID:", tasks?.[0]?.projectId);
+console.log("FIRST TASK PROJECT_ID:", tasks?.[0]?.project_ID);
 
   return (
     <div className="space-y-4 p-4 sm:p-6">
@@ -244,6 +289,7 @@ async function handleDeleteTask(task) {
   dateRange={dateRange}
   setDateRange={setDateRange}
   onAddTask={() => setOpenDrawer(true)}
+  onExport={handleExport}
 />
 
       </div>

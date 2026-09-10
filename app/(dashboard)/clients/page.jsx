@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useTheme } from "../../context/ThemeContext";
 import ClientTile from "../../components/ClientTile";
 import axiosClient from "@/services/axiosClient";
-import { useRouter } from "next/navigation";
 
 export default function ClientsPage() {
   const { t } = useTheme();
@@ -12,7 +11,6 @@ export default function ClientsPage() {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const router = useRouter();
 
   useEffect(() => {
     fetchClients();
@@ -71,14 +69,11 @@ export default function ClientsPage() {
     <div className="p-6">
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
         {clients.map((client) => (
-  <ClientTile
-    key={client.client_Id}
-    name={client.client_Title?.trim()}
-    onClick={() => {
-      router.push(`/clients/${client.client_Id}`);
-    }}
-  />
-))}
+          <ClientTile
+            key={client.client_Id}
+            name={client.client_Title?.trim()}
+          />
+        ))}
       </div>
 
       {clients.length === 0 && (

@@ -18,7 +18,7 @@ const TEAM_IDS = {
   Creative:  2,
   Content:   3,
   PM:        4,
-  Editorial: null, // no teamId assigned yet
+  Editorial: 9, 
 };
 
 export default function Page() {

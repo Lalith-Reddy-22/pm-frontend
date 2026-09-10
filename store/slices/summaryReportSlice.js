@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import axiosClient from "@/services/axiosClient";
 import {
   getProjectsDropdown,
   getTaskList,
@@ -14,15 +15,14 @@ export const fetchProjectsDropdown = createAsyncThunk(
       console.log("PROJECT API DATA:", data);
       return data;
     } catch (error) {
-      console.error("PROJECT API ERROR:", error);
-
-      return rejectWithValue(
-        error.response?.data?.message ||
-          error.response?.data?.title ||
-          error.message ||
-          "Failed to load projects."
-      );
-    }
+  return rejectWithValue(
+    error.response?.data?.message ||
+      error.response?.data?.title ||
+      error.response?.data ||
+      error.message ||
+      "Failed to fetch employee task details"
+  );
+}
   }
 );
 
@@ -43,7 +43,6 @@ export const fetchTaskList = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      console.log("CALLING TASK LIST API");
 
       const data = await getTaskList({
         empId,
@@ -55,37 +54,15 @@ export const fetchTaskList = createAsyncThunk(
         pageNumber,
         pageSize,
       });
-
-      console.log("TASK LIST API DATA:", data);
-
       return data;
     } catch (error) {
-      if ([401, 404, 503].includes(error.response?.status)) {
-        const fallbackResponse = await axiosClient.get("/Task", {
-          params: {
-            empId,
-            userType: empType,
-            startDate,
-            endDate,
-            projectId,
-            searchText,
-            pageNumber,
-            pageSize,
-          },
-        });
-
-        return fallbackResponse.data;
-      }
-
-      console.error("TASK LIST API ERROR:", error);
-
-      return rejectWithValue(
-        error.response?.data?.message ||
-          error.response?.data?.title ||
-          error.message ||
-          "Failed to load task list."
-      );
-    }
+  return rejectWithValue(
+    error.response?.data?.message ||
+      error.response?.data?.title ||
+      error.message ||
+      "Failed to load task list."
+  );
+}
   }
 );
 
@@ -100,14 +77,8 @@ export const fetchEmployeeList = createAsyncThunk(
       const response = await axiosClient.get(
         "/api/v1/Reports/employee-list"
       );
-
-      console.log("EMPLOYEE LIST API RESPONSE:", response);
-      console.log("EMPLOYEE LIST API DATA:", response.data);
-
       return response.data;
     } catch (error) {
-      console.error("EMPLOYEE LIST API ERROR:", error);
-
       return rejectWithValue(
         error.response?.data || error.message
       );
@@ -132,12 +103,8 @@ export const fetchProjectList = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      console.log("========== PROJECT LIST API ==========");
-      console.log("empId:", empId);
-      console.log("empType:", empType);
-      console.log("searchText:", searchText);
-      console.log("pageNumber:", pageNumber);
-      console.log("pageSize:", pageSize);
+
+      const startTime = performance.now();
 
       const response = await axiosClient.get(
         "/Reports/project-list",
@@ -152,20 +119,14 @@ export const fetchProjectList = createAsyncThunk(
         }
       );
 
-      console.log("PROJECT LIST API RESPONSE:", response);
-      console.log("PROJECT LIST API DATA:", response.data);
-
+      const endTime = performance.now();
       return response.data;
     } catch (error) {
-      console.error("PROJECT LIST API ERROR:", error);
-      console.error("STATUS:", error.response?.status);
-      console.error("DATA:", error.response?.data);
-      console.error("PARAMS:", error.config?.params);
 
       return rejectWithValue(
         error.response?.data ||
-        error.message ||
-        "Failed to fetch project list"
+          error.message ||
+          "Failed to fetch project list"
       );
     }
   }
@@ -177,73 +138,34 @@ export const fetchEmployeeTaskDetails = createAsyncThunk(
   async (
     {
       employeeId,
-      startDate,
-      endDate,
+      searchText = "",
       pageNumber = 1,
       pageSize = 5,
     },
     { rejectWithValue }
   ) => {
     try {
-      console.log("CALLING EMPLOYEE TASK DETAILS API");
-
-      const formatRequestDate = (value) => {
-        if (!value) return "";
-
-        const date = value instanceof Date ? value : new Date(value);
-
-        if (isNaN(date.getTime())) return "";
-
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const day = String(date.getDate()).padStart(2, "0");
-
-        return `${year}/${month}/${day}`;
-      };
-
-      const requestStartDate = formatRequestDate(startDate);
-      const requestEndDate = formatRequestDate(endDate);
-
-      console.log("EMPLOYEE ID:", employeeId);
-      console.log("START DATE:", requestStartDate);
-      console.log("END DATE:", requestEndDate);
-      console.log("PAGE:", pageNumber);
-      console.log("PAGE SIZE:", pageSize);
 
       const response = await axiosClient.get(
         "/Reports/emp-task-details",
         {
           params: {
             employeeId: Number(employeeId),
-            startDate: requestStartDate,
-            endDate: requestEndDate,
+            searchText,
             pageNumber,
             pageSize,
           },
         }
       );
 
-      console.log(
-        "EMPLOYEE TASK DETAILS API RESPONSE:",
-        response
-      );
-
-      console.log(
-        "EMPLOYEE TASK DETAILS API DATA:",
-        response.data
-      );
 
       return response.data;
-    } catch (error) {
-      console.error(
-        "EMPLOYEE TASK DETAILS API ERROR:",
-        error
-      );
 
+    } catch (error) {
       return rejectWithValue(
         error.response?.data ||
-          error.message ||
-          "Failed to fetch employee task details"
+        error.message ||
+        "Failed to fetch employee task details"
       );
     }
   }
@@ -266,10 +188,17 @@ export const fetchProjectTaskDetails = createAsyncThunk(
     try {
       const response = await axiosClient.get(
         "/Reports/project-task-details",
-        { params: { projectId, startDate, endDate } }
+        {
+          params: {
+            projectId,
+            startDate,
+            endDate,
+          },
+        }
       );
 
-      return response.data?.data ?? response.data ?? [];
+      return tasks;
+
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message ||
@@ -280,7 +209,6 @@ export const fetchProjectTaskDetails = createAsyncThunk(
     }
   }
 );
-
 // ======================================================
 // INITIAL STATE
 // ======================================================
@@ -503,31 +431,87 @@ const summaryReportSlice = createSlice({
       })
 
       .addCase(fetchEmployeeTaskDetails.fulfilled, (state, action) => {
-        state.employeeTaskDetailsLoading = false;
+  state.employeeTaskDetailsLoading = false;
 
-        const payload = action.payload;
-        const records = Array.isArray(payload)
-          ? payload
-          : payload?.data ?? payload?.tasks ?? payload?.items ?? [];
+  const payload = action.payload;
 
-        state.employeeTaskDetails = records.map((task, index) => ({
-          id: task.id ?? task.task_Id ?? task.task_ID ?? index,
-          title: task.title ?? task.task_Title ?? task.taskTitle ?? "",
-          start:
-            task.start ??
-            task.start_Date_Formatted ??
-            task.startDate ??
-            "",
-          end:
-            task.end ??
-            task.end_Date_Formatted ??
-            task.endDate ??
-            "",
-          actual: task.actual ?? task.actualHours ?? task.logHours ?? 0,
-          planned: task.planned ?? task.plannedHours ?? task.planneHours ?? 0,
-          tasks: task.tasks ?? task.task_Count ?? "",
-        }));
-      })
+  // API may return either an array or paginated object
+  const records = Array.isArray(payload)
+    ? payload
+    : payload?.data ??
+      payload?.tasks ??
+      payload?.items ??
+      [];
+
+  state.employeeTaskDetails = records.map((task, index) => ({
+    id:
+      task.id ??
+      task.taskId ??
+      task.task_ID ??
+      task.task_Id ??
+      task.task_id ??
+      index,
+
+    title:
+      task.title ??
+      task.taskTitle ??
+      task.task_Title ??
+      task.Task_Title ??
+      "",
+
+    start:
+      task.start ??
+      task.startDate ??
+      task.start_Date ??
+      task.StartDate ??
+      task.start_Date_Formatted ??
+      "",
+
+    end:
+      task.end ??
+      task.endDate ??
+      task.end_Date ??
+      task.EndDate ??
+      task.end_Date_Formatted ??
+      "",
+
+    actual:
+      task.actual ??
+      task.actualHours ??
+      task.ActualHours ??
+      task.logHours ??
+      0,
+
+    planned:
+      task.planned ??
+      task.plannedHours ??
+      task.PlannedHours ??
+      task.Planned_hours ??
+      task.planneHours ??
+      0,
+
+    tasks:
+      task.tasks ??
+      task.taskCount ??
+      task.task_Count ??
+      "",
+  }));
+
+  // Total records from backend
+  state.employeeTaskDetailsTotal =
+    payload?.totalCount ??
+    payload?.totalRecords ??
+    payload?.totalItems ??
+    records.length;
+
+  // Total pages from backend
+  state.employeeTaskDetailsTotalPages =
+    payload?.totalPages ??
+    Math.ceil(
+      state.employeeTaskDetailsTotal /
+        (payload?.pageSize ?? 5)
+    );
+})
 
       .addCase(fetchEmployeeTaskDetails.rejected, (state, action) => {
         state.employeeTaskDetailsLoading = false;

@@ -120,17 +120,17 @@ useEffect(() => {
             <button
               type="button"
               onClick={() => router.back()}
-              className="flex h-10 w-10 items-center justify-center rounded-lg border bg-white hover:bg-gray-50"
+              className="flex  items-center justify-center text-[#E12729]"
             >
               <ArrowLeft size={19} />
             </button>
 
             <div>
-              <h1 className="text-xl font-semibold text-gray-900">
+              <h1 className="text-lg font-semibold text-[#E12729]">
                 Employee Rate Card
               </h1>
 
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-[#E12729]">
                 Employee ID: {empId}
               </p>
             </div>

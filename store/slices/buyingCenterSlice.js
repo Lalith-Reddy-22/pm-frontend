@@ -13,9 +13,6 @@ export const fetchBuyingCenters = createAsyncThunk(
       const response = await axiosClient.get(
         "/finance-rate-card/buying-centers"
       );
-
-      console.log("BUYING CENTERS RESPONSE:", response.data);
-
       return response.data;
     } catch (error) {
       console.error(

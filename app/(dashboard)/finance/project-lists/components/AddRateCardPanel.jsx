@@ -75,6 +75,16 @@ export default function AddRateCardPanel({ onClose }) {
       const bcName  = data?.buyingCenterName ?? "";
       const empList = data?.employees ?? [];
 
+      console.log("RATE CARD EMPLOYEE LIST:", empList);
+
+const duplicateEmpIds = empList
+  .map((e) => e.emp_Id)
+  .filter(
+    (id, index, arr) => arr.indexOf(id) !== index
+  );
+
+console.log("DUPLICATE EMP IDS:", duplicateEmpIds);
+
       setBuyingCenter(bcName);
 
       if (empList.length > 0) {
@@ -171,7 +181,7 @@ export default function AddRateCardPanel({ onClose }) {
     const basePayload = {
       buying_CenterName: buyingCenter,
       userId,
-      action: "string",
+      action: "edit",
     };
 
     setSaving(true);
@@ -414,7 +424,7 @@ export default function AddRateCardPanel({ onClose }) {
             className="bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white rounded-lg px-4 py-1.5 text-sm font-medium transition-colors flex items-center gap-2"
           >
             {saving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-            {saving ? "Saving…" : "Add"}
+            {saving ? "Saving…" : "Save"}
           </button>
         </div>
       </div>

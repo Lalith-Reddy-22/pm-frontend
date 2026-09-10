@@ -17,6 +17,7 @@ export default function ProjectToolbar({
   setPage,
   view,
   setView,
+  onExport,
 }) {
   const router = useRouter();
   const [role, setRole] = useState("admin");
@@ -55,19 +56,19 @@ export default function ProjectToolbar({
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative">
   <ExportDropdown
-    showExport={showExport}
-    setShowExport={setShowExport}
-    handleCopy={() => console.log("Copy")}
-    handlePrint={() => window.print()}
-    handlePDF={() => console.log("Export PDF")}
-    handleCSV={() => console.log("Export CSV")}
-    border="border-gray-200"
-    t={{
-      cardBg: "bg-white",
-      textPrimary: "text-gray-700",
-    }}
-    isDark={false}
-  />
+  showExport={showExport}
+  setShowExport={setShowExport}
+  handleCopy={() => onExport("copy")}
+  handlePrint={() => onExport("print")}
+  handlePDF={() => onExport("pdf")}
+  handleCSV={() => onExport("csv")}
+  border="border-gray-200"
+  t={{
+    cardBg: "bg-white",
+    textPrimary: "text-gray-700",
+  }}
+  isDark={false}
+/>
 </div>
 
         {role !== "pm_employee" && (

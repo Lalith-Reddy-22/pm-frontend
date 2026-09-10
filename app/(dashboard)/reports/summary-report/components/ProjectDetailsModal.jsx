@@ -1,141 +1,177 @@
 "use client";
 
 import { X } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import DataPagination from "@/components/DataPagination";
 
 export default function ProjectDetailsModal({
   open,
-  onOpenChange,
+  onClose,
   project,
+  tasks = [],
+  loading = false,
 }) {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  if (!open || !project) return null;
+  // ---------------------------------------------
+  // SEARCH
+  // ---------------------------------------------
+ const filteredTasks = useMemo(() => {
+  const searchText = search.trim().toLowerCase();
 
-  // Temporary data
-  const tasks = [
-    {
-      taskId: 10586,
-      taskTitle: "Learning and Upskilling Frontend Team",
-      employee: "Bharathkumar",
-      startDate: "21/03/24",
-      endDate: "31/12/26",
-      planned: 8,
-      actual: 6,
-      status: "In Progress",
-    },
-    {
-      taskId: 10587,
-      taskTitle: "Backend API Development",
-      employee: "Stalin Blazy",
-      startDate: "22/03/24",
-      endDate: "05/04/24",
-      planned: 6,
-      actual: 4,
-      status: "Pending",
-    },
-  ];
+  if (!searchText) {
+    return tasks;
+  }
+
+  return tasks.filter((task) => {
+    return (
+      String(task.taskId ?? "")
+        .toLowerCase()
+        .includes(searchText) ||
+
+      String(task.taskTitle ?? "")
+        .toLowerCase()
+        .includes(searchText) ||
+
+      String(task.employee ?? "")
+        .toLowerCase()
+        .includes(searchText) ||
+
+      String(task.startDate ?? "")
+        .toLowerCase()
+        .includes(searchText) ||
+
+      String(task.endDate ?? "")
+        .toLowerCase()
+        .includes(searchText) ||
+
+      String(task.status ?? "")
+        .toLowerCase()
+        .includes(searchText)
+    );
+  });
+}, [tasks, search]);
+
+  // ---------------------------------------------
+  // PAGINATION
+  // ---------------------------------------------
+  const total = filteredTasks.length;
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(total / pageSize)
+  );
+
+  const currentPage = Math.min(page, totalPages);
+
+  const startIndex = (currentPage - 1) * pageSize;
+
+  const paginatedTasks = filteredTasks.slice(
+    startIndex,
+    startIndex + pageSize
+  );
+
+  // ---------------------------------------------
+  // SEARCH CHANGE
+  // ---------------------------------------------
+  const handleSearchChange = (e) => {
+    setSearch(e.target.value);
+    setPage(1);
+  };
+
+  // ---------------------------------------------
+  // PAGE SIZE CHANGE
+  // ---------------------------------------------
+  const handlePageSizeChange = (e) => {
+    setPageSize(Number(e.target.value));
+    setPage(1);
+  };
+
+  // ---------------------------------------------
+  // EARLY RETURN MUST BE AFTER ALL HOOKS
+  // ---------------------------------------------
+  if (!open || !project) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-6">
-
       <div className="flex h-[85vh] w-full max-w-7xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
 
         {/* Header */}
         <div className="flex items-start justify-between border-b px-6 py-5">
-
           <div>
-            {/* <h2 className="text-2xl font-semibold">
-              {project.projectTitle}
-            </h2> */}
-
             <div className="mt-2 flex gap-8 text-sm text-muted-foreground">
               <span>
-                <strong>Project Code:</strong> {project.projectCode}
+                <strong>Project Code:</strong>{" "}
+                {project.projectCode || "—"}
               </span>
 
               <span>
-                <strong>Total Tasks:</strong> {tasks.length}
+                <strong>Total Tasks:</strong>{" "}
+                {tasks.length}
               </span>
             </div>
           </div>
 
           <button
-            onClick={() => onOpenChange(false)}
+            onClick={onClose}
             className="rounded-lg border p-2 hover:bg-muted"
           >
             <X size={18} />
           </button>
-
         </div>
 
         {/* Toolbar */}
         <div className="flex items-center justify-between border-b px-6 py-4">
-
           <div className="flex items-center gap-2">
-
             <label className="text-sm">
               Search:
             </label>
 
             <input
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={handleSearchChange}
               className="h-10 w-72 rounded-md border px-3 outline-none"
               placeholder="Task title..."
             />
-
           </div>
 
           <div className="flex items-center gap-5">
-
             <div className="flex items-center gap-2">
-
               <span className="text-sm">
                 Show
               </span>
 
               <select
                 value={pageSize}
-                onChange={(e) =>
-                  setPageSize(Number(e.target.value))
-                }
+                onChange={handlePageSizeChange}
                 className="h-10 rounded-md border px-3"
               >
-                <option>10</option>
-                <option>25</option>
-                <option>50</option>
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
               </select>
 
               <span className="text-sm">
                 entries
               </span>
-
             </div>
 
-            <button className="rounded-md border px-4 py-2 hover:bg-muted">
+            {/* <button className="rounded-md border px-4 py-2 hover:bg-muted">
               Export
-            </button>
-
+            </button> */}
           </div>
-
         </div>
 
         {/* Table */}
         <div className="flex-1 overflow-auto">
-
           <table className="w-full border-collapse">
-
-            <thead className="sticky top-0 bg-white z-10">
-
+            <thead className="sticky top-0 z-10 bg-white">
               <tr className="border-b bg-muted/40 text-left">
-
                 <th className="px-4 py-3">Task ID</th>
 
-                <th className="px-4 py-3 min-w-[320px]">
+                <th className="min-w-[320px] px-4 py-3">
                   Task Title
                 </th>
 
@@ -162,89 +198,90 @@ export default function ProjectDetailsModal({
                 <th className="px-4 py-3">
                   Status
                 </th>
-
               </tr>
-
             </thead>
 
             <tbody>
+              {paginatedTasks.length > 0 ? (
+                paginatedTasks.map((task, index) => (
+                  <tr
+                    key={
+                      task.taskId ??
+                      `${task.taskTitle}-${index}`
+                    }
+                    className="border-b hover:bg-muted/20"
+                  >
+                    <td className="px-4 py-3">
+                      {task.taskId ?? "—"}
+                    </td>
 
-              {tasks.map((task) => (
+                    <td className="px-4 py-3">
+                      {task.taskTitle || "—"}
+                    </td>
 
-                <tr
-                  key={task.taskId}
-                  className="border-b hover:bg-muted/20"
-                >
+                    <td className="px-4 py-3">
+                      {task.employee || "—"}
+                    </td>
 
-                  <td className="px-4 py-3">
-                    {task.taskId}
+                    <td className="px-4 py-3">
+                      {task.startDate || "—"}
+                    </td>
+
+                    <td className="px-4 py-3">
+                      {task.endDate || "—"}
+                    </td>
+
+                    <td className="px-4 py-3 text-center">
+                      {task.planned ?? "—"}
+                    </td>
+
+                    <td className="px-4 py-3 text-center">
+                      {task.actual ?? "—"}
+                    </td>
+
+                    <td className="px-4 py-3">
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-medium ${
+                          task.status === "Completed"
+                            ? "bg-green-100 text-green-700"
+                            : task.status === "In Progress"
+                            ? "bg-yellow-100 text-yellow-700"
+                            : "bg-red-100 text-red-700"
+                        }`}
+                      >
+                        {task.status || "—"}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={8}
+                    className="px-4 py-10 text-center text-sm text-muted-foreground"
+                  >
+                    {search
+                      ? "No tasks found for your search."
+                      : "No tasks found."}
                   </td>
-
-                  <td className="px-4 py-3">
-                    {task.taskTitle}
-                  </td>
-
-                  <td className="px-4 py-3">
-                    {task.employee}
-                  </td>
-
-                  <td className="px-4 py-3">
-                    {task.startDate}
-                  </td>
-
-                  <td className="px-4 py-3">
-                    {task.endDate}
-                  </td>
-
-                  <td className="px-4 py-3 text-center">
-                    {task.planned}
-                  </td>
-
-                  <td className="px-4 py-3 text-center">
-                    {task.actual}
-                  </td>
-
-                  <td className="px-4 py-3">
-
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-medium ${
-                        task.status === "Completed"
-                          ? "bg-green-100 text-green-700"
-                          : task.status === "In Progress"
-                          ? "bg-yellow-100 text-yellow-700"
-                          : "bg-red-100 text-red-700"
-                      }`}
-                    >
-                      {task.status}
-                    </span>
-
-                  </td>
-
                 </tr>
-
-              ))}
-
+              )}
             </tbody>
-
           </table>
-
         </div>
 
         {/* Footer */}
         <div className="border-t px-6 py-4">
-
           <DataPagination
-            page={page}
+            page={currentPage}
             setPage={setPage}
             pageSize={pageSize}
-            total={tasks.length}
-            totalPages={1}
+            total={total}
+            totalPages={totalPages}
           />
-
         </div>
 
       </div>
-
     </div>
   );
 }

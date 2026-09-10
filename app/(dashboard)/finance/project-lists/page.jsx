@@ -44,20 +44,20 @@ export default function ProjectListsPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => router.push("/project/add-project")}
-            className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition-colors duration-150"
+            className="flex items-center gap-1.5 bg-white  text-red-400 text-sm font-medium px-3 py-1.5 rounded-md transition-colors duration-150 border border-red-400 hover:bg-red-50"
           >
             <span className="text-base leading-none">+</span> Project
           </button>
           <button
             onClick={() => setShowRateCard(true)}
-            className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition-colors duration-150"
+            className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-3 py-1.5 rounded-md transition-colors duration-150"
           >
             <span className="text-base leading-none">+</span> Rate Card
           </button>
         </div>
       </div>
 
-      <div className="p-6 flex-1 overflow-hidden">
+      <div className="p-4 flex-1 overflow-hidden">
         {isError ? (
           <div className="flex items-center justify-center h-full">
             <p className="text-sm text-red-500">Failed to load projects. Please try again.</p>
