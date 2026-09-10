@@ -22,11 +22,16 @@ export const login = createAsyncThunk(
         error.response?.data ?? error.message
       );
 
+      // Always show a friendly message for bad credentials
+      if (error.response?.status === 401) {
+        return rejectWithValue("Invalid credentials.");
+      }
+
       return rejectWithValue(
         error.response?.data?.message ||
           error.response?.data?.title ||
           error.message ||
-          "Invalid email or password."
+          "Invalid credentials."
       );
     }
   }
@@ -153,6 +158,9 @@ const authSlice = createSlice({
   initialState,
 
   reducers: {
+    clearError: (state) => {
+      state.error = null;
+    },
     logout: (state) => {
       state.user = null;
       state.accessToken = null;
@@ -370,6 +378,6 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout } = authSlice.actions;
+export const { clearError, logout } = authSlice.actions;
 
 export default authSlice.reducer;

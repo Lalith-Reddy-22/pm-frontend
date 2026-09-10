@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Eye, EyeOff, Lock, User } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import { login, forgotPassword, verifyOtp, resetPassword } from "@/store/slices/authSlice";
+import { login, forgotPassword, verifyOtp, resetPassword, clearError } from "@/store/slices/authSlice";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -58,9 +58,6 @@ const [confirmPassword, setConfirmPassword] = useState("");
   if (login.fulfilled.match(result)) {
     const data = result.payload;
 
-    // Store authentication information
-    
-
     const roleMap = {
       1: "admin",
       2: "pm",
@@ -70,9 +67,10 @@ const [confirmPassword, setConfirmPassword] = useState("");
       6: "management_admin",
     };
 
-    const role =
-      roleMap[data.user_Type] || "employee";
+    const role = roleMap[data.user_Type] || "employee";
 
+    // Clear any stale role from a previous session before writing the new one
+    sessionStorage.removeItem("role");
     sessionStorage.setItem("role", role);
 
     if (

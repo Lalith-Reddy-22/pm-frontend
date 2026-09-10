@@ -47,9 +47,12 @@ console.log(
 axiosClient.interceptors.response.use(
   (response) => response,
   async (error) => {
+    const isLoginRequest = error.config?.url?.includes("/auth/login");
+
     if (
       typeof window !== "undefined" &&
-      error.response?.status === 401
+      error.response?.status === 401 &&
+      !isLoginRequest
     ) {
       const { store } = await import("@/store/store");
       const { logout } = await import("@/store/slices/authSlice");
