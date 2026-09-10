@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useSelector, useDispatch } from "react-redux";
 import { ArrowLeft, Briefcase, DollarSign, BarChart2, TrendingDown, PieChart, Search } from "lucide-react";
@@ -63,7 +63,7 @@ const STATUS_OPTIONS = [
 
 const fmtPct = (n) => `${n >= 0 ? "" : "-"}${Math.abs(n).toFixed(2)}%`;
 
-export default function ClientProjectsPage() {
+function ClientProjectsPageInner() {
   const { t, isDark } = useTheme();
   const router        = useRouter();
   const { clientId }  = useParams();
@@ -277,5 +277,13 @@ export default function ClientProjectsPage() {
         />
       </Card>
     </div>
+  );
+}
+
+export default function ClientProjectsPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-center text-gray-500">Loading...</div>}>
+      <ClientProjectsPageInner />
+    </Suspense>
   );
 }

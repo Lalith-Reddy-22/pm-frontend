@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useSearchParams } from "next/navigation";
 
 import { fetchProjectById } from "@/store/slices/projectSlice";
 import AddProject from "@/app/components/AddProject";
 
-export default function AddProjectPage() {
+function AddProjectPageInner() {
   const dispatch = useDispatch();
 
   // Get query parameters from URL
@@ -47,5 +47,13 @@ export default function AddProjectPage() {
       projectDetailsLoading={projectDetailsLoading}
       projectDetailsError={projectDetailsError}
     />
+  );
+}
+
+export default function AddProjectPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-center text-gray-500">Loading...</div>}>
+      <AddProjectPageInner />
+    </Suspense>
   );
 }
