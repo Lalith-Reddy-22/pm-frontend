@@ -100,7 +100,7 @@ export default function CustomSelect({
         onClick={() => setOpen((prev) => !prev)}
         className="flex h-8 w-full items-center justify-between rounded-md border border-gray-300 bg-white px-3 text-sm transition hover:border-[#E12729] focus:outline-none focus:ring-2 focus:ring-[#E12729]/20"
       >
-        <span className={selectedItem ? "text-gray-900" : "text-gray-400"}>
+        <span className={selectedItem && selectedItem.id !== "" ? "text-gray-900" : "text-gray-400"}>
           {selectedItem
             ? selectedItem.name ?? selectedItem.label
             : placeholder}

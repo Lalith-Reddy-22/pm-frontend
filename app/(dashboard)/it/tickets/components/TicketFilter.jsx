@@ -1,161 +1,79 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTheme } from "../../../../context/ThemeContext";
 import CustomSelect from "@/components/ui/CustomSelect";
+import { api } from "@/lib/api";
 
 export default function TicketFilters({
   role = "User",
   activeTab = "raise",
+  // filter values owned by parent
+  issueTypeId,
+  severityId,
+  statusId,
+  onIssueTypeChange,
+  onSeverityChange,
+  onStatusChange,
 }) {
   const { t } = useTheme();
 
-  const [filterValues, setFilterValues] = useState({
-    type: "",
-    priority: "",
-    status: "",
-    severity: "",
-    employee: "",
-    project: "",
-  });
+  // Dropdown options fetched from form-data API
+  const [issueTypes, setIssueTypes] = useState([]);
+  const [severities, setSeverities] = useState([]);
+  const [statuses,   setStatuses]   = useState([]);
 
-  // Dropdown Options
-  const typeOptions = [
-    { id: "bug", name: "Bug" },
-    { id: "feature", name: "Feature Request" },
-    { id: "support", name: "Support" },
-  ];
+  useEffect(() => {
+    api
+      .get("/api/v1/ticket/form-data")
+      .then((data) => {
+        setIssueTypes(
+          (data?.issueTypes ?? []).map((t) => ({ id: t.id, name: t.issue_Type }))
+        );
+        setSeverities(
+          (data?.severities ?? []).map((s) => ({ id: s.id, name: s.severity }))
+        );
+        setStatuses(
+          (data?.statuses ?? []).map((s) => ({ id: s.id, name: s.status }))
+        );
+      })
+      .catch(() => {});
+  }, []);
 
-  const priorityOptions = [
-    { id: "high", name: "High" },
-    { id: "medium", name: "Medium" },
-    { id: "low", name: "Low" },
-  ];
-
-  const statusOptions = [
-    { id: "open", name: "Open" },
-    { id: "inprogress", name: "In Progress" },
-    { id: "closed", name: "Closed" },
-  ];
-
-  const severityOptions = [
-    { id: "critical", name: "Critical" },
-    { id: "major", name: "Major" },
-    { id: "minor", name: "Minor" },
-  ];
-
-  const employeeOptions = [
-    { id: "1", name: "John Doe" },
-    { id: "2", name: "Jane Smith" },
-  ];
-
-  const projectOptions = [
-    { id: "1", name: "Project A" },
-    { id: "2", name: "Project B" },
-  ];
-
-  const sectionHeading =
-    role === "Admin" ? "" : "Issues Raised";
-
-  const updateFilter = (key, value) => {
-    setFilterValues((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
-  };
-
-  let filters = [];
-
-  if (role === "Admin") {
-    if (activeTab === "raise") {
-      filters = [
-        {
-          key: "type",
-          placeholder: "Select Type",
-          value: filterValues.type,
-          options: typeOptions,
-        },
-        {
-          key: "priority",
-          placeholder: "Select Priority",
-          value: filterValues.priority,
-          options: priorityOptions,
-        },
-        {
-          key: "status",
-          placeholder: "Select Status",
-          value: filterValues.status,
-          options: statusOptions,
-        },
-      ];
-    } else {
-      filters = [
-        {
-          key: "employee",
-          placeholder: "Select Employee",
-          value: filterValues.employee,
-          options: employeeOptions,
-        },
-        {
-          key: "project",
-          placeholder: "Select Project",
-          value: filterValues.project,
-          options: projectOptions,
-        },
-        {
-          key: "status",
-          placeholder: "Select Status",
-          value: filterValues.status,
-          options: statusOptions,
-        },
-      ];
-    }
-  } else {
-    filters = [
-      {
-        key: "type",
-        placeholder: "Select Type",
-        value: filterValues.type,
-        options: typeOptions,
-      },
-      {
-        key: "severity",
-        placeholder: "Select Severity",
-        value: filterValues.severity,
-        options: severityOptions,
-      },
-      {
-        key: "status",
-        placeholder: "Select Status",
-        value: filterValues.status,
-        options: statusOptions,
-      },
-    ];
-  }
+  // Prepend a clear option so users can reset each filter
+  const ALL_TYPES      = [{ id: "", name: "Select Type"      }, ...issueTypes];
+  const ALL_SEVERITIES = [{ id: "", name: "Select Priority" }, ...severities];
+  const ALL_STATUSES   = [{ id: "", name: "Select Status"   }, ...statuses];
 
   return (
     <div className="border-0">
-      {/* Filters */}
-      <div className="grid grid-cols-1 gap-6 px-6 py-4 md:grid-cols-3">
-        {filters.map((filter) => (
-          <CustomSelect
-            key={filter.key}
-            value={filter.value}
-            onChange={(value) => updateFilter(filter.key, value)}
-            options={filter.options}
-            placeholder={filter.placeholder}
-          />
-        ))}
-      </div>
+      <div className="grid grid-cols-1 gap-4 px-6 py-4 md:grid-cols-3">
 
-      {/* Section Title */}
-      {sectionHeading && (
-        <div className="px-6 pb-5">
-          <h3 className={`text-xl font-semibold ${t.textPrimary}`}>
-            {sectionHeading}
-          </h3>
-        </div>
-      )}
+        {/* Issue Type */}
+        <CustomSelect
+          value={issueTypeId}
+          onChange={onIssueTypeChange}
+          options={ALL_TYPES}
+          placeholder="Select Type"
+        />
+
+        {/* Severity */}
+        <CustomSelect
+          value={severityId}
+          onChange={onSeverityChange}
+          options={ALL_SEVERITIES}
+          placeholder="Select Severity"
+        />
+
+        {/* Status */}
+        <CustomSelect
+          value={statusId}
+          onChange={onStatusChange}
+          options={ALL_STATUSES}
+          placeholder="Select Status"
+        />
+
+      </div>
     </div>
   );
 }

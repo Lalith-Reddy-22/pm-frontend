@@ -15,7 +15,23 @@ const axiosClient = axios.create({
 axiosClient.interceptors.request.use(
   (config) => {
     if (typeof window !== "undefined") {
-      const token = sessionStorage.getItem("accessToken");
+      const token =
+        sessionStorage.getItem("accessToken") ||
+        sessionStorage.getItem("token") ||
+        localStorage.getItem("accessToken") ||
+        localStorage.getItem("token");
+       
+      console.log(
+  "ACCESS TOKEN EXISTS:",
+  !!token
+);
+
+console.log(
+  "TOKEN PREVIEW:",
+  token
+    ? `${token.substring(0, 20)}...`
+    : "NO TOKEN"
+);
 
       if (token) {
         config.headers = config.headers || {};
@@ -52,11 +68,12 @@ axiosClient.interceptors.response.use(
   (response) => response,
 
   async (error) => {
-    const originalRequest = error.config;
+    const isLoginRequest = error.config?.url?.includes("/auth/login");
 
     if (
-      typeof window === "undefined" ||
-      error.response?.status !== 401
+      typeof window !== "undefined" &&
+      error.response?.status === 401 &&
+      !isLoginRequest
     ) {
       return Promise.reject(error);
     }

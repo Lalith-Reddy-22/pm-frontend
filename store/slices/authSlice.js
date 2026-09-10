@@ -17,28 +17,22 @@ export const login = createAsyncThunk(
       const data = await loginUser(email, password);
       return data;
     } catch (error) {
-      console.error("========== LOGIN ERROR ==========");
-      console.error("STATUS:", error.response?.status);
-      console.error("URL:", error.config?.url);
-      console.error("RESPONSE:", error.response?.data);
-      console.error("ERROR:", error);
-      console.error("================================");
+      console.error(
+        "LOGIN ERROR:",
+        error.response?.data ?? error.message
+      );
 
-      const responseData = error.response?.data;
-
-      let message = "Invalid email or password.";
-
-      if (typeof responseData === "string") {
-        message = responseData;
-      } else if (responseData?.message) {
-        message = responseData.message;
-      } else if (responseData?.title) {
-        message = responseData.title;
-      } else if (error.message) {
-        message = error.message;
+      // Always show a friendly message for bad credentials
+      if (error.response?.status === 401) {
+        return rejectWithValue("Invalid credentials.");
       }
 
-      return rejectWithValue(message);
+      return rejectWithValue(
+        error.response?.data?.message ||
+          error.response?.data?.title ||
+          error.message ||
+          "Invalid credentials."
+      );
     }
   }
 );
@@ -164,6 +158,9 @@ const authSlice = createSlice({
   initialState,
 
   reducers: {
+    clearError: (state) => {
+      state.error = null;
+    },
     logout: (state) => {
       state.user = null;
       state.accessToken = null;
@@ -381,6 +378,6 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout } = authSlice.actions;
+export const { clearError, logout } = authSlice.actions;
 
 export default authSlice.reducer;

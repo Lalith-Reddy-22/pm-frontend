@@ -103,7 +103,10 @@ export default function TicketToolbar({
 </div>
 
         {activeTab === "raise" && (
-          <Button className="gap-2 bg-[#E12729] text-white text-sm hover:bg-[#c81f21] border-[#E12729]">
+          <Button
+            onClick={onCreate}
+            className="gap-2 bg-[#E12729] text-white text-sm hover:bg-[#c81f21] border-[#E12729]"
+          >
             <Plus size={18} />
             Create Issue
           </Button>
