@@ -197,11 +197,8 @@ export const fetchProjectTaskDetails = createAsyncThunk(
         }
       );
 
-      return tasks;
-
+      return response.data;
     } catch (error) {
-
-
       return rejectWithValue(
         error.response?.data?.message ||
           error.response?.data?.title ||
@@ -535,8 +532,61 @@ const summaryReportSlice = createSlice({
       .addCase(fetchProjectTaskDetails.fulfilled, (state, action) => {
         state.projectTaskDetailsLoading = false;
 
-        state.projectTaskDetails =
-          action.payload || [];
+        const payload = action.payload;
+        const records = Array.isArray(payload)
+          ? payload
+          : payload?.data ?? payload?.tasks ?? payload?.items ?? [];
+
+        state.projectTaskDetails = records.map((task, index) => ({
+          taskId:
+            task.taskId ??
+            task.task_ID ??
+            task.Task_ID ??
+            task.id ??
+            index,
+          taskTitle:
+            task.taskTitle ??
+            task.task_Title ??
+            task.Task_Title ??
+            task.title ??
+            "",
+          employee:
+            task.employeeName ??
+            task.employee_Name ??
+            task.Employee_Name ??
+            task.employee ??
+            task.assignee ??
+            "",
+          startDate:
+            task.startDate ??
+            task.StartDate ??
+            task.start_Date ??
+            task.start ??
+            "",
+          endDate:
+            task.endDate ??
+            task.EndDate ??
+            task.end_Date ??
+            task.end ??
+            "",
+          planned:
+            task.plannedHours ??
+            task.planned_Hours ??
+            task.PlannedHours ??
+            task.planned ??
+            0,
+          actual:
+            task.actualHours ??
+            task.actual_Hours ??
+            task.ActualHours ??
+            task.actual ??
+            0,
+          status:
+            task.status ??
+            task.taskStatus ??
+            task.Task_Status ??
+            "Not Started",
+        }));
       })
 
       .addCase(fetchProjectTaskDetails.rejected, (state, action) => {
