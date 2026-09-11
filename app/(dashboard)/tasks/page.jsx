@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -11,7 +11,7 @@ import {
   fetchEmployeeNames,
   deleteTask,
 } from "@/store/slices/taskSlice";
-export default function TasksPage() {
+function TasksPageInner() {
   const dispatch = useDispatch();
 
  const searchParams = useSearchParams();
@@ -317,5 +317,13 @@ console.log("========================================");
   search={search}
   setSearch={setSearch}
 />
+  );
+}
+
+export default function TasksPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-center text-gray-500">Loading...</div>}>
+      <TasksPageInner />
+    </Suspense>
   );
 }
