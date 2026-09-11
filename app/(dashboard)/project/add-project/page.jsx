@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useSearchParams } from "next/navigation";
 
@@ -8,6 +8,20 @@ import { fetchProjectById } from "@/store/slices/projectSlice";
 import AddProject from "@/app/components/AddProject";
 
 export default function AddProjectPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-6 text-sm text-muted-foreground">
+          Loading project form...
+        </div>
+      }
+    >
+      <AddProjectPageContent />
+    </Suspense>
+  );
+}
+
+function AddProjectPageContent() {
   const dispatch = useDispatch();
 
   // Get query parameters from URL

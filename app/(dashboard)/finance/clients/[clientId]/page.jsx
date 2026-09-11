@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { Suspense, useState, useEffect, useRef } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useSelector, useDispatch } from "react-redux";
 import { ArrowLeft, Briefcase, DollarSign, BarChart2, TrendingDown, PieChart, Search } from "lucide-react";
@@ -14,6 +14,20 @@ import {
   setSelectedYear,
 } from "@/store/slices/financeClientSlice";
 import { buildPageNumbers } from "@/lib/utils";
+
+export default function ClientProjectsPageWrapper() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-6 text-sm text-muted-foreground">
+          Loading client projects...
+        </div>
+      }
+    >
+      <ClientProjectsPage />
+    </Suspense>
+  );
+}
 
 function StatusBadge({ status, isDark }) {
   const map = isDark
@@ -63,7 +77,7 @@ const STATUS_OPTIONS = [
 
 const fmtPct = (n) => `${n >= 0 ? "" : "-"}${Math.abs(n).toFixed(2)}%`;
 
-export default function ClientProjectsPage() {
+function ClientProjectsPage() {
   const { t, isDark } = useTheme();
   const router        = useRouter();
   const { clientId }  = useParams();

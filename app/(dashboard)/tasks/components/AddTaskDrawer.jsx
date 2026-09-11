@@ -44,11 +44,61 @@ export default function AddTaskDrawer({ open, onClose }) {
     );
   }, [open, dispatch]);
 
+  const getProjectId = (project) =>
+    project?.project_ID ??
+    project?.projectId ??
+    project?.Project_ID ??
+    project?.project_Id ??
+    project?.Project_Id ??
+    project?.id ??
+    "";
+
+  const getProjectName = (project) =>
+    project?.project_Title ??
+    project?.projectTitle ??
+    project?.projectName ??
+    project?.Project_Title ??
+    project?.ProjectTitle ??
+    project?.ProjectName ??
+    project?.project_Name ??
+    project?.project_name ??
+    project?.Project_Name ??
+    project?.Project_name ??
+    project?.project_Title_Name ??
+    project?.title ??
+    project?.name ??
+    "";
+
+  const getClientName = (project) =>
+    project?.client_Title ??
+    project?.clientTitle ??
+    project?.clientName ??
+    project?.Client_Title ??
+    project?.ClientTitle ??
+    project?.ClientName ??
+    project?.client_Name ??
+    project?.client_name ??
+    project?.Client_Name ??
+    project?.Client_name ??
+    project?.client ??
+    "";
+
   // Convert API response to CustomSelect format
-  const projectOptions = projects.map((project) => ({
-    id: project.project_ID,
-    name: project.project_Title?.trim() || "",
-  }));
+  const projectOptions = projects.map((project) => {
+    const projectId = getProjectId(project);
+    const clientName = getClientName(project);
+    const projectName = getProjectName(project);
+
+    return {
+      id: String(projectId),
+      name:
+        [clientName, projectName]
+          .filter(Boolean)
+          .join(" - ") ||
+        projectName ||
+        "Unnamed project",
+    };
+  });
 
   const handleAddTask = () => {
     if (!selectedProject) {
@@ -56,11 +106,31 @@ export default function AddTaskDrawer({ open, onClose }) {
       return;
     }
 
+    const selectedProjectData = projects.find(
+      (project) =>
+        String(getProjectId(project)) === String(selectedProject)
+    );
+
+    const projectName = getProjectName(selectedProjectData) || "";
+    const clientName = getClientName(selectedProjectData) || "";
+
     onClose();
 
-    router.push(
-      `/tasks/create?projectId=${selectedProject}`
-    );
+    const params = new URLSearchParams({
+      projectId: String(selectedProject),
+    });
+
+    if (projectName) {
+      params.set("projectTitle", projectName);
+      params.set("projectName", projectName);
+    }
+
+    if (clientName) {
+      params.set("clientTitle", clientName);
+      params.set("clientName", clientName);
+    }
+
+    router.push(`/tasks/create?${params.toString()}`);
   };
 
   // Now it is safe to return

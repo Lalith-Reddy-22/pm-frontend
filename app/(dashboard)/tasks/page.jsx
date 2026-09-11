@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -11,10 +11,25 @@ import {
   fetchEmployeeNames,
   deleteTask,
 } from "@/store/slices/taskSlice";
+
 export default function TasksPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-6 text-sm text-muted-foreground">
+          Loading tasks...
+        </div>
+      }
+    >
+      <TasksPageContent />
+    </Suspense>
+  );
+}
+
+function TasksPageContent() {
   const dispatch = useDispatch();
 
- const searchParams = useSearchParams();
+  const searchParams = useSearchParams();
 
 const taskIdFromNotification =
   searchParams.get("taskId");

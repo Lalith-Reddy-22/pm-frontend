@@ -2,6 +2,31 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { getTasks, getTaskProjects } from "@/services/taskService";
 import axiosClient from "@/services/axiosClient";
 
+const getProjectTitle = (item = {}) =>
+  item.projectTitle ||
+  item.project_Title ||
+  item.projectName ||
+  item.project_Name ||
+  item.ProjectTitle ||
+  item.Project_Title ||
+  item.ProjectName ||
+  item.Project_Name ||
+  item.title ||
+  item.name ||
+  "";
+
+const getClientTitle = (item = {}) =>
+  item.clientTitle ||
+  item.client_Title ||
+  item.clientName ||
+  item.client_Name ||
+  item.ClientTitle ||
+  item.Client_Title ||
+  item.ClientName ||
+  item.Client_Name ||
+  item.client ||
+  "";
+
 export const fetchTasks = createAsyncThunk(
   "task/fetchTasks",
   async (params, { rejectWithValue }) => {
@@ -402,7 +427,6 @@ const taskSlice = createSlice({
     id: item.task_Id,
     title: item.task_Title || "",
 
-    // ADD THIS
     projectId: Number(
       item.projectId ??
       item.ProjectId ??
@@ -410,7 +434,7 @@ const taskSlice = createSlice({
       0
     ),
 
-    projectTitle: item.project_Title || "",
+    projectTitle: getProjectTitle(item),
     projectCode: item.projectCode || "",
     priority: item.tskpriority || "",
 
@@ -447,7 +471,22 @@ const taskSlice = createSlice({
   state.projectsLoading = false;
   state.projectsError = null;
 
-  state.projects = action.payload?.projects || [];
+  const payload = action.payload;
+  const list = Array.isArray(payload)
+    ? payload
+    : Array.isArray(payload?.projects)
+      ? payload.projects
+      : Array.isArray(payload?.data)
+        ? payload.data
+        : Array.isArray(payload?.data?.projects)
+          ? payload.data.projects
+          : Array.isArray(payload?.result)
+            ? payload.result
+            : Array.isArray(payload?.items)
+              ? payload.items
+              : [];
+
+  state.projects = list;
 })
 
     .addCase(fetchTaskProjects.rejected, (state, action) => {
@@ -554,13 +593,11 @@ const taskSlice = createSlice({
     priority: item.taskPriority || "",
 
     projectId: item.projectId,
-
-    // ADD THESE
     projectCode: item.projectCode || "",
-    projectTitle:
-      item.projectTitle ||
-      item.project_Title ||
-      "",
+    projectTitle: getProjectTitle(item),
+    projectName: getProjectTitle(item),
+    clientName: getClientTitle(item),
+    clientTitle: getClientTitle(item),
 
     empIds: item.empIds || "",
     startDate: item.startDate || "",

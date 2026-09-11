@@ -32,14 +32,23 @@ function fmtDate(iso) {
  * itemList can be comma-separated (e.g. "Samsung Tab S7, Ipad pro 5G, One plus R 5G").
  * We check the first item for the primary icon.
  */
-function iconFromItemList(itemList = "") {
-  const first = itemList.split(",")[0].toLowerCase();
+function iconFromItemList(itemList) {
+  const raw = Array.isArray(itemList)
+    ? itemList.join(",")
+    : String(itemList ?? "");
+
+  const first = raw.split(",")[0]?.trim().toLowerCase() || "";
+
   return faClassToLucide(
-    first.includes("ipad") || first.includes("tab")  ? "fa-tablet"  :
-    first.includes("iphone") || first.includes("phone") ? "fa-mobile" :
-    first.includes("laptop") || first.includes("macbook") ? "fa-laptop" :
-    first.includes("monitor") || first.includes("desktop") ? "fa-desktop" :
-    "fa-laptop"   // default
+    first.includes("ipad") || first.includes("tab")
+      ? "fa-tablet"
+      : first.includes("iphone") || first.includes("phone")
+        ? "fa-mobile"
+        : first.includes("laptop") || first.includes("macbook")
+          ? "fa-laptop"
+          : first.includes("monitor") || first.includes("desktop")
+            ? "fa-desktop"
+            : "fa-laptop"
   );
 }
 
@@ -47,11 +56,9 @@ function iconFromItemList(itemList = "") {
 
 export default function MyRequests() {
   const { t } = useTheme();
-  const [empId, setEmpId] = useState(null);
-
-  useEffect(() => {
-    setEmpId(sessionStorage.getItem("empId"));
-  }, []);
+  const [empId] = useState(() =>
+    typeof window !== "undefined" ? sessionStorage.getItem("empId") : null
+  );
 
   const { data: requests = [], isFetching, isError } = useMyAssetRequests({ empId });
 

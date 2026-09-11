@@ -39,6 +39,15 @@ function formatApiDate(date) {
   return `${year}-${month}-${day}`;
 }
 
+function toDateKey(date) {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 export default function TimesheetPage() {
   const dispatch = useDispatch();
 
@@ -69,8 +78,54 @@ const [commentText, setCommentText] = useState("");
     addDays(startOfWeek(new Date()), 4)
   );
 
-  // Local task data
-  const [data, setData] = useState([]);
+  const [localTaskEdits, setLocalTaskEdits] = useState({});
+
+  const data = useMemo(() => {
+    return (apiTasks || []).map((task) => {
+      const planned = {};
+      const actual = {};
+
+      (task.dates || []).forEach((date) => {
+        if (!date.allocated_Date) return;
+
+        const [month, day, year] = date.allocated_Date
+          .split("/")
+          .map(Number);
+
+        const allocatedDate = new Date(year, month - 1, day);
+        const dateKey = toDateKey(allocatedDate);
+
+        planned[dateKey] = Number(date.working_hours) || 0;
+        actual[dateKey] = Number(date.loghours) || 0;
+      });
+
+      const taskId = String(task.task_Id);
+      const taskEdits = localTaskEdits[taskId] || {};
+
+      if (taskEdits.planned) {
+        Object.entries(taskEdits.planned).forEach(([key, value]) => {
+          planned[key] = value;
+        });
+      }
+
+      if (taskEdits.actual) {
+        Object.entries(taskEdits.actual).forEach(([key, value]) => {
+          actual[key] = value;
+        });
+      }
+
+      return {
+        id: taskId,
+        title: task.task_Title || "",
+        owner: task.taskowner || "",
+        priority: task.tskpriority || "MEDIUM",
+        buyingCenterId: Number(task.buyingCenterId) || 0,
+        planned,
+        actual,
+        dates: task.dates || [],
+      };
+    });
+  }, [apiTasks, localTaskEdits]);
 
   const handleCommentSubmit = () => {
   if (!commentTask || !commentText.trim()) {
@@ -131,84 +186,20 @@ useEffect(() => {
 
 
 
-// Update local data when API data changes
-useEffect(() => {
-  const mappedData = (apiTasks || []).map((task) => {
-    const planned = {
-      mon: 0,
-      tue: 0,
-      wed: 0,
-      thu: 0,
-      fri: 0,
-    };
-
-    const actual = {
-      mon: 0,
-      tue: 0,
-      wed: 0,
-      thu: 0,
-      fri: 0,
-    };
-
-    (task.dates || []).forEach((date) => {
-      if (!date.allocated_Date) return;
-
-      const [month, day, year] = date.allocated_Date
-        .split("/")
-        .map(Number);
-
-      const allocatedDate = new Date(year, month - 1, day);
-
-      const dayMap = {
-        1: "mon",
-        2: "tue",
-        3: "wed",
-        4: "thu",
-        5: "fri",
-      };
-
-      const dayKey = dayMap[allocatedDate.getDay()];
-
-      
-
-      if (!dayKey) return;
-
-      planned[dayKey] =
-        Number(date.working_hours) || 0;
-
-      actual[dayKey] =
-        Number(date.loghours) || 0;
-    });
-
-    return {
-      id: String(task.task_Id),
-      title: task.task_Title || "",
-      owner: task.taskowner || "",
-      priority: task.tskpriority || "MEDIUM",
-      buyingCenterId: Number(task.buyingCenterId) || 0,
-
-      planned,
-      actual,
-
-      dates: task.dates || [],
-    };
-  });
-
-  console.log("MAPPED TIMESHEET DATA:", mappedData);
-
-  setData(mappedData);
-}, [apiTasks]);
-
   const { t, isDark } = useTheme();
 
   const weekDates = useMemo(() => {
     const dates = [];
     const cur = new Date(startDate);
-    while (cur <= endDate) {
-      const day = cur.getDay();
-      if (day !== 0 && day !== 6) dates.push(new Date(cur));
+    const end = new Date(endDate);
+    cur.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+
+    while (cur <= end) {
+      dates.push(new Date(cur));
       cur.setDate(cur.getDate() + 1);
     }
+
     return dates;
   }, [startDate, endDate]);
 
@@ -257,25 +248,22 @@ useEffect(() => {
   );
 }, [data, search]);
 
-function updatePlanned(taskId, dayKey, value) {
+function updatePlanned(taskId, dateKey, value) {
   const num =
     value === ""
       ? ""
       : Math.max(0, Math.min(24, Number(value)));
 
-  setData((prev) =>
-    prev.map((task) =>
-      task.id === taskId
-        ? {
-            ...task,
-            planned: {
-              ...task.planned,
-              [dayKey]: num,
-            },
-          }
-        : task
-    )
-  );
+  setLocalTaskEdits((prev) => ({
+    ...prev,
+    [taskId]: {
+      ...(prev[taskId] || {}),
+      planned: {
+        ...((prev[taskId] && prev[taskId].planned) || {}),
+        [dateKey]: num,
+      },
+    },
+  }));
 }
 
   // Pagination
@@ -307,25 +295,22 @@ console.log("PAGE ROWS:", pageRows);
 console.log("======================================");
 
   // Update Actual Hours
-  function updateActual(taskId, dayKey, value) {
+  function updateActual(taskId, dateKey, value) {
     const num =
       value === ""
         ? ""
         : Math.max(0, Math.min(24, Number(value)));
 
-    setData((prev) =>
-      prev.map((task) =>
-        task.id === taskId
-          ? {
-              ...task,
-              actual: {
-                ...task.actual,
-                [dayKey]: num,
-              },
-            }
-          : task
-      )
-    );
+    setLocalTaskEdits((prev) => ({
+      ...prev,
+      [taskId]: {
+        ...(prev[taskId] || {}),
+        actual: {
+          ...((prev[taskId] && prev[taskId].actual) || {}),
+          [dateKey]: num,
+        },
+      },
+    }));
   }
 
 
