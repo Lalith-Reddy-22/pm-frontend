@@ -77,7 +77,7 @@ const STATUS_OPTIONS = [
 
 const fmtPct = (n) => `${n >= 0 ? "" : "-"}${Math.abs(n).toFixed(2)}%`;
 
-function ClientProjectsPage() {
+function ClientProjectsPageInner() {
   const { t, isDark } = useTheme();
   const router        = useRouter();
   const { clientId }  = useParams();
@@ -291,5 +291,13 @@ function ClientProjectsPage() {
         />
       </Card>
     </div>
+  );
+}
+
+export default function ClientProjectsPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-center text-gray-500">Loading...</div>}>
+      <ClientProjectsPageInner />
+    </Suspense>
   );
 }
