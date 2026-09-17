@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -11,7 +11,7 @@ import CostCards from "./components/CostCards";
 import TaskForm from "./components/TaskForm";
 import HoursAllocation from "./components/HoursAllocation";
 
-export default function CreateTaskPage() {
+function CreateTaskPageInner() {
   const searchParams = useSearchParams();
   const dispatch = useDispatch();
 
@@ -697,5 +697,13 @@ if (
         )}
       </div>
     </>
+  );
+}
+
+export default function CreateTaskPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-center text-gray-500">Loading...</div>}>
+      <CreateTaskPageInner />
+    </Suspense>
   );
 }
