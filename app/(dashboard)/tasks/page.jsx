@@ -14,7 +14,7 @@ import {
 function TasksPageInner() {
   const dispatch = useDispatch();
 
- const searchParams = useSearchParams();
+  const searchParams = useSearchParams();
 
 const taskIdFromNotification =
   searchParams.get("taskId");

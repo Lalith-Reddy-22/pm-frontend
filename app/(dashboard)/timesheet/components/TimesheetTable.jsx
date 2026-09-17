@@ -71,6 +71,7 @@ export default function TimesheetTable({
               <TaskRowPair
   key={task.id}
   task={task}
+  weekDates={weekDates}
   border={border}
   rowLabelColor={rowLabelColor}
   inputBg={inputBg}

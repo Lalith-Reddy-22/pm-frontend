@@ -5,6 +5,7 @@ import { MessageSquare } from "lucide-react";
 
 export default function TaskRowPair({
   task,
+  weekDates = [],
   border,
   rowLabelColor,
   inputBg,
@@ -18,21 +19,25 @@ export default function TaskRowPair({
     PRIORITY_STYLES[String(task.priority || "").toUpperCase()] ??
     "bg-gray-400";
 
-  const getDateValue = (dayKey, type) => {
-  if (type === "planned") {
-    return task.planned?.[dayKey] ?? "";
-  }
+  const formatDateKey = (date) => {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
 
-  return task.actual?.[dayKey] ?? "";
-};
+  const getDateValue = (date, type) => {
+    const dateKey = formatDateKey(date);
+    if (type === "planned") {
+      return task.planned?.[dateKey] ?? "";
+    }
 
-  const days = [
-    { key: "mon", dayIndex: 1 },
-    { key: "tue", dayIndex: 2 },
-    { key: "wed", dayIndex: 3 },
-    { key: "thu", dayIndex: 4 },
-    { key: "fri", dayIndex: 5 },
-  ];
+    return task.actual?.[dateKey] ?? "";
+  };
+
+  const days = weekDates;
 
   return (
     <>
@@ -119,39 +124,23 @@ export default function TaskRowPair({
           Planned
         </td>
 
-        {days.map((day) => (
-          <td
-            key={day.key}
-            className="px-3 py-2 text-center"
-          >
-            <input
-  type="number"
-  min={0}
-  max={24}
-  step={0.5}
-  value={getDateValue(day.key, "planned")}
-  onChange={(e) =>
-    onPlannedChange(
-      task.id,
-      day.key,
-      e.target.value
-    )
-  }
-  placeholder="–"
-  className={`w-14 rounded-md border ${border} ${inputBg} px-1.5 py-1 text-center text-sm ${t.textPrimary}
-    focus:outline-none focus:ring-2
-    ${
-      isDark
-        ? "focus:ring-red-500/40"
-        : "focus:ring-red-500/30"
-    }
-    focus:border-transparent
-    [appearance:textfield]
-    [&::-webkit-outer-spin-button]:appearance-none
-    [&::-webkit-inner-spin-button]:appearance-none`}
-/>
-          </td>
-        ))}
+        {days.map((day) => {
+          const dateKey = formatDateKey(day);
+
+          return (
+            <td
+              key={dateKey}
+              className="px-3 py-2 text-center"
+            >
+              <div
+                className="mx-auto flex w-full max-w-[56px] items-center justify-center text-center text-sm text-inherit"
+                aria-readonly="true"
+              >
+                {getDateValue(day, "planned") !== "" ? getDateValue(day, "planned") : "–"}
+              </div>
+            </td>
+          );
+        })}
       </tr>
 
       {/* Actual row */}
@@ -163,14 +152,12 @@ export default function TaskRowPair({
         </td>
 
         {days.map((day) => {
-          const actualValue = getDateValue(
-  day.key,
-  "actual"
-);
+          const dateKey = formatDateKey(day);
+          const actualValue = getDateValue(day, "actual");
 
           return (
             <td
-              key={day.key}
+              key={dateKey}
               className="px-2 py-2"
             >
               <div className="flex flex-col items-center gap-1">
@@ -183,7 +170,7 @@ export default function TaskRowPair({
                   onChange={(e) =>
                     onActualChange(
                       task.id,
-                      day.key,
+                      dateKey,
                       e.target.value
                     )
                   }

@@ -11,7 +11,19 @@ import CostCards from "./components/CostCards";
 import TaskForm from "./components/TaskForm";
 import HoursAllocation from "./components/HoursAllocation";
 
-function CreateTaskPageInner() {
+export default function Page() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-6 text-sm text-muted-foreground">
+          Loading task form...
+        </div>
+      }
+    >
+      <CreateTaskPage />
+    </Suspense>
+  );
+}
   const searchParams = useSearchParams();
   const dispatch = useDispatch();
 
@@ -28,13 +40,21 @@ function CreateTaskPageInner() {
 );
 
 const projectTitleFromUrl =
-  searchParams.get("projectTitle") || "";
+  searchParams.get("projectTitle") ||
+  searchParams.get("projectName") ||
+  "";
+
+const clientTitleFromUrl =
+  searchParams.get("clientTitle") ||
+  searchParams.get("clientName") ||
+  "";
 
 console.log(
   "PROJECT TITLE FROM URL:",
   projectTitleFromUrl
 );
 
+console.log("CLIENT TITLE FROM URL:", clientTitleFromUrl);
 console.log("PROJECT ID FROM URL:", projectIdFromUrl);
 
   const isUpdate = taskIdFromUrl > 0;
@@ -72,7 +92,7 @@ const currentTaskDetails =
 
     priority: "",
 
-    client: "",
+    client: clientTitleFromUrl,
     clientId: 0,
 
     project: projectTitleFromUrl,
@@ -161,6 +181,8 @@ projectCode: "",
   // =====================================================
 
 useEffect(() => {
+  /* eslint-disable react-hooks/set-state-in-effect */
+
   // IMPORTANT:
   // Only populate existing task details in UPDATE mode
   if (!isUpdate || !taskDetails) {
@@ -294,6 +316,20 @@ useEffect(() => {
         taskDetails.endDate
       ),
 
+    client:
+      taskDetails.clientTitle ||
+      taskDetails.clientName ||
+      clientTitleFromUrl ||
+      prev.client ||
+      "",
+
+    project:
+      taskDetails.projectTitle ||
+      taskDetails.projectName ||
+      projectTitleFromUrl ||
+      prev.project ||
+      "",
+
     projectId:
       Number(
         taskDetails.projectId
@@ -358,9 +394,9 @@ useEffect(() => {
   }
 );
 
-  // Automatically open hours
   setShowHours(true);
 
+  /* eslint-enable react-hooks/set-state-in-effect */
 }, [
   isUpdate,
   taskDetails,
@@ -373,6 +409,8 @@ useEffect(() => {
 // =====================================================
 
 useEffect(() => {
+  /* eslint-disable react-hooks/set-state-in-effect */
+
   if (isUpdate) {
     return;
   }
@@ -389,7 +427,7 @@ useEffect(() => {
 
     priority: "",
 
-    client: "",
+    client: clientTitleFromUrl || "",
     clientId: 0,
 
     project: projectTitleFromUrl || "",
@@ -406,6 +444,8 @@ useEffect(() => {
 
     resources: [],
   });
+
+  /* eslint-enable react-hooks/set-state-in-effect */
 }, [
   isUpdate,
   projectIdFromUrl,
@@ -416,6 +456,7 @@ useEffect(() => {
 // LOAD PROJECT + CLIENT NAME
 // =====================================================
 
+// eslint-disable-next-line react-hooks/exhaustive-deps
 useEffect(() => {
   // -----------------------------------------------------
   // UPDATE MODE
@@ -469,14 +510,18 @@ useEffect(() => {
         [];
 
       const selectedProject =
-        projectList.find(
-          (project) =>
-            Number(
-              project.projectId ??
-              project.project_ID ??
-              project.id
-            ) === projectId
-        );
+        projectList.find((project) => {
+          const projectIdValue =
+            project?.projectId ??
+            project?.project_ID ??
+            project?.project_Id ??
+            project?.Project_ID ??
+            project?.Project_Id ??
+            project?.id ??
+            null;
+
+          return Number(projectIdValue) === projectId;
+        }) || null;
 
       console.log(
         "SELECTED PROJECT:",
@@ -490,12 +535,24 @@ useEffect(() => {
       const projectName =
         data?.projectName ||
         data?.projectTitle ||
+        data?.project_Title ||
+        data?.Project_Title ||
+        data?.project_title ||
+        data?.ProjectName ||
+        data?.ProjectName ||
         selectedProject?.projectName ||
         selectedProject?.projectTitle ||
         selectedProject?.project_Title ||
+        selectedProject?.Project_Title ||
+        selectedProject?.project_name ||
+        selectedProject?.Project_name ||
+        selectedProject?.ProjectName ||
+        selectedProject?.project_Title_Name ||
         selectedProject?.name ||
         selectedProject?.title ||
+        taskDetails?.projectName ||
         taskDetails?.projectTitle ||
+        projectTitleFromUrl ||
         "";
 
       // =====================================================
@@ -505,7 +562,19 @@ useEffect(() => {
       const clientName =
         data?.clientName ||
         data?.clientTitle ||
+        data?.client_Title ||
+        data?.Client_Title ||
+        data?.client_title ||
+        selectedProject?.clientName ||
+        selectedProject?.clientTitle ||
+        selectedProject?.client_Title ||
+        selectedProject?.Client_Title ||
+        selectedProject?.client_name ||
+        selectedProject?.ClientName ||
+        selectedProject?.client ||
         taskDetails?.clientName ||
+        taskDetails?.clientTitle ||
+        clientTitleFromUrl ||
         "";
 
       const clientId =
@@ -697,13 +766,5 @@ if (
         )}
       </div>
     </>
-  );
-}
-
-export default function CreateTaskPage() {
-  return (
-    <Suspense fallback={<div className="p-6 text-center text-gray-500">Loading...</div>}>
-      <CreateTaskPageInner />
-    </Suspense>
   );
 }
