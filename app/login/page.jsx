@@ -195,340 +195,252 @@ async function handleResetPassword(e) {
         }}
       >
         {showForgotPassword ? (
-  <div>
-
-    {/* Lock icon */}
-    <div className="flex justify-center mb-4">
-      <div
-        className="w-14 h-14 rounded-full flex items-center justify-center"
-        style={{
-          background: "rgba(255,255,255,0.7)",
-          border: "1px solid rgba(200,205,225,0.8)",
-          boxShadow:
-            "0 2px 12px rgba(100,110,160,0.12)",
-        }}
-      >
-        <Lock size={22} className="text-red-500" />
-      </div>
-    </div>
-
-    <h1 className="text-center text-[22px] font-bold text-slate-800 mb-1">
-      Forgot Password?
-    </h1>
-
-    <p className="text-center text-sm text-slate-400 mb-6">
-      Enter your email to reset your password
-    </p>
-
-    <form
-      onSubmit={handleForgotPassword}
-      className="flex flex-col gap-4"
-    >
-
-      {/* Email */}
+  <>
+    {/* STEP 1 — Email */}
+    {forgotStep === "email" && (
       <div>
-        <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest mb-1.5 block">
-          Email
-        </label>
+        <div className="flex justify-center mb-4">
+          <div
+            className="w-14 h-14 rounded-full flex items-center justify-center"
+            style={{
+              background: "rgba(255,255,255,0.7)",
+              border: "1px solid rgba(200,205,225,0.8)",
+              boxShadow: "0 2px 12px rgba(100,110,160,0.12)",
+            }}
+          >
+            <Lock size={22} className="text-red-500" />
+          </div>
+        </div>
 
-        <div
-          className="flex items-center gap-2.5 rounded-xl px-3.5 py-3"
-          style={{
-            background: "rgba(255,255,255,0.6)",
-            border: "1px solid rgba(200,205,225,0.7)",
-          }}
-        >
-          <User
-            size={15}
-            className="text-slate-400 flex-shrink-0"
-          />
+        <h1 className="text-center text-[22px] font-bold text-slate-800 mb-1">
+          Forgot Password?
+        </h1>
 
-          <input
-            type="email"
-            placeholder="Enter your email"
-            value={forgotEmail}
-            onChange={(e) =>
-              setForgotEmail(e.target.value)
+        <p className="text-center text-sm text-slate-400 mb-6">
+          Enter your email to reset your password
+        </p>
+
+        <form onSubmit={handleForgotPassword} className="flex flex-col gap-4">
+          <div>
+            <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest mb-1.5 block">
+              Email
+            </label>
+            <div
+              className="flex items-center gap-2.5 rounded-xl px-3.5 py-3"
+              style={{
+                background: "rgba(255,255,255,0.6)",
+                border: "1px solid rgba(200,205,225,0.7)",
+              }}
+            >
+              <User size={15} className="text-slate-400 flex-shrink-0" />
+              <input
+                type="email"
+                placeholder="Enter your email"
+                value={forgotEmail}
+                onChange={(e) => setForgotEmail(e.target.value)}
+                className="flex-1 bg-transparent text-sm text-slate-700 placeholder-slate-400 outline-none"
+                required
+              />
+            </div>
+          </div>
+
+          {forgotPasswordError && (
+            <p className="text-xs text-red-500 text-center">{forgotPasswordError}</p>
+          )}
+
+          <button
+            type="submit"
+            disabled={forgotPasswordLoading}
+            className="w-full py-3.5 rounded-xl text-white font-semibold text-sm disabled:opacity-60"
+            style={{ background: "#303030", boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }}
+          >
+            {forgotPasswordLoading ? "Sending..." : "Send Reset Link"}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => { setShowForgotPassword(false); setForgotStep("email"); }}
+            className="text-sm text-red-500 hover:text-red-600"
+          >
+            ‹ Back to login
+          </button>
+        </form>
+      </div>
+    )}
+
+    {/* STEP 2 — OTP */}
+    {forgotStep === "otp" && (
+      <div>
+        <div className="flex justify-center mb-4">
+          <div
+            className="w-14 h-14 rounded-full flex items-center justify-center"
+            style={{
+              background: "rgba(255,255,255,0.7)",
+              border: "1px solid rgba(200,205,225,0.8)",
+              boxShadow: "0 2px 12px rgba(100,110,160,0.12)",
+            }}
+          >
+            <Lock size={22} className="text-red-500" />
+          </div>
+        </div>
+
+        <h1 className="text-center text-[22px] font-bold text-slate-800 mb-1">
+          Verify OTP
+        </h1>
+
+        <p className="text-center text-sm text-slate-400 mb-6">
+          Enter the OTP sent to your email
+        </p>
+
+        <form onSubmit={handleVerifyOtp} className="flex flex-col gap-4">
+          <div>
+            <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest mb-1.5 block">
+              OTP
+            </label>
+            <input
+              type="text"
+              inputMode="numeric"
+              maxLength={6}
+              placeholder="Enter OTP"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              className="w-full rounded-xl px-4 py-3 text-sm text-slate-700 outline-none"
+              style={{
+                background: "rgba(255,255,255,0.6)",
+                border: "1px solid rgba(200,205,225,0.7)",
+              }}
+              required
+            />
+          </div>
+
+          {otpError && (
+            <p className="text-xs text-red-500 text-center">{otpError}</p>
+          )}
+
+          <button
+            type="submit"
+            disabled={otpLoading}
+            className="w-full py-3.5 rounded-xl text-white font-semibold text-sm disabled:opacity-60"
+            style={{ background: "#303030", boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }}
+          >
+            {otpLoading ? "Verifying..." : "Verify OTP"}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => { setForgotStep("email"); setOtp(""); }}
+            className="text-sm text-red-500 hover:text-red-600"
+          >
+            ‹ Back
+          </button>
+        </form>
+      </div>
+    )}
+
+    {/* STEP 3 — Reset Password */}
+    {forgotStep === "reset" && (
+      <div>
+        <div className="flex justify-center mb-4">
+          <div
+            className="w-14 h-14 rounded-full flex items-center justify-center"
+            style={{
+              background: "rgba(255,255,255,0.7)",
+              border: "1px solid rgba(200,205,225,0.8)",
+              boxShadow: "0 2px 12px rgba(100,110,160,0.12)",
+            }}
+          >
+            <Lock size={22} className="text-red-500" />
+          </div>
+        </div>
+
+        <h1 className="text-center text-[22px] font-bold text-slate-800 mb-1">
+          Reset Password
+        </h1>
+
+        <p className="text-center text-sm text-slate-400 mb-6">
+          Create a new password for your account
+        </p>
+
+        <form onSubmit={handleResetPassword} className="flex flex-col gap-4">
+          <div>
+            <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest mb-1.5 block">
+              New Password
+            </label>
+            <div
+              className="flex items-center gap-2.5 rounded-xl px-3.5 py-3"
+              style={{
+                background: "rgba(255,255,255,0.6)",
+                border: "1px solid rgba(200,205,225,0.7)",
+              }}
+            >
+              <Lock size={15} className="text-slate-400 flex-shrink-0" />
+              <input
+                type="password"
+                placeholder="Enter new password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="flex-1 bg-transparent text-sm text-slate-700 placeholder-slate-400 outline-none"
+                required
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest mb-1.5 block">
+              Confirm Password
+            </label>
+            <div
+              className="flex items-center gap-2.5 rounded-xl px-3.5 py-3"
+              style={{
+                background: "rgba(255,255,255,0.6)",
+                border: "1px solid rgba(200,205,225,0.7)",
+              }}
+            >
+              <Lock size={15} className="text-slate-400 flex-shrink-0" />
+              <input
+                type="password"
+                placeholder="Re-enter new password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="flex-1 bg-transparent text-sm text-slate-700 placeholder-slate-400 outline-none"
+                required
+              />
+            </div>
+          </div>
+
+          {newPassword && confirmPassword && newPassword !== confirmPassword && (
+            <p className="text-xs text-red-500 text-center">Passwords do not match.</p>
+          )}
+
+          {resetPasswordError && (
+            <p className="text-xs text-red-500 text-center">{resetPasswordError}</p>
+          )}
+
+          <button
+            type="submit"
+            disabled={
+              resetPasswordLoading ||
+              !newPassword ||
+              !confirmPassword ||
+              newPassword !== confirmPassword
             }
-            className="flex-1 bg-transparent text-sm text-slate-700 placeholder-slate-400 outline-none"
-            required
-          />
-        </div>
+            className="w-full py-3.5 rounded-xl text-white font-semibold text-sm disabled:opacity-60"
+            style={{ background: "#303030", boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }}
+          >
+            {resetPasswordLoading ? "Resetting..." : "Reset Password"}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setForgotStep("otp")}
+            className="text-sm text-red-500 hover:text-red-600"
+          >
+            ‹ Back
+          </button>
+        </form>
       </div>
-
-      {/* API Error */}
-      {forgotPasswordError && (
-        <p className="text-xs text-red-500 text-center">
-          {forgotPasswordError}
-        </p>
-      )}
-
-      {/* Send Reset Link */}
-      <button
-        type="submit"
-        disabled={forgotPasswordLoading}
-        className="w-full py-3.5 rounded-xl text-white font-semibold text-sm disabled:opacity-60"
-        style={{
-          background: "#303030",
-          boxShadow:
-            "0 4px 12px rgba(0,0,0,0.2)",
-        }}
-      >
-        {forgotPasswordLoading
-          ? "Sending..."
-          : "Send Reset Link"}
-      </button>
-
-      {/* Back to Login */}
-      <button
-        type="button"
-        onClick={() => {
-          setShowForgotPassword(false);
-          setForgotStep("email");
-        }}
-        className="text-sm text-red-500 hover:text-red-600"
-      >
-        ‹ Back to login
-      </button>
-
-    </form>
-
-
-{/* OTP SCREEN */}
-{forgotStep === "otp" && (
-  <div className="mt-4">
-
-    <div className="flex justify-center mb-4">
-      <div
-        className="w-14 h-14 rounded-full flex items-center justify-center"
-        style={{
-          background: "rgba(255,255,255,0.7)",
-          border: "1px solid rgba(200,205,225,0.8)",
-          boxShadow:
-            "0 2px 12px rgba(100,110,160,0.12)",
-        }}
-      >
-        <Lock
-          size={22}
-          className="text-red-500"
-        />
-      </div>
-    </div>
-
-    <h1 className="text-center text-[22px] font-bold text-slate-800 mb-1">
-      Verify OTP
-    </h1>
-
-    <p className="text-center text-sm text-slate-400 mb-6">
-      Enter the OTP sent to your email
-    </p>
-
-    <form
-      onSubmit={handleVerifyOtp}
-      className="flex flex-col gap-4"
-    >
-
-      <div>
-        <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest mb-1.5 block">
-          OTP
-        </label>
-
-        <input
-          type="text"
-          inputMode="numeric"
-          maxLength={6}
-          placeholder="Enter OTP"
-          value={otp}
-          onChange={(e) => setOtp(e.target.value)}
-          className="w-full rounded-xl px-4 py-3 text-sm text-slate-700 outline-none"
-          style={{
-            background: "rgba(255,255,255,0.6)",
-            border:
-              "1px solid rgba(200,205,225,0.7)",
-          }}
-          required
-        />
-      </div>
-
-      {otpError && (
-        <p className="text-xs text-red-500 text-center">
-          {otpError}
-        </p>
-      )}
-
-      <button
-        type="submit"
-        disabled={otpLoading}
-        className="w-full py-3.5 rounded-xl text-white font-semibold text-sm disabled:opacity-60"
-        style={{
-          background: "#303030",
-          boxShadow:
-            "0 4px 12px rgba(0,0,0,0.2)",
-        }}
-      >
-        {otpLoading
-          ? "Verifying..."
-          : "Verify OTP"}
-      </button>
-
-      <button
-        type="button"
-        onClick={() => {
-          setForgotStep("email");
-          setOtp("");
-        }}
-        className="text-sm text-red-500 hover:text-red-600"
-      >
-        ‹ Back
-      </button>
-
-    </form>
-
-  </div>
-)}
-{/* RESET PASSWORD SCREEN */}
-{forgotStep === "reset" && (
-  <div className="mt-4">
-
-    {/* Lock icon */}
-    <div className="flex justify-center mb-4">
-      <div
-        className="w-14 h-14 rounded-full flex items-center justify-center"
-        style={{
-          background: "rgba(255,255,255,0.7)",
-          border: "1px solid rgba(200,205,225,0.8)",
-          boxShadow:
-            "0 2px 12px rgba(100,110,160,0.12)",
-        }}
-      >
-        <Lock size={22} className="text-red-500" />
-      </div>
-    </div>
-
-    <h1 className="text-center text-[22px] font-bold text-slate-800 mb-1">
-      Reset Password
-    </h1>
-
-    <p className="text-center text-sm text-slate-400 mb-6">
-      Create a new password for your account
-    </p>
-
-    <form
-      onSubmit={handleResetPassword}
-      className="flex flex-col gap-4"
-    >
-
-      {/* New Password */}
-      <div>
-        <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest mb-1.5 block">
-          New Password
-        </label>
-
-        <div
-          className="flex items-center gap-2.5 rounded-xl px-3.5 py-3"
-          style={{
-            background: "rgba(255,255,255,0.6)",
-            border: "1px solid rgba(200,205,225,0.7)",
-          }}
-        >
-          <Lock
-            size={15}
-            className="text-slate-400 flex-shrink-0"
-          />
-
-          <input
-            type="password"
-            placeholder="Enter new password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            className="flex-1 bg-transparent text-sm text-slate-700 placeholder-slate-400 outline-none"
-            required
-          />
-        </div>
-      </div>
-
-      {/* Confirm Password */}
-      <div>
-        <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest mb-1.5 block">
-          Confirm Password
-        </label>
-
-        <div
-          className="flex items-center gap-2.5 rounded-xl px-3.5 py-3"
-          style={{
-            background: "rgba(255,255,255,0.6)",
-            border: "1px solid rgba(200,205,225,0.7)",
-          }}
-        >
-          <Lock
-            size={15}
-            className="text-slate-400 flex-shrink-0"
-          />
-
-          <input
-            type="password"
-            placeholder="Re-enter new password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            className="flex-1 bg-transparent text-sm text-slate-700 placeholder-slate-400 outline-none"
-            required
-          />
-        </div>
-      </div>
-
-      {/* Password mismatch */}
-      {newPassword &&
-        confirmPassword &&
-        newPassword !== confirmPassword && (
-          <p className="text-xs text-red-500 text-center">
-            Passwords do not match.
-          </p>
-        )}
-
-      {/* API Error */}
-      {resetPasswordError && (
-        <p className="text-xs text-red-500 text-center">
-          {resetPasswordError}
-        </p>
-      )}
-
-      {/* Reset button */}
-      <button
-        type="submit"
-        disabled={
-          resetPasswordLoading ||
-          !newPassword ||
-          !confirmPassword ||
-          newPassword !== confirmPassword
-        }
-        className="w-full py-3.5 rounded-xl text-white font-semibold text-sm disabled:opacity-60"
-        style={{
-          background: "#303030",
-          boxShadow:
-            "0 4px 12px rgba(0,0,0,0.2)",
-        }}
-      >
-        {resetPasswordLoading
-          ? "Resetting..."
-          : "Reset Password"}
-      </button>
-
-      {/* Back */}
-      <button
-        type="button"
-        onClick={() => {
-          setForgotStep("otp");
-        }}
-        className="text-sm text-red-500 hover:text-red-600"
-      >
-        ‹ Back
-      </button>
-
-    </form>
-  </div>
-)}
-
-  </div>
+    )}
+  </>
 ) : (
   <>
     {/* Lock icon */}
