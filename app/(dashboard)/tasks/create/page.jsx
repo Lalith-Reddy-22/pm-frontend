@@ -24,6 +24,8 @@ export default function Page() {
     </Suspense>
   );
 }
+
+function CreateTaskPage() {
   const searchParams = useSearchParams();
   const dispatch = useDispatch();
 
