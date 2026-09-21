@@ -72,6 +72,8 @@ const [confirmPassword, setConfirmPassword] = useState("");
     // Clear any stale role from a previous session before writing the new one
     sessionStorage.removeItem("role");
     sessionStorage.setItem("role", role);
+    // Mirror role to localStorage so new tabs can restore it
+    localStorage.setItem("role", role);
 
     if (
       ["employee", "sys_admin"].includes(role)

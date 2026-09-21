@@ -15,23 +15,19 @@ const axiosClient = axios.create({
 axiosClient.interceptors.request.use(
   (config) => {
     if (typeof window !== "undefined") {
+      // If sessionStorage has no token (e.g. page opened in a new tab),
+      // restore the session from localStorage before reading the token.
+      if (!sessionStorage.getItem("accessToken") && localStorage.getItem("accessToken")) {
+        ["accessToken", "refreshToken", "empId", "userType", "employeeName", "email", "auth", "role"]
+          .forEach((key) => {
+            const val = localStorage.getItem(key);
+            if (val !== null) sessionStorage.setItem(key, val);
+          });
+      }
+
       const token =
         sessionStorage.getItem("accessToken") ||
-        sessionStorage.getItem("token") ||
-        localStorage.getItem("accessToken") ||
-        localStorage.getItem("token");
-       
-      console.log(
-  "ACCESS TOKEN EXISTS:",
-  !!token
-);
-
-console.log(
-  "TOKEN PREVIEW:",
-  token
-    ? `${token.substring(0, 20)}...`
-    : "NO TOKEN"
-);
+        sessionStorage.getItem("token");
 
       if (token) {
         config.headers = config.headers || {};
