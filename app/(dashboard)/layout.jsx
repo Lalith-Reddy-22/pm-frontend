@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
+import SessionTimeoutModal from "../components/SessionTimeoutModal";
 import { ThemeProvider, useTheme } from "../context/ThemeContext";
 
 // ── Session restore ────────────────────────────────────────────────────────
@@ -121,6 +122,10 @@ function LayoutInner({ children }) {
         </main>
 
       </div>
+
+      {/* Session timeout modal — rendered above everything else */}
+      <SessionTimeoutModal />
+
     </div>
   );
 }

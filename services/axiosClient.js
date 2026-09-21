@@ -60,17 +60,22 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
+/** Fire the session-timeout event so the modal appears instead of a hard redirect. */
+function dispatchSessionTimeout() {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("session:timeout"));
+  }
+}
+
 axiosClient.interceptors.response.use(
   (response) => response,
 
   async (error) => {
-    const isLoginRequest = error.config?.url?.includes("/auth/login");
+    const originalRequest = error.config;
+    const isLoginRequest  = originalRequest?.url?.includes("/auth/login");
 
-    if (
-      typeof window !== "undefined" &&
-      error.response?.status === 401 &&
-      !isLoginRequest
-    ) {
+    // For login 401s just reject — wrong credentials, not a timeout
+    if (error.response?.status === 401 && isLoginRequest) {
       return Promise.reject(error);
     }
 
@@ -78,37 +83,33 @@ axiosClient.interceptors.response.use(
       return Promise.reject(error);
     }
 
+    // Refresh token request itself failed — session is fully expired
     if (originalRequest?.url?.includes("/auth/refresh")) {
-      sessionStorage.clear();
-      window.location.href = "/login";
-
+      dispatchSessionTimeout();
       return Promise.reject(error);
     }
 
     const refreshToken = sessionStorage.getItem("refreshToken");
 
+    // No refresh token available — session expired
     if (!refreshToken) {
-      sessionStorage.clear();
-      window.location.href = "/login";
+      dispatchSessionTimeout();
+      return Promise.reject(error);
+    }
 
+    // Non-401 errors pass through normally
+    if (error.response?.status !== 401) {
       return Promise.reject(error);
     }
 
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
-        failedQueue.push({
-          resolve,
-          reject,
-        });
+        failedQueue.push({ resolve, reject });
       }).then((newAccessToken) => {
-        originalRequest.headers =
-          originalRequest.headers || {};
-
-        originalRequest.headers.Authorization =
-          `Bearer ${newAccessToken}`;
-
+        originalRequest.headers = originalRequest.headers || {};
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return axiosClient(originalRequest);
-      });
+      }).catch((err) => Promise.reject(err));
     }
 
     originalRequest._retry = true;
@@ -139,49 +140,27 @@ axiosClient.interceptors.response.use(
         data
       );
 
-      const newAccessToken = data?.accessToken;
+      const newAccessToken  = data?.accessToken;
       const newRefreshToken = data?.refreshToken;
 
       if (!newAccessToken || !newRefreshToken) {
-        throw new Error(
-          "Refresh API did not return valid access and refresh tokens."
-        );
+        throw new Error("Refresh API did not return valid tokens.");
       }
 
-      sessionStorage.setItem(
-        "accessToken",
-        newAccessToken
-      );
-
-      sessionStorage.setItem(
-        "refreshToken",
-        newRefreshToken
-      );
-
-      console.log("NEW ACCESS TOKEN STORED");
-      console.log("NEW REFRESH TOKEN STORED");
+      sessionStorage.setItem("accessToken",  newAccessToken);
+      sessionStorage.setItem("refreshToken", newRefreshToken);
+      localStorage.setItem("accessToken",    newAccessToken);
+      localStorage.setItem("refreshToken",   newRefreshToken);
 
       processQueue(null, newAccessToken);
 
-      originalRequest.headers =
-        originalRequest.headers || {};
-
-      originalRequest.headers.Authorization =
-        `Bearer ${newAccessToken}`;
+      originalRequest.headers = originalRequest.headers || {};
+      originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
 
       return axiosClient(originalRequest);
     } catch (refreshError) {
-      console.error(
-        "REFRESH TOKEN FAILED:",
-        refreshError.response?.data ||
-          refreshError.message
-      );
-
       processQueue(refreshError, null);
-
-      sessionStorage.clear();
-      window.location.href = "/login";
-
+      dispatchSessionTimeout();
       return Promise.reject(refreshError);
     } finally {
       isRefreshing = false;
