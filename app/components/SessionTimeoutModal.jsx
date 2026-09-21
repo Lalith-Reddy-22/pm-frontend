@@ -16,12 +16,25 @@ function clearSession() {
   });
 }
 
+const TIMEOUT_FLAG = "session:timedOut";
+
 export default function SessionTimeoutModal() {
   const router = useRouter();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
+    // If the page was refreshed while the timeout modal was active, restore it.
+    if (sessionStorage.getItem(TIMEOUT_FLAG) === "1") {
+      setVisible(true);
+      window.history.pushState(null, "", window.location.href);
+    }
+  }, []);
+
+  useEffect(() => {
     function handleTimeout() {
+      // Persist the flag so a page refresh still shows the modal.
+      sessionStorage.setItem(TIMEOUT_FLAG, "1");
+      clearSession();
       setVisible(true);
       // Push a dummy history entry so the back button has somewhere to "go"
       // without actually leaving the current page.
@@ -41,6 +54,7 @@ export default function SessionTimeoutModal() {
       // Push state again to prevent the navigation from completing
       window.history.pushState(null, "", window.location.href);
       // Then send them to login
+      sessionStorage.removeItem(TIMEOUT_FLAG);
       clearSession();
       setVisible(false);
       router.replace("/login");
@@ -51,6 +65,7 @@ export default function SessionTimeoutModal() {
   }, [visible, router]);
 
   function handleLogin() {
+    sessionStorage.removeItem(TIMEOUT_FLAG);
     clearSession();
     setVisible(false);
     router.replace("/login");
