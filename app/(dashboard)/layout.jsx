@@ -34,13 +34,13 @@ function LayoutInner({ children }) {
     const role = sessionStorage.getItem("role");
     if (role === "employee" || role === "sys_admin") {
       const allowed = EMPLOYEE_ALLOWED.some(p => pathname === p || pathname.startsWith(p + "/"));
-      if (!allowed) router.replace("/reports/resource-allocation");
+      if (!allowed) router.replace("/unauthorized");
     }
     if (role === "pm_employee") {
       const blocked = PM_EMPLOYEE_BLOCKED.some(p => pathname === p || pathname.startsWith(p + "/"));
-      if (blocked) router.replace("/reports/daily-report");
+      if (blocked) router.replace("/unauthorized");
     }
-  }, [pathname]);
+  }, [pathname, router]);
 
   return (
     <div className={`flex h-screen w-screen overflow-hidden ${t.pageBg} transition-colors duration-300`}>
