@@ -183,14 +183,11 @@ const authSlice = createSlice({
       state.resetPasswordSuccess = false;
 
       if (typeof window !== "undefined") {
-        sessionStorage.removeItem("accessToken");
-        sessionStorage.removeItem("refreshToken");
-        sessionStorage.removeItem("empId");
-        sessionStorage.removeItem("userType");
-        sessionStorage.removeItem("employeeName");
-        sessionStorage.removeItem("email");
-        sessionStorage.removeItem("role");
-        sessionStorage.removeItem("auth");
+        const keys = ["accessToken", "refreshToken", "empId", "userType", "employeeName", "email", "role", "auth"];
+        keys.forEach((key) => {
+          sessionStorage.removeItem(key);
+          localStorage.removeItem(key);
+        });
       }
     },
   },
@@ -238,40 +235,26 @@ const authSlice = createSlice({
 
         // Save authentication data
         if (typeof window !== "undefined") {
-          sessionStorage.setItem(
-            "accessToken",
-            accessToken || ""
-          );
+          const authData_persist = {
+            accessToken:  accessToken || "",
+            refreshToken: refreshToken || "",
+            empId:        String(authData?.empId || ""),
+            userType:     String(authData?.user_Type || ""),
+            employeeName: authData?.employee_Name || "",
+            email:        authData?.emailId || "",
+            auth:         "true",
+          };
 
-          sessionStorage.setItem(
-            "refreshToken",
-            refreshToken || ""
-          );
+          // Write to sessionStorage (current tab)
+          Object.entries(authData_persist).forEach(([key, value]) => {
+            sessionStorage.setItem(key, value);
+          });
 
-          sessionStorage.setItem(
-            "empId",
-            String(authData?.empId || "")
-          );
-
-          sessionStorage.setItem(
-            "userType",
-            String(authData?.user_Type || "")
-          );
-
-          sessionStorage.setItem(
-            "employeeName",
-            authData?.employee_Name || ""
-          );
-
-          sessionStorage.setItem(
-            "email",
-            authData?.emailId || ""
-          );
-
-          sessionStorage.setItem(
-            "auth",
-            "true"
-          );
+          // Also write to localStorage so new tabs and page refreshes
+          // can restore the session without requiring a re-login.
+          Object.entries(authData_persist).forEach(([key, value]) => {
+            localStorage.setItem(key, value);
+          });
         }
       })
 

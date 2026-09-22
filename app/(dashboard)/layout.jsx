@@ -5,7 +5,24 @@ import { usePathname, useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
+import SessionTimeoutModal from "../components/SessionTimeoutModal";
 import { ThemeProvider, useTheme } from "../context/ThemeContext";
+
+// ── Session restore ────────────────────────────────────────────────────────
+// Runs synchronously at module load time (before any component renders or
+// React Query fires). When the user opens a link in a new tab, sessionStorage
+// is empty even though the user is logged in. Copy auth data from localStorage
+// so the token is available for the very first API request.
+if (typeof window !== "undefined") {
+  if (!sessionStorage.getItem("auth") && localStorage.getItem("auth")) {
+    ["accessToken", "refreshToken", "empId", "userType", "employeeName", "email", "auth", "role"]
+      .forEach((key) => {
+        const val = localStorage.getItem(key);
+        if (val !== null) sessionStorage.setItem(key, val);
+      });
+  }
+}
+// ──────────────────────────────────────────────────────────────────────────
 
 const EMPLOYEE_ALLOWED = [
   "/reports/resource-allocation",
@@ -105,6 +122,10 @@ function LayoutInner({ children }) {
         </main>
 
       </div>
+
+      {/* Session timeout modal — rendered above everything else */}
+      <SessionTimeoutModal />
+
     </div>
   );
 }

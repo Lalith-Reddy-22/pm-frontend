@@ -39,7 +39,9 @@ export default function Navbar({ onMenuClick }) {
 
     const handleLogout = () => {
   sessionStorage.clear();
-
+  // Clear localStorage so new tabs also lose the session
+  ["accessToken", "refreshToken", "empId", "userType", "employeeName", "email", "auth", "role"]
+    .forEach((key) => localStorage.removeItem(key));
   router.push("/login");
 };
 

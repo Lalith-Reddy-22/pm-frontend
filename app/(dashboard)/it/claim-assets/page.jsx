@@ -33,9 +33,10 @@ export default function ClaimAssetsPage() {
     sessionStorage.setItem("claimAssetsTab", key);
   }
 
-  const [viewMode,   setViewMode]   = useState("grid");
-  const [selected,   setSelected]   = useState([]);
-  const [search,     setSearch]     = useState("");
+  const [viewMode,     setViewMode]     = useState("grid");
+  const [selected,     setSelected]     = useState([]);
+  const [search,       setSearch]       = useState("");
+  const [statusFilter, setStatusFilter] = useState("all"); // "all" | "available" | "inuse"
   const [submitted,  setSubmitted]  = useState(false);
   const [showLimit,  setShowLimit]  = useState(false);
   const [showReason, setShowReason] = useState(false);
@@ -59,14 +60,25 @@ export default function ClaimAssetsPage() {
     setSelected(prev => prev.filter(x => x !== id));
   }
 
-  // ── Filter — search against product_Name and brandName ───────────────────
-  const filtered = assets.filter(a => {
-    const q = search.toLowerCase();
-    return (
-      a.product_Name?.toLowerCase().includes(q) ||
-      a.brandName?.toLowerCase().includes(q)
-    );
-  });
+  // ── Filter — search + availability status ────────────────────────────────
+  const filtered = assets
+    .filter(a => {
+      const q = search.toLowerCase();
+      const matchSearch =
+        a.product_Name?.toLowerCase().includes(q) ||
+        a.brandName?.toLowerCase().includes(q);
+      const available = a.p_Status === "A";
+      const matchStatus =
+        statusFilter === "all" ? true :
+        statusFilter === "available" ? available : !available;
+      return matchSearch && matchStatus;
+    })
+    // Available items always on top, unavailable at the bottom
+    .sort((a, b) => {
+      const aAvail = a.p_Status === "A" ? 0 : 1;
+      const bAvail = b.p_Status === "A" ? 0 : 1;
+      return aAvail - bAvail;
+    });
 
   const availableCount = assets.filter(a => a.p_Status === "A").length;
 
@@ -118,7 +130,35 @@ export default function ClaimAssetsPage() {
                 }
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+
+              {/* ── Availability filter pills ── */}
+              <div className={`flex items-center gap-1 p-1 rounded-lg ${t.iconBg}`}>
+                {[
+                  { key: "all",       label: "All",       count: assets.length                               },
+                  { key: "available", label: "Available",  count: assets.filter(a => a.p_Status === "A").length },
+                  { key: "inuse",     label: "In Use",     count: assets.filter(a => a.p_Status !== "A").length },
+                ].map(({ key, label, count }) => (
+                  <button
+                    key={key}
+                    onClick={() => setStatusFilter(key)}
+                    className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                      statusFilter === key
+                        ? "bg-[#E12729] text-white"
+                        : `${t.textSecondary} ${t.navRowHover}`
+                    }`}
+                  >
+                    {label}
+                    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full leading-none ${
+                      statusFilter === key
+                        ? "bg-white/20 text-white"
+                        : `${t.iconBg} ${t.textMuted}`
+                    }`}>
+                      {count}
+                    </span>
+                  </button>
+                ))}
+              </div>
               <div className="relative">
                 <Search size={15} className={`absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none ${t.textSecondary}`} />
                 <input
