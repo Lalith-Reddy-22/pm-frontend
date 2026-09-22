@@ -335,7 +335,7 @@ const stats = [
           <div className="flex items-center gap-3">
             <button
         type="button"
-        onClick={() => router.push("/finance/clients")}
+        onClick={() => router.push("/employee")}
         disabled={loading}
         className="flex items-center gap-1.5 text-lg text-[#E12729] cursor-pointer disabled:opacity-50"
       >

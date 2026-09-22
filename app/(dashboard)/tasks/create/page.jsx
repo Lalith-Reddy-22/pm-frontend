@@ -51,14 +51,6 @@ const clientTitleFromUrl =
   searchParams.get("clientName") ||
   "";
 
-console.log(
-  "PROJECT TITLE FROM URL:",
-  projectTitleFromUrl
-);
-
-console.log("CLIENT TITLE FROM URL:", clientTitleFromUrl);
-console.log("PROJECT ID FROM URL:", projectIdFromUrl);
-
   const isUpdate = taskIdFromUrl > 0;
 
   // =====================================================
@@ -121,23 +113,6 @@ projectCode: "",
       return;
     }
 
-    console.log(
-      "================================="
-    );
-
-    console.log(
-      "UPDATE MODE"
-    );
-
-    console.log(
-      "FETCHING TASK:",
-      taskIdFromUrl
-    );
-
-    console.log(
-      "================================="
-    );
-
     dispatch(
       fetchTaskById(taskIdFromUrl)
     );
@@ -147,36 +122,7 @@ projectCode: "",
     taskIdFromUrl,
   ]);
 
-  // =====================================================
-  // DEBUG TASK RESPONSE
-  // =====================================================
-
-  useEffect(() => {
-    if (!taskDetails) {
-      return;
-    }
-
-    console.log(
-      "================================="
-    );
-
-    console.log(
-      "TASK DETAILS RESPONSE"
-    );
-
-    console.log(
-      taskDetails
-    );
-
-    console.log(
-      "EMPLOYEE ALLOCATIONS:",
-      taskDetails.employeeAllocations
-    );
-
-    console.log(
-      "================================="
-    );
-  }, [taskDetails]);
+  // DEBUG TASK RESPONSE — removed
 
   // =====================================================
   // POPULATE TASK FORM
@@ -190,11 +136,6 @@ useEffect(() => {
   if (!isUpdate || !taskDetails) {
     return;
   }
-
-  console.log(
-    "POPULATING UPDATE FORM:",
-    taskDetails
-  );
 
   // =====================================================
   // CONVERT API DATE
@@ -275,11 +216,6 @@ useEffect(() => {
         "",
     };
   });
-
-  console.log(
-    "UPDATE RESOURCES:",
-    resources
-  );
 
   // =====================================================
   // FORM DATA
@@ -364,38 +300,6 @@ useEffect(() => {
     resources,
   }));
 
-  console.log(
-  "FORM DATA AFTER TASK POPULATION:",
-  {
-    taskName:
-      taskDetails.taskTitle,
-
-    taskId:
-      taskDetails.taskId,
-
-    priority:
-      taskDetails.taskPriority,
-
-    startDate:
-      taskDetails.startDate,
-
-    endDate:
-      taskDetails.endDate,
-
-    projectId:
-      taskDetails.projectId,
-
-    clientId:
-      taskDetails.clientId,
-
-    status:
-      taskDetails.status,
-
-    employeeAllocations:
-      taskDetails.employeeAllocations,
-  }
-);
-
   setShowHours(true);
 
   /* eslint-enable react-hooks/set-state-in-effect */
@@ -416,8 +320,6 @@ useEffect(() => {
   if (isUpdate) {
     return;
   }
-
-  console.log("CREATE MODE - RESETTING FORM");
 
   setShowHours(false);
 
@@ -468,16 +370,7 @@ useEffect(() => {
     ? Number(taskDetails?.projectId || 0)
     : projectIdFromUrl;
 
-  console.log("=================================");
-  console.log("LOADING PROJECT/CLIENT DATA");
-  console.log("IS UPDATE:", isUpdate);
-  console.log("PROJECT ID FROM URL:", projectIdFromUrl);
-  console.log("TASK PROJECT ID:", taskDetails?.projectId);
-  console.log("FINAL PROJECT ID:", projectId);
-  console.log("=================================");
-
   if (!projectId) {
-    console.log("NO PROJECT ID - SKIPPING FORM DATA");
     return;
   }
 
@@ -496,11 +389,6 @@ useEffect(() => {
       );
 
       const data = response.data;
-
-      console.log(
-        "TASK FORM DATA RESPONSE:",
-        data
-      );
 
       // =====================================================
       // FIND PROJECT
@@ -524,11 +412,6 @@ useEffect(() => {
 
           return Number(projectIdValue) === projectId;
         }) || null;
-
-      console.log(
-        "SELECTED PROJECT:",
-        selectedProject
-      );
 
       // =====================================================
       // PROJECT NAME
@@ -602,23 +485,8 @@ useEffect(() => {
         clientId: clientId,
       }));
 
-      console.log(
-        "FINAL PROJECT NAME:",
-        projectName
-      );
-
-      console.log(
-        "FINAL CLIENT NAME:",
-        clientName
-      );
-
     } catch (error) {
-      console.error(
-        "TASK FORM DATA ERROR:",
-        error?.response?.data ||
-        error?.message ||
-        error
-      );
+      // silently swallow — form will fall back to URL-provided values
     }
   };
 

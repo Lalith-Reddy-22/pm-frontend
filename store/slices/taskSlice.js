@@ -42,16 +42,9 @@ export const fetchTasks = createAsyncThunk(
         pageSize: params.pageSize,
       });
 
-      console.log("TASK API RESPONSE:", data);
-
       return data;
 
     } catch (error) {
-      console.error(
-        "TASK API ERROR:",
-        error.response?.data || error.message
-      );
-
       return rejectWithValue(
         error.response?.data?.message ||
         error.response?.data?.title ||
@@ -68,15 +61,8 @@ export const fetchTaskProjects = createAsyncThunk(
     try {
       const data = await getTaskProjects({ empId, userType });
 
-      console.log("TASK PROJECTS RESPONSE:", data);
-
       return data;
     } catch (error) {
-      console.error(
-        "TASK PROJECTS ERROR:",
-        error.response?.data || error.message
-      );
-
       return rejectWithValue(
         error.response?.data?.message ||
         error.response?.data?.title ||
@@ -93,18 +79,8 @@ export const fetchEmployeeNames = createAsyncThunk(
     try {
       const response = await axiosClient.get("/employee/names");
 
-      console.log(
-        "EMPLOYEE NAMES RESPONSE:",
-        response.data
-      );
-
       return response.data;
     } catch (error) {
-      console.error(
-        "EMPLOYEE NAMES ERROR:",
-        error.response?.data || error.message
-      );
-
       return rejectWithValue(
         error.response?.data?.message ||
         error.response?.data?.title ||
@@ -121,18 +97,8 @@ export const fetchTaskTemplates = createAsyncThunk(
     try {
       const response = await axiosClient.get("/Task/template-list");
 
-      console.log(
-        "TASK TEMPLATE LIST RESPONSE:",
-        response.data
-      );
-
       return response.data;
     } catch (error) {
-      console.error(
-        "TASK TEMPLATE LIST ERROR:",
-        error.response?.data || error.message
-      );
-
       return rejectWithValue(
         error.response?.data?.message ||
         error.response?.data?.title ||
@@ -152,18 +118,8 @@ export const createTaskTemplate = createAsyncThunk(
         templateData
       );
 
-      console.log(
-        "CREATE TASK TEMPLATE RESPONSE:",
-        response.data
-      );
-
       return response.data;
     } catch (error) {
-      console.error(
-        "CREATE TASK TEMPLATE ERROR:",
-        error.response?.data || error.message
-      );
-
       return rejectWithValue(
         error.response?.data?.message ||
         error.response?.data?.title ||
@@ -182,34 +138,15 @@ export const fetchTaskById = createAsyncThunk(
         `/Task/${taskId}`
       );
 
-      console.log(
-        "SINGLE TASK API RESPONSE:",
-        response.data
-      );
-
       return response.data;
     } catch (error) {
-  const debugInfo = {
-    message: error?.message,
-    code: error?.code,
-    status: error?.response?.status,
-    data: error?.response?.data,
-    url: error?.config?.url,
-    method: error?.config?.method,
-  };
-
-  console.log(
-    "SINGLE TASK API ERROR:",
-    JSON.stringify(debugInfo, null, 2)
-  );
-
-  return rejectWithValue(
-    error?.response?.data?.message ||
-      error?.response?.data?.title ||
-      error?.message ||
-      "Failed to load task."
-  );
-}
+      return rejectWithValue(
+        error?.response?.data?.message ||
+          error?.response?.data?.title ||
+          error?.message ||
+          "Failed to load task."
+      );
+    }
   }
 );
 
@@ -227,18 +164,8 @@ export const fetchAllProjects = createAsyncThunk(
         }
       );
 
-      console.log(
-        "ALL PROJECTS RESPONSE:",
-        response.data
-      );
-
       return response.data;
     } catch (error) {
-      console.error(
-        "ALL PROJECTS ERROR:",
-        error.response?.data || error.message
-      );
-
       return rejectWithValue(
         error.response?.data?.message ||
           error.response?.data?.title ||
@@ -258,19 +185,9 @@ export const rescheduleTask = createAsyncThunk(
         requestData
       );
 
-      console.log(
-        "RESCHEDULE API RESPONSE:",
-        response.data
-      );
-
       return response.data;
 
     } catch (error) {
-      console.error(
-        "RESCHEDULE API ERROR:",
-        error.response?.data || error.message
-      );
-
       return rejectWithValue(
         error.response?.data?.message ||
         error.response?.data?.title ||
@@ -300,15 +217,8 @@ export const deleteTask = createAsyncThunk(
         }
       );
 
-      console.log("DELETE TASK API RESPONSE:", response.data);
-
       return response.data;
     } catch (error) {
-      console.error(
-        "DELETE TASK API ERROR:",
-        error.response?.data || error.message
-      );
-
       return rejectWithValue(
         error.response?.data?.message ||
           error.response?.data?.title ||
@@ -580,11 +490,6 @@ const taskSlice = createSlice({
 
   const item = action.payload;
 
-  console.log(
-    "========== FETCH TASK BY ID RESPONSE =========="
-  );
-  console.log(item);
-  
   state.taskDetails = item;
 
   state.selectedTask = {

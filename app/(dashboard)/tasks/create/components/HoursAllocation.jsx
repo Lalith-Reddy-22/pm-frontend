@@ -87,23 +87,6 @@ useEffect(() => {
   const allocations =
     taskDetails?.employeeAllocations || [];
 
-  console.log(
-    "================================="
-  );
-
-  console.log(
-    "UPDATE MODE - LOADING EXISTING HOURS"
-  );
-
-  console.log(
-    "EMPLOYEE ALLOCATIONS:",
-    allocations
-  );
-
-  console.log(
-    "================================="
-  );
-
   const existingHours = {};
   const existingTimes = {};
 
@@ -170,16 +153,6 @@ useEffect(() => {
     });
   });
 
-  console.log(
-    "EXISTING HOURS DATA:",
-    existingHours
-  );
-
-  console.log(
-    "EXISTING TIME DATA:",
-    existingTimes
-  );
-
   setHoursData(existingHours);
   setTimeData(existingTimes);
 
@@ -234,27 +207,9 @@ useEffect(() => {
         employeeAllocations: [],
       };
 
-      console.log(
-        "================================="
-      );
-
-      console.log(
-        "CREATE TASK REQUEST:",
-        payload
-      );
-
-      console.log(
-        "================================="
-      );
-
       const response = await api.post(
         "/api/v1/Task",
         payload
-      );
-
-      console.log(
-        "CREATE TASK RESPONSE:",
-        response
       );
 
       const createdTaskId =
@@ -265,20 +220,10 @@ useEffect(() => {
         0;
 
       if (!createdTaskId) {
-        console.error(
-          "CREATE TASK RESPONSE DOES NOT CONTAIN TASK ID:",
-          response
-        );
-
         throw new Error(
           "Task was created but Task ID was not returned."
         );
       }
-
-      console.log(
-        "CREATED TASK ID:",
-        createdTaskId
-      );
 
       setFormData((prev) => ({
         ...prev,
@@ -287,13 +232,6 @@ useEffect(() => {
 
       return createdTaskId;
     } catch (error) {
-      console.error(
-        "CREATE TASK API ERROR:",
-        error?.response?.data ||
-          error?.message ||
-          error
-      );
-
       throw error;
     }
   };
@@ -407,37 +345,9 @@ useEffect(() => {
       employeeAllocations,
     };
 
-    console.log(
-      "================================="
-    );
-
-    console.log(
-      "UPDATE TASK ID:",
-      finalTaskId
-    );
-
-    console.log(
-      "UPDATE TASK REQUEST:",
-      payload
-    );
-
-    console.log(
-      "EMPLOYEE ALLOCATIONS:",
-      employeeAllocations
-    );
-
-    console.log(
-      "================================="
-    );
-
     const response = await api.put(
       `/api/v1/Task/${finalTaskId}`,
       payload
-    );
-
-    console.log(
-      "UPDATE TASK RESPONSE:",
-      response
     );
 
     return response;
@@ -541,18 +451,6 @@ useEffect(() => {
       // =================================================
 
       if (isUpdate) {
-        console.log(
-          "================================="
-        );
-
-        console.log(
-          "UPDATE MODE - SAVING TASK"
-        );
-
-        console.log(
-          "================================="
-        );
-
         await updateTask();
 
         alert(
@@ -577,17 +475,8 @@ useEffect(() => {
       // =================================================
 
       if (!finalTaskId) {
-        console.log(
-          "TASK ID NOT FOUND. CREATING TASK..."
-        );
-
         finalTaskId =
           await createTask();
-
-        console.log(
-          "TASK CREATED. TASK ID:",
-          finalTaskId
-        );
       }
 
       // =================================================
@@ -637,19 +526,6 @@ useEffect(() => {
         }
       );
 
-      console.log(
-        "================================="
-      );
-
-      console.log(
-        "TIME LOGS TO SAVE:",
-        logs
-      );
-
-      console.log(
-        "================================="
-      );
-
       // =================================================
       // NO HOURS
       // =================================================
@@ -667,34 +543,19 @@ useEffect(() => {
       // =================================================
 
       for (const log of logs) {
-        console.log(
-          "SAVING TIME LOG:",
-          log
-        );
-
         const response =
           await api.post(
             "/api/Timesheet/log",
             log
           );
 
-        console.log(
-          "TIME LOG RESPONSE:",
-          response
-        );
+        void response; // response used only for side effect
       }
 
       alert(
         "Task and hours saved successfully."
       );
     } catch (error) {
-      console.error(
-        "SAVE TASK ERROR:",
-        error?.response?.data ||
-          error?.message ||
-          error
-      );
-
       alert(
         error?.response?.data?.message ||
           error?.response?.data ||

@@ -46,7 +46,7 @@ export default function ProjectListsPage() {
             onClick={() => router.push("/project/add-project")}
             className="flex items-center gap-1.5 bg-white  text-red-400 text-sm font-medium px-3 py-1.5 rounded-md transition-colors duration-150 border border-red-400 hover:bg-red-50"
           >
-            <span className="text-base leading-none">+</span> Project
+            <span className="text-base leading-none">+</span>Add Project
           </button>
           <button
             onClick={() => setShowRateCard(true)}

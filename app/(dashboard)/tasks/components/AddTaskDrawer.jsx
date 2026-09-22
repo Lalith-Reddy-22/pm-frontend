@@ -31,11 +31,6 @@ export default function AddTaskDrawer({ open, onClose }) {
       sessionStorage.getItem("userType") || 0
     );
 
-    console.log("PROJECT DROPDOWN REQUEST:", {
-      empId,
-      userType,
-    });
-
     dispatch(
       fetchTaskProjects({
         empId,

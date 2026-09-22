@@ -90,9 +90,9 @@ export default function SmartSelect({ value, onChange, options = [], placeholder
         ref={triggerRef}
         type="button"
         onClick={toggle}
-        className={`flex w-full items-center justify-between gap-1 bg-transparent outline-none text-xs ${t.clientInputText}`}
+        className={`flex w-full min-w-0 items-center justify-between gap-1 bg-transparent outline-none text-xs ${t.clientInputText}`}
       >
-        <span className={selected ? t.clientInputText : t.textMuted}>
+        <span className={`min-w-0 text-left whitespace-normal break-all ${selected ? t.clientInputText : t.textMuted}`}>
           {selected ? selected.label : placeholder}
         </span>
         <ChevronDown
@@ -124,7 +124,7 @@ export default function SmartSelect({ value, onChange, options = [], placeholder
           </div>
 
           {/* Options list */}
-          <ul style={{ maxHeight: DROPDOWN_MAX_H }} className="overflow-y-auto py-1">
+          <ul style={{ maxHeight: DROPDOWN_MAX_H }} className="overflow-y-auto overflow-x-hidden py-1">
             {/* Blank / clear option — only show when no query */}
             {!query && (
               <li>
@@ -143,7 +143,7 @@ export default function SmartSelect({ value, onChange, options = [], placeholder
                 <button
                   type="button"
                   onClick={() => { onChange(String(opt.value)); setOpen(false); }}
-                  className={`w-full flex items-center justify-between px-3 py-1.5 text-xs transition-colors
+                  className={`w-full flex items-start justify-between gap-2 px-3 py-1.5 text-xs text-left whitespace-normal break-all transition-colors
                     ${String(opt.value) === String(value)
                       ? "text-red-600 dark:text-red-400 font-medium"
                       : `${t.clientInputText} hover:bg-red-50 dark:hover:bg-red-500/10`

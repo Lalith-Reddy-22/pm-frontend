@@ -43,8 +43,6 @@ export default function RescheduleModal({
   isDark,
   loading,
 }) {
-  console.log("MODAL TASK:", task);
-
 const selectedEmployeeId = task?.empIds
   ? Number(
       String(task.empIds)
@@ -62,26 +60,6 @@ const selectedEmployeeAllocation =
 
 const taskDates =
   selectedEmployeeAllocation?.dailyAllocations || [];
-
-console.log(
-  "EMPLOYEE ALLOCATIONS:",
-  task?.employeeAllocations
-);
-
-console.log(
-  "SELECTED EMPLOYEE ID:",
-  selectedEmployeeId
-);
-
-console.log(
-  "SELECTED EMPLOYEE ALLOCATION:",
-  selectedEmployeeAllocation
-);
-
-console.log(
-  "RESCHEDULE AVAILABLE DATES:",
-  taskDates
-);
 
  useEffect(() => {
   if (!open || !task) return;

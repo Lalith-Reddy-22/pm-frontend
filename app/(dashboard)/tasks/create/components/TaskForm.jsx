@@ -180,11 +180,6 @@ export default function TaskForm({
       employee.employeeName || "";
 
     if (!employeeId) {
-      console.error(
-        "Employee ID missing:",
-        employee
-      );
-
       return;
     }
 
