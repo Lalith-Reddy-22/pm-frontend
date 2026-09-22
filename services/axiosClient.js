@@ -1,5 +1,5 @@
 import axios from "axios";
-import { restoreAuthSessionFromLocalStorage } from "@/lib/session";
+import { readAuthSession, restoreAuthSessionFromLocalStorage } from "@/lib/session";
 
 const axiosClient = axios.create({
   baseURL: `${process.env.NEXT_PUBLIC_API_URL}/api/v1`,
@@ -18,9 +18,8 @@ axiosClient.interceptors.request.use(
     if (typeof window !== "undefined") {
       restoreAuthSessionFromLocalStorage();
 
-      const token =
-        sessionStorage.getItem("accessToken") ||
-        sessionStorage.getItem("token");
+      const { accessToken } = readAuthSession();
+      const token = accessToken || sessionStorage.getItem("token");
 
       if (token) {
         config.headers = config.headers || {};

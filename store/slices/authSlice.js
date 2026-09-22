@@ -5,7 +5,11 @@ import {
   verifyOtpRequest,
   resetPasswordRequest,
 } from "@/services/authService";
-import { clearAuthSession, persistAuthSession } from "@/lib/session";
+import {
+  clearAuthSession,
+  getRoleFromUserType,
+  persistAuthSession,
+} from "@/lib/session";
 
 /* =========================================================
    LOGIN
@@ -221,11 +225,15 @@ const authSlice = createSlice({
 
         state.refreshToken = refreshToken;
 
+        const userType = authData?.user_Type ?? authData?.userType ?? "";
+        const role = getRoleFromUserType(userType) || authData?.role || "";
+
         state.user = {
           empId: authData?.empId,
-          userType: authData?.user_Type,
+          userType,
           employeeName: authData?.employee_Name,
           email: authData?.emailId,
+          role,
         };
 
         if (typeof window !== "undefined") {
@@ -233,11 +241,12 @@ const authSlice = createSlice({
             accessToken,
             refreshToken,
             empId: authData?.empId,
-            userType: authData?.user_Type,
+            userType,
             employeeName: authData?.employee_Name,
             email: authData?.emailId,
             auth: "true",
-            role: authData?.role ?? "",
+            role,
+            designation: authData?.designation ?? "",
           });
         }
       })
