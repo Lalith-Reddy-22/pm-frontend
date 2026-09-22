@@ -8,6 +8,7 @@ import EmployeeTaskDetailsModal from "./EmployeeTaskDetailsModal";
 import Pagination from "./pagination";
 import { usePagination } from "../../hooks/usePagination";
 import { useDispatch, useSelector } from "react-redux";
+import { Info } from "lucide-react";
 
 import {
   fetchResourceAllocation,
@@ -158,10 +159,16 @@ function DayCell({
   );
 }
 
-  const { p, a, l } = entry;
-  const pPct = Math.min((p / 9) * 100, 100);
-  const lPct = Math.min((l / 9) * 100, 100);
-  const barColor = p > 8 ? "bg-red-500" : p > 4.5 ? "bg-orange-400" : "bg-green-500";
+const { p, a, l } = entry;
+
+const pPct = Math.min((p / 12) * 100, 100);
+
+const barColor =
+  p > 9
+    ? "bg-red-500"
+    : p === 9
+      ? "bg-blue-400"
+      : "bg-green-500";
 
   return (
     <td className="px-4 py-3">
@@ -189,10 +196,16 @@ function DayCell({
     L:{l}
   </span>
 </div>
-      <div className={`relative h-1 w-full rounded-full overflow-hidden ${isDark ? "bg-white/10" : "bg-gray-200"}`}>
-        <div className={`absolute left-0 top-0 h-full rounded-full ${barColor}`} style={{ width: `${pPct}%` }} />
-        {l > p && p > 0 && <div className="absolute top-0 h-full rounded-full bg-red-400" style={{ width: `${lPct}%` }} />}
-      </div>
+      <div
+  className={`relative h-1.25 w-40 rounded-md overflow-hidden ${
+    isDark ? "bg-white/10" : "bg-gray-200"
+  }`}
+>
+  <div
+    className={`absolute left-0 top-0 h-full rounded-full ${barColor}`}
+    style={{ width: `${pPct}%` }}
+  />
+</div>
     </td>
   );
 }
