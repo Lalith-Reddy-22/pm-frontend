@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Eye, EyeOff, Lock, User } from "lucide-react";
+import { Eye, EyeOff, Lock, User, CheckCircle } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { login, forgotPassword, verifyOtp, resetPassword, clearError } from "@/store/slices/authSlice";
 
@@ -29,6 +29,7 @@ const {
   const [remember, setRemember] = useState(false);
 
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
 const [forgotStep, setForgotStep] = useState("email");
 
@@ -132,7 +133,13 @@ async function handleResetPassword(e) {
   );
 
   if (resetPassword.fulfilled.match(result)) {
-    setForgotStep("success");
+    setShowForgotPassword(false);
+    setForgotStep("email");
+    setForgotEmail("");
+    setOtp("");
+    setNewPassword("");
+    setConfirmPassword("");
+    setShowSuccessModal(true);
   }
 }
 
@@ -612,6 +619,44 @@ async function handleResetPassword(e) {
   </>
 )}
       </div>
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+          style={{ backgroundColor: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl p-8 flex flex-col items-center gap-4 bg-white"
+            style={{ boxShadow: "0 20px 60px rgba(0,0,0,0.3)" }}
+          >
+            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-green-50">
+              <CheckCircle size={34} className="text-green-500" />
+            </div>
+
+            <div className="text-center">
+              <h2 className="text-lg font-bold text-slate-800">
+                Password Updated!
+              </h2>
+              <p className="mt-1.5 text-sm text-slate-500">
+                Your password has been reset successfully. Please log in with your new password.
+              </p>
+            </div>
+
+            <button
+              onClick={() => {
+                setShowSuccessModal(false);
+              }}
+              className="w-full py-3 rounded-xl text-white text-sm font-semibold transition-all"
+              style={{
+                background: "linear-gradient(90deg, #e53935 0%, #c2185b 100%)",
+                boxShadow: "0 4px 16px rgba(220,50,80,0.35)",
+              }}
+            >
+              Back to Login
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

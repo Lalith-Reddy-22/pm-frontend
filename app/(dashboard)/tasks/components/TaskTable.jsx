@@ -129,8 +129,6 @@ function TaskTableRow({
   onClick={() => {
     const projectId = Number(task.projectId || 0);
 
-    console.log("CREATE TASK PROJECT ID:", projectId);
-
     if (!projectId) {
       alert("Project ID is missing.");
       return;
@@ -155,9 +153,6 @@ router.push(
   size="icon-sm"
   aria-label="Update task"
   onClick={() => {
-    console.log("FULL TASK OBJECT:", task);
-    console.log("TASK OBJECT KEYS:", Object.keys(task));
-
     const id =
       task.task_Id ??
       task.taskId ??
@@ -165,8 +160,6 @@ router.push(
       task.TaskId ??
       task.Task_ID ??
       task.id;
-
-    console.log("RESOLVED TASK ID:", id);
 
     if (!id) {
       alert("Task ID is missing.");
@@ -188,8 +181,6 @@ router.push(
       size="icon-sm"
       aria-label="Reschedule task"
       onClick={() => {
-        console.log("RESCHEDULE BUTTON CLICKED:", task);
-
         onReschedule(task);
       }}
       className="opacity-60 group-hover:opacity-100 hover:text-[#E12729]"
@@ -203,7 +194,6 @@ router.push(
   size="icon-sm"
   aria-label="Delete task"
   onClick={() => {
-    console.log("DELETE BUTTON CLICKED:", task);
     onDelete(task);
   }}
   className="opacity-60 group-hover:opacity-100 hover:text-destructive"

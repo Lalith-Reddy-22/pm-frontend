@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Building2, Plus, X } from "lucide-react";
+import { ArrowLeft, Building2, Plus, X, CheckCircle } from "lucide-react";
 import { useTheme } from "../../../../context/ThemeContext";
 import axiosClient from "@/services/axiosClient";
 
@@ -17,6 +17,8 @@ export default function NewClientPage() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   // =====================================================
   // CREATE CLIENT
@@ -70,13 +72,10 @@ export default function NewClientPage() {
       // }
 
       if (response.data?.success) {
-        alert(
-          response.data?.message ||
-            "Client created successfully."
+        setSuccessMessage(
+          response.data?.message || "Client created successfully."
         );
-
-        // Go back to client list
-        router.push("/finance/clients");
+        setShowSuccess(true);
       } else {
         setError(
           response.data?.message ||
@@ -271,6 +270,52 @@ export default function NewClientPage() {
           </div>
         </form>
       </div>
+
+      {/* =====================================================
+          SUCCESS MODAL
+      ===================================================== */}
+      {showSuccess && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+          style={{ backgroundColor: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }}
+        >
+          <div
+            className={`w-full max-w-sm rounded-2xl p-8 flex flex-col items-center gap-5 ${t.clientModalBg}`}
+            style={{ boxShadow: "0 20px 60px rgba(0,0,0,0.3)" }}
+          >
+            {/* Icon */}
+            <div className={`flex items-center justify-center w-16 h-16 rounded-full ${t.clientIconBg}`}>
+              <CheckCircle size={34} className="text-green-500" />
+            </div>
+
+            {/* Text */}
+            <div className="text-center">
+              <h2 className={`text-lg font-bold ${t.clientModalText}`}>
+                Client Created!
+              </h2>
+              <p className={`mt-1.5 text-sm ${t.textSecondary}`}>
+                {successMessage}
+              </p>
+            </div>
+
+            {/* Divider */}
+            <div className={`w-full border-t ${t.clientBorder}`} />
+
+            {/* Action */}
+            <button
+              onClick={() => router.push("/finance/clients")}
+              className="w-full py-3 rounded-xl text-white text-sm font-semibold transition-all flex items-center justify-center gap-2"
+              style={{
+                background: "linear-gradient(90deg, #e53935 0%, #c2185b 100%)",
+                boxShadow: "0 4px 16px rgba(220,50,80,0.35)",
+              }}
+            >
+              <Building2 className="w-4 h-4" />
+              Go to Clients
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

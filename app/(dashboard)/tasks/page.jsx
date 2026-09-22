@@ -25,14 +25,14 @@ const employeeIdFromUrl =
 const userTypeFromUrl =
   searchParams.get("userType");
 
-  console.log(
-    "TASK ID FROM NOTIFICATION:",
-    taskIdFromNotification
-  );
 
-  const [dateRange, setDateRange] = useState({
-    from: new Date(2026, 0, 1),
-    to: new Date(2026, 11, 31),
+
+  const [dateRange, setDateRange] = useState(() => {
+    const now = new Date();
+    return {
+      from: new Date(now.getFullYear(), 0, 1),
+      to: new Date(now.getFullYear(), 11, 31),
+    };
   });
 
   const [search, setSearch] = useState("");
@@ -80,11 +80,6 @@ const userTypeFromUrl =
   useEffect(() => {
   if (!taskIdFromNotification) return;
 
-  console.log(
-    "FETCHING NOTIFICATION TASK:",
-    taskIdFromNotification
-  );
-
   dispatch(
     fetchTaskById(
       Number(taskIdFromNotification)
@@ -109,25 +104,6 @@ const employeeNameMap = Object.fromEntries(
     String(employee.employeeId),
     employee.employeeName,
   ])
-);
-
-console.log(
-  "SELECTED TASK PROJECT ID:",
-  selectedTask?.projectId
-);
-
-console.log(
-  "PROJECT 415:",
-  projects.find(
-    (project) =>
-      String(project.project_Id) ===
-      String(selectedTask?.projectId)
-  )
-);
-
-console.log(
-  "TOTAL PROJECTS LOADED:",
-  projects.length
 );
 
 const notificationTask =
@@ -189,11 +165,7 @@ const notificationTask =
         })(),
       }
     : null;
-    
-    console.log(
-  "FINAL NOTIFICATION TASK:",
-  notificationTask
-);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(search);
@@ -223,22 +195,8 @@ const notificationTask =
   const endDate = formatDate(dateRange.to);
 
   if (!empId || !userType) {
-    console.log("Invalid employee/user type:", {
-      empId,
-      userType,
-    });
-
     return;
   }
-
-  console.log("FETCH TASKS:", {
-    empId,
-    userType,
-    startDate,
-    endDate,
-    searchText: debouncedSearch,
-    currentPage,
-  });
 
   dispatch(
     fetchTasks({
@@ -268,13 +226,6 @@ const notificationTask =
     ? [notificationTask]
     : []
   : tasks;
-
-  console.log("========== NOTIFICATION DEBUG ==========");
-console.log("TASK ID FROM URL:", taskIdFromNotification);
-console.log("TOTAL API TASKS:", tasks.length);
-console.log("API TASK IDS:", tasks.map((task) => task.id));
-console.log("DISPLAYED TASKS:", displayedTasks);
-console.log("========================================");
 
   if (
   loading ||

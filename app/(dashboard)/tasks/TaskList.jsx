@@ -51,8 +51,6 @@ const [rescheduleLoading, setRescheduleLoading] =
   useState(false);
 
   function handleReschedule(task) {
-  console.log("RESCHEDULE TASK FROM TASK LIST:", task);
-
   setRescheduleModal({
     open: true,
     task,
@@ -77,13 +75,6 @@ function handleCloseReschedule() {
 }
 
 async function handleSubmitReschedule(data) {
-  console.log("========== RESCHEDULE SUBMIT ==========");
-  console.log("TASK:", data.task);
-  console.log("ORIGINAL DATE:", data.originalDate);
-  console.log("RESCHEDULE DATE:", data.rescheduleDate);
-  console.log("RESCHEDULE TYPE:", data.rescheduleType);
-  console.log("REASON:", data.reason);
-
   setRescheduleLoading(true);
 
   try {
@@ -110,19 +101,9 @@ async function handleSubmitReschedule(data) {
       createdBy: createdBy,
     };
 
-    console.log(
-      "========== RESCHEDULE API PAYLOAD =========="
-    );
-    console.log(payload);
-
     const result = await dispatch(
       rescheduleTask(payload)
     ).unwrap();
-
-    console.log(
-      "========== RESCHEDULE SUCCESS =========="
-    );
-    console.log(result);
 
     // Close only after API succeeds
     handleCloseReschedule();
@@ -130,11 +111,6 @@ async function handleSubmitReschedule(data) {
     alert("Task rescheduled successfully.");
 
   } catch (error) {
-    console.error(
-      "========== RESCHEDULE FAILED =========="
-    );
-    console.error(error);
-
     alert(
       typeof error === "string"
         ? error
@@ -187,12 +163,8 @@ async function handleDeleteTask(task) {
       })
     ).unwrap();
 
-    console.log("DELETE TASK SUCCESS:", result);
-
     alert("Task deleted successfully.");
   } catch (error) {
-    console.error("DELETE TASK FAILED:", error);
-
     alert(
       typeof error === "string"
         ? error
@@ -235,7 +207,7 @@ const handleExport = async (exportFormat = "csv") => {
   })
 ).unwrap();
   } catch (error) {
-    console.error("TASK EXPORT ERROR:", error);
+    // export errors are silently swallowed — the exportSlice handles user-facing feedback
   }
 };
 
@@ -260,11 +232,6 @@ const handleExport = async (exportFormat = "csv") => {
     externalSetDateRange ?? setLocalDateRange;
 
     const filteredTasks = tasks;
-
-    console.log("TASKS RECEIVED BY TASK LIST:", tasks);
-console.log("FIRST TASK:", tasks?.[0]);
-console.log("FIRST TASK PROJECT ID:", tasks?.[0]?.projectId);
-console.log("FIRST TASK PROJECT_ID:", tasks?.[0]?.project_ID);
 
   return (
     <div className="space-y-4 p-4 sm:p-6">
@@ -348,12 +315,36 @@ console.log("FIRST TASK PROJECT_ID:", tasks?.[0]?.project_ID);
   </button>
 
   {/* PAGE NUMBERS */}
-  {Array.from(
-    { length: Math.min(totalPages, 3) },
-    (_, index) => {
-      const page = index + 1;
+  {(() => {
+    const delta = 2; // pages shown on each side of current
+    const start = Math.max(1, currentPage - delta);
+    const end = Math.min(totalPages, currentPage + delta);
+    const pages = [];
 
-      return (
+    // Leading ellipsis
+    if (start > 1) {
+      pages.push(
+        <button
+          key={1}
+          type="button"
+          onClick={() => setCurrentPage(1)}
+          className="flex h-8 w-8 items-center justify-center rounded-md border text-sm hover:bg-muted"
+        >
+          1
+        </button>
+      );
+      if (start > 2) {
+        pages.push(
+          <span key="start-ellipsis" className="flex h-8 w-8 items-center justify-center text-sm text-muted-foreground">
+            …
+          </span>
+        );
+      }
+    }
+
+    // Window of pages around current
+    for (let page = start; page <= end; page++) {
+      pages.push(
         <button
           key={page}
           type="button"
@@ -368,7 +359,30 @@ console.log("FIRST TASK PROJECT_ID:", tasks?.[0]?.project_ID);
         </button>
       );
     }
-  )}
+
+    // Trailing ellipsis
+    if (end < totalPages) {
+      if (end < totalPages - 1) {
+        pages.push(
+          <span key="end-ellipsis" className="flex h-8 w-8 items-center justify-center text-sm text-muted-foreground">
+            …
+          </span>
+        );
+      }
+      pages.push(
+        <button
+          key={totalPages}
+          type="button"
+          onClick={() => setCurrentPage(totalPages)}
+          className="flex h-8 w-8 items-center justify-center rounded-md border text-sm hover:bg-muted"
+        >
+          {totalPages}
+        </button>
+      );
+    }
+
+    return pages;
+  })()}
 
   {/* NEXT PAGE */}
   <button

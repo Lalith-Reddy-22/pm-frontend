@@ -24,7 +24,7 @@ export default function ClientProjectsPageWrapper() {
         </div>
       }
     >
-      <ClientProjectsPage />
+      <ClientProjectsPageInner />
     </Suspense>
   );
 }

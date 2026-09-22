@@ -79,7 +79,7 @@ export default function EditProjectPage() {
           poValue:               p.total_Value       != null ? String(p.total_Value)       : "",
           predictedCost:         p.predicted_Value   != null ? String(p.predicted_Value)   : "",
           outsourcingCost:       p.outsourcing_Value != null ? String(p.outsourcing_Value) : "",
-          includeInBuyingCenter: p.includeInBuyingCenter ?? false,
+          includeInBuyingCenter: p.includeInBuyingCenter ?? true,
         });
       })
       .catch((e) => setError(e.response?.data?.message || e.message || "Failed to load project."))
