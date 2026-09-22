@@ -18,6 +18,7 @@ import {
   fetchTaskNotifications,
   markNotificationRead,
 } from "@/store/slices/timesheetSlice";
+import { clearAuthSession } from "@/lib/session";
 
 export default function Navbar({ onMenuClick }) {
   const { isDark, toggle, t } = useTheme();
@@ -38,10 +39,7 @@ export default function Navbar({ onMenuClick }) {
   const router = useRouter();
 
     const handleLogout = () => {
-  sessionStorage.clear();
-  // Clear localStorage so new tabs also lose the session
-  ["accessToken", "refreshToken", "empId", "userType", "employeeName", "email", "auth", "role"]
-    .forEach((key) => localStorage.removeItem(key));
+  clearAuthSession();
   router.push("/login");
 };
 
