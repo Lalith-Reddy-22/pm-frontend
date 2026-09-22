@@ -183,6 +183,31 @@ export const markNotificationRead = createAsyncThunk(
   }
 );
 
+const normalizeTimesheetTasks = (payload) => {
+  if (Array.isArray(payload)) return payload;
+  if (!payload || typeof payload !== "object") return [];
+
+  const candidates = [
+    payload.tasks,
+    payload.Task_data,
+    payload.task_data,
+    payload.data,
+    payload.result,
+    payload.data?.tasks,
+    payload.data?.Task_data,
+    payload.data?.task_data,
+    payload.result?.tasks,
+    payload.result?.Task_data,
+    payload.result?.task_data,
+  ];
+
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate)) return candidate;
+  }
+
+  return [];
+};
+
 // =====================================================
 // INITIAL STATE
 // =====================================================
@@ -239,12 +264,7 @@ const timesheetSlice = createSlice({
         state.loading = false;
         state.error = null;
 
-        console.log(
-          "TIMESHEET DATA IN REDUX:",
-          action.payload
-        );
-
-        state.tasks = action.payload?.tasks || [];
+        state.tasks = normalizeTimesheetTasks(action.payload ?? []);
       })
 
       .addCase(rescheduleTask.pending, (state) => {

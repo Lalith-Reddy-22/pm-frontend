@@ -1,8 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchWeekUtilization } from "@/store/slices/weekUtilizationSlice";
+
+function startOfWeek(date) {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  const day = d.getDay();
+  const diff = (day === 0 ? -6 : 1 - day);
+  d.setDate(d.getDate() + diff);
+  return d;
+}
+
+function addDays(date, amount) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + amount);
+  return d;
+}
+
+function formatApiDate(date) {
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
 
 import Header from "./components/Header";
 import FilterSection from "./components/FilterSection";
@@ -14,11 +37,23 @@ import { exportFile } from "@/store/slices/exportSlice";
 
 
 export default function WeekUtilization() {
-
-  const [startDate, setStartDate] = useState("2026-08-10");
-  const [endDate, setEndDate] = useState("2026-08-14");
+  const [startDate, setStartDate] = useState(() =>
+    formatApiDate(startOfWeek(new Date()))
+  );
+  const [endDate, setEndDate] = useState(() =>
+    formatApiDate(addDays(startOfWeek(new Date()), 4))
+  );
 
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(
+      fetchWeekUtilization({
+        startDate,
+        endDate,
+      })
+    );
+  }, [dispatch, startDate, endDate]);
 
   const handleExportExcel = async () => {
   try {
@@ -185,13 +220,20 @@ const clientData = mapClientData(client);
   
 
   const handleGenerateReport = () => {
-  dispatch(
-    fetchWeekUtilization({
-      startDate,
-      endDate,
-    })
-  );
-};
+    dispatch(
+      fetchWeekUtilization({
+        startDate,
+        endDate,
+      })
+    );
+  };
+
+  const hasReportData =
+    team.billable.length > 0 ||
+    team.nonBillable.length > 0 ||
+    designation.billable.length > 0 ||
+    designation.nonBillable.length > 0 ||
+    client.length > 0;
 
   return (
     <div className="min-h-screen bg-[#f4f5f7] p-4 sm:p-6">
@@ -215,7 +257,7 @@ const clientData = mapClientData(client);
           </div>
         )}
 
-        {loading && (
+        {loading && !hasReportData && (
           <div className="py-6 text-center text-sm text-gray-500">
             Loading utilization report...
           </div>

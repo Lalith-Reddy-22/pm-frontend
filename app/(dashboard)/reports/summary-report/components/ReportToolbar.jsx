@@ -52,6 +52,9 @@ export default function ReportToolbar({
   value={selectedProject}
   onChange={setSelectedProject}
   placeholder="All Projects"
+  searchable
+  searchPlaceholder="Type project name"
+  className="w-[260px] min-w-[260px]"
   options={[
     {
       value: "all",

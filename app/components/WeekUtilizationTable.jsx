@@ -134,7 +134,7 @@ function DayCell({
 
   if (entry.type === "available") {
   return (
-    <td className="px-4 py-3">
+    <td className="px-4 py-3 text-center">
       <div
   onClick={onCellClick}
   className="flex cursor-pointer items-center justify-center gap-1 rounded-md px-2 py-1 text-xs hover:bg-red-50"
@@ -171,7 +171,7 @@ const barColor =
       : "bg-green-500";
 
   return (
-    <td className="px-4 py-3">
+    <td className="px-4 py-3 text-center">
       <div
   onClick={onCellClick}
   className="mb-1 flex cursor-pointer items-center justify-center gap-1 rounded-md px-2 py-1 text-xs transition hover:bg-red-50 hover:text-red-600"
@@ -312,24 +312,6 @@ const filtered = useMemo(() => {
   return rows;
 }, [allData, search, sortDir]);
 
-const overallUtilization = useMemo(() => {
-  if (!allData.length) return 0;
-
-  const totalPlanned = allData.reduce(
-    (sum, row) => sum + Number(row.total_planned || 0),
-    0
-  );
-
-  const totalLogged = allData.reduce(
-    (sum, row) => sum + Number(row.total_logged || 0),
-    0
-  );
-
-  if (totalPlanned <= 0) return 0;
-
-  return Math.round((totalLogged / totalPlanned) * 100);
-}, [allData]);
-
   const {
     paginatedData: pageRows,
     page, setPage,
@@ -350,6 +332,9 @@ const overallUtilization = useMemo(() => {
   const card   = isDark ? "bg-[#111111] border border-white/5" : "bg-white border border-gray-200";
   const thCls  = `px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider cursor-pointer select-none whitespace-nowrap
     ${isDark ? "text-gray-400 bg-[#1a1a1a]" : "text-gray-500 bg-gray-50"}`;
+  const dateThCls = `px-4 py-3 min-w-[160px] text-center text-[11px] font-semibold uppercase tracking-wider cursor-pointer select-none whitespace-nowrap ${
+    isDark ? "text-gray-400 bg-[#1a1a1a]" : "text-gray-500 bg-gray-50"
+  }`;
   const trCls  = `border-t transition-colors ${isDark ? "border-white/5 hover:bg-white/3" : "border-gray-100 hover:bg-gray-50"}`;
 
   useEffect(() => {
@@ -402,64 +387,29 @@ function loadResourceAllocation() {
         </div>
       </div>
 
-      {/* ── Utilization + Search ── */}
-<div
-  className={`px-6 py-3 flex items-center justify-between border-b ${
-    isDark ? "border-white/5" : "border-gray-100"
-  }`}
->
-  {/* Left: Utilization */}
-  <div className="flex items-center gap-2 text-sm">
-    <span className={t.textSecondary}>
-      Utilization:
-    </span>
-
-    {/* Utilization bar */}
-    <div
-      className={`relative h-1.5 w-10 rounded-full overflow-hidden ${
-        isDark ? "bg-white/10" : "bg-gray-200"
-      }`}
-    >
+      {/* ── Search ── */}
       <div
-        className="absolute left-0 top-0 h-full rounded-full bg-red-500"
-        style={{
-          width: `${Math.min(overallUtilization, 100)}%`,
-        }}
-      />
-    </div>
-
-    {/* Percentage */}
-    <span className={t.textSecondary}>
-      {overallUtilization}%
-    </span>
-
-    {/* Info */}
-    <span
-      title="(Logged Hours / Planned Hours) * 100"
-      className={`cursor-help ${t.textMuted}`}
-    >
-      ⓘ
-    </span>
-  </div>
-
-  {/* Right: Search */}
-  <div className="flex items-center gap-2">
-    <span className={`text-sm ${t.textSecondary}`}>
-      Search:
-    </span>
-
-    <input
-      value={search}
-      onChange={handleSearch}
-      className={`w-44 px-3 py-1.5 rounded-lg text-sm border outline-none transition-colors
-        ${
-          isDark
-            ? "bg-white/5 border-white/10 text-gray-200 placeholder-gray-600 focus:border-red-500/50"
-            : "bg-white border-gray-300 text-gray-800 placeholder-gray-400 focus:border-red-400"
+        className={`px-6 py-3 flex items-center justify-end border-b ${
+          isDark ? "border-white/5" : "border-gray-100"
         }`}
-    />
-  </div>
-</div>
+      >
+        <div className="flex items-center gap-2">
+          <span className={`text-sm ${t.textSecondary}`}>
+            Search:
+          </span>
+
+          <input
+            value={search}
+            onChange={handleSearch}
+            className={`w-44 px-3 py-1.5 rounded-lg text-sm border outline-none transition-colors
+              ${
+                isDark
+                  ? "bg-white/5 border-white/10 text-gray-200 placeholder-gray-600 focus:border-red-500/50"
+                  : "bg-white border-gray-300 text-gray-800 placeholder-gray-400 focus:border-red-400"
+              }`}
+          />
+        </div>
+      </div>
 
       {/* ── Table ── */}
       <div className="overflow-x-auto flex-1">
@@ -470,7 +420,7 @@ function loadResourceAllocation() {
                 NAME <SortIcon col="name" sortCol={sortCol} sortDir={sortDir} />
               </th>
               {weekDays.map(day => (
-                <th key={day.toISOString()} className={`${thCls} min-w-[160px]`}>
+                <th key={day.toISOString()} className={dateThCls}>
                   {fmtColDate(day)} <SortIcon col={day.toISOString()} sortCol={sortCol} sortDir={sortDir} />
                 </th>
               ))}

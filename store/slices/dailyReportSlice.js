@@ -8,6 +8,7 @@ export const fetchDailyReports = createAsyncThunk(
     {
       todayDate,
       resourceName = "",
+      searchText = "",
       pageNumber = 1,
       pageSize = 10,
     },
@@ -17,6 +18,7 @@ export const fetchDailyReports = createAsyncThunk(
       const response = await getDailyReports({
         todayDate,
         resourceName,
+        searchText,
         pageNumber,
         pageSize,
       });

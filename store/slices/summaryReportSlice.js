@@ -557,6 +557,13 @@ const summaryReportSlice = createSlice({
             task.employee ??
             task.assignee ??
             "",
+          clientTitle:
+            task.clientTitle ??
+            task.client_Title ??
+            task.Client_Title ??
+            task.clientName ??
+            task.ClientName ??
+            "",
           startDate:
             task.startDate ??
             task.StartDate ??

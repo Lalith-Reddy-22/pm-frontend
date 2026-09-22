@@ -3,6 +3,7 @@ import axiosClient from "./axiosClient";
 export async function getDailyReports({
   todayDate,
   resourceName = "",
+  searchText = "",
   pageNumber = 1,
   pageSize = 10,
 }) {
@@ -17,6 +18,10 @@ export async function getDailyReports({
     resourceName !== "All Employees"
   ) {
     params.append("resourceName", resourceName);
+  }
+
+  if (searchText && searchText.trim()) {
+    params.append("searchText", searchText.trim());
   }
 
   params.append("pageNumber", String(pageNumber));

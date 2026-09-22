@@ -67,9 +67,9 @@ export default function TimesheetTable({
           </thead>
 
           <tbody>
-            {pageRows.map((task) => (
+            {pageRows.map((task, index) => (
               <TaskRowPair
-  key={task.id}
+  key={`${task.id ?? task.taskId ?? "task"}-${task.entryDate ?? index}`}
   task={task}
   weekDates={weekDates}
   border={border}

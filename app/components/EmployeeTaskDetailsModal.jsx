@@ -14,7 +14,14 @@ export default function EmployeeTaskDetailsModal({
   loading,
 }) {
   const [search, setSearch] = useState("");
-const [billingType, setBillingType] = useState("all");
+  const [billingType, setBillingType] = useState("all");
+
+  const role =
+    typeof window !== "undefined"
+      ? sessionStorage.getItem("role") || "employee"
+      : "employee";
+
+  const isAdminView = ["admin", "sys_admin", "management_admin"].includes(role);
 
   const tasks = useMemo(() => {
   return (taskDetails?.tasks || []).map((task) => {
@@ -111,45 +118,49 @@ const nonBillableCount = useMemo(() => {
         <div className="flex items-center justify-between px-6 py-3">
 
   {/* BILLING TABS */}
-  <div className="flex items-center gap-2">
+  {isAdminView ? (
+    <div className="flex items-center gap-2">
 
-    <button
-      type="button"
-      onClick={() => setBillingType("all")}
-      className={`rounded px-4 py-2 text-xs font-semibold ${
-        billingType === "all"
-          ? "bg-[#333] text-white"
-          : "border border-gray-300 bg-white text-gray-700"
-      }`}
-    >
-      All ({tasks.length})
-    </button>
+      <button
+        type="button"
+        onClick={() => setBillingType("all")}
+        className={`rounded px-4 py-2 text-xs font-semibold ${
+          billingType === "all"
+            ? "bg-[#333] text-white"
+            : "border border-gray-300 bg-white text-gray-700"
+        }`}
+      >
+        All ({tasks.length})
+      </button>
 
-    <button
-      type="button"
-      onClick={() => setBillingType("billable")}
-      className={`rounded px-4 py-2 text-xs font-semibold ${
-        billingType === "billable"
-          ? "bg-[#333] text-white"
-          : "border border-gray-300 bg-white text-gray-700"
-      }`}
-    >
-      Billable ({billableCount})
-    </button>
+      <button
+        type="button"
+        onClick={() => setBillingType("billable")}
+        className={`rounded px-4 py-2 text-xs font-semibold ${
+          billingType === "billable"
+            ? "bg-[#333] text-white"
+            : "border border-gray-300 bg-white text-gray-700"
+        }`}
+      >
+        Billable ({billableCount})
+      </button>
 
-    <button
-      type="button"
-      onClick={() => setBillingType("nonbillable")}
-      className={`rounded px-4 py-2 text-xs font-semibold ${
-        billingType === "nonbillable"
-          ? "bg-[#333] text-white"
-          : "border border-gray-300 bg-white text-gray-700"
-      }`}
-    >
-      Non-Billable ({nonBillableCount})
-    </button>
+      <button
+        type="button"
+        onClick={() => setBillingType("nonbillable")}
+        className={`rounded px-4 py-2 text-xs font-semibold ${
+          billingType === "nonbillable"
+            ? "bg-[#333] text-white"
+            : "border border-gray-300 bg-white text-gray-700"
+        }`}
+      >
+        Non-Billable ({nonBillableCount})
+      </button>
 
-  </div>
+    </div>
+  ) : (
+    <div />
+  )}
 
   {/* SEARCH */}
   <div className="flex items-center gap-2">

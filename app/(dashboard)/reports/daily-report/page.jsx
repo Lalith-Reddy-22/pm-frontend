@@ -107,7 +107,10 @@ const {
   const [sorting, setSorting] =
     useState([]);
 
-  const [globalFilter, setGlobalFilter] =
+  const [searchInput, setSearchInput] =
+    useState("");
+
+  const [searchQuery, setSearchQuery] =
     useState("");
 
   const [pagination, setPagination] =
@@ -115,6 +118,32 @@ const {
       pageIndex: 0,
       pageSize: 10,
     });
+
+  const MIN_SEARCH_LENGTH = 2;
+
+  useEffect(() => {
+    const trimmed = searchInput.trim();
+
+    if (!trimmed) {
+      setSearchQuery("");
+      return;
+    }
+
+    if (trimmed.length < MIN_SEARCH_LENGTH) {
+      setSearchQuery("");
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setSearchQuery(trimmed);
+      setPagination((prev) => ({
+        ...prev,
+        pageIndex: 0,
+      }));
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   // -------------------------------------------------------
   // FORMAT DATE FOR API
@@ -127,18 +156,22 @@ const {
     useEffect(() => {
   if (!formattedDate) return;
 
+  const hasSearch = Boolean(searchQuery.trim());
+
   dispatch(
     fetchDailyReports({
       todayDate: formattedDate,
       resourceName: employeeFilter,
-      pageNumber: pagination.pageIndex + 1,
-      pageSize: pagination.pageSize,
+      searchText: hasSearch ? searchQuery : "",
+      pageNumber: hasSearch ? 1 : pagination.pageIndex + 1,
+      pageSize: hasSearch ? 5000 : pagination.pageSize,
     })
   );
 }, [
   dispatch,
   formattedDate,
   employeeFilter,
+  searchQuery,
   pagination.pageIndex,
   pagination.pageSize,
 ]);
@@ -207,20 +240,29 @@ const {
 }, [apiReports]);
 
 const filteredReports = useMemo(() => {
-  if (!globalFilter.trim()) {
+  const normalizedSearch = searchInput.trim().toLowerCase();
+
+  if (!normalizedSearch) {
     return reports;
   }
 
-  const searchValue = globalFilter.toLowerCase().trim();
-
   return reports.filter((report) =>
-    Object.values(report).some((value) =>
+    [
+      report.resourceName,
+      report.taskTitle,
+      report.projectTitle,
+      report.owner,
+      report.client,
+      report.department,
+      report.projectCode,
+      String(report.id ?? ""),
+    ].some((value) =>
       String(value ?? "")
         .toLowerCase()
-        .includes(searchValue)
+        .includes(normalizedSearch)
     )
   );
-}, [reports, globalFilter]);
+}, [reports, searchInput]);
 
 const handleExport = (format) => {
   const rows = table
@@ -607,15 +649,20 @@ const endIndex =
 
               <input
                type="text"
-               value={globalFilter}
+               value={searchInput}
                onChange={(e) => {
-               setGlobalFilter(e.target.value);
-               setPagination((prev) => ({
-               ...prev,
-               pageIndex: 0,
-              }));
+                 const value = e.target.value;
+                 setSearchInput(value);
+
+                 if (!value.trim()) {
+                   setSearchQuery("");
+                   setPagination((prev) => ({
+                     ...prev,
+                     pageIndex: 0,
+                   }));
+                 }
               }}
-              placeholder="Task ID"
+              placeholder="Search task, name, project"
 
               className="h-8 pl-9 text-sm border border-border rounded-lg w-full"
               />

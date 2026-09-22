@@ -114,6 +114,32 @@ export default function ReportTable({
   );
 }
 
+function formatDisplayDate(value) {
+  if (!value && value !== 0) return "—";
+
+  const text = String(value).trim();
+  if (!text) return "—";
+
+  let date;
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(text)) {
+    const [year, month, day] = text.split("-").map(Number);
+    date = new Date(year, month - 1, day);
+  } else {
+    date = new Date(text);
+  }
+
+  if (Number.isNaN(date.getTime())) {
+    return text;
+  }
+
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = String(date.getFullYear()).slice(-2);
+
+  return `${day}-${month}-${year}`;
+}
+
 function ReportTableRow({ row }) {
 
   const tableRow = {
@@ -167,14 +193,14 @@ function ReportTableRow({ row }) {
 
   // DATES
   startDate:
-    row.startDate ??
-    row.StartDate ??
-    "",
+    formatDisplayDate(
+      row.startDate ?? row.StartDate ?? ""
+    ),
 
   endDate:
-    row.endDate ??
-    row.EndDate ??
-    "",
+    formatDisplayDate(
+      row.endDate ?? row.EndDate ?? ""
+    ),
 
   // EMPLOYEE
   employeeName:

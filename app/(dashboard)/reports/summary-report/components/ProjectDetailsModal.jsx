@@ -1,8 +1,7 @@
-"use client";
+﻿"use client";
 
 import { X } from "lucide-react";
 import { useMemo, useState } from "react";
-import DataPagination from "@/components/DataPagination";
 
 export default function ProjectDetailsModal({
   open,
@@ -13,256 +12,152 @@ export default function ProjectDetailsModal({
 }) {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(5);
 
-  // ---------------------------------------------
-  // SEARCH
-  // ---------------------------------------------
- const filteredTasks = useMemo(() => {
-  const searchText = search.trim().toLowerCase();
+  const projectTitle =
+    project?.projectTitle ??
+    project?.project_Title ??
+    project?.projectName ??
+    project?.project_Name ??
+    "Project";
 
-  if (!searchText) {
-    return tasks;
-  }
+  const formatDisplayNumber = (value) => {
+    if (value === null || value === undefined || value === "") return "—";
+    const numeric = Number(value);
+    return Number.isFinite(numeric) ? numeric.toFixed(1) : value;
+  };
 
-  return tasks.filter((task) => {
-    return (
-      String(task.taskId ?? "")
-        .toLowerCase()
-        .includes(searchText) ||
+  const filteredTasks = useMemo(() => {
+    const searchText = search.trim().toLowerCase();
 
-      String(task.taskTitle ?? "")
-        .toLowerCase()
-        .includes(searchText) ||
+    if (!searchText) return tasks;
 
-      String(task.employee ?? "")
-        .toLowerCase()
-        .includes(searchText) ||
+    return tasks.filter((task) => {
+      const haystack = [task.taskId, task.taskTitle, task.clientTitle, task.employee]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
 
-      String(task.startDate ?? "")
-        .toLowerCase()
-        .includes(searchText) ||
+      return haystack.includes(searchText);
+    });
+  }, [tasks, search]);
 
-      String(task.endDate ?? "")
-        .toLowerCase()
-        .includes(searchText) ||
-
-      String(task.status ?? "")
-        .toLowerCase()
-        .includes(searchText)
-    );
-  });
-}, [tasks, search]);
-
-  // ---------------------------------------------
-  // PAGINATION
-  // ---------------------------------------------
   const total = filteredTasks.length;
-
-  const totalPages = Math.max(
-    1,
-    Math.ceil(total / pageSize)
-  );
-
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const currentPage = Math.min(page, totalPages);
-
   const startIndex = (currentPage - 1) * pageSize;
+  const paginatedTasks = filteredTasks.slice(startIndex, startIndex + pageSize);
 
-  const paginatedTasks = filteredTasks.slice(
-    startIndex,
-    startIndex + pageSize
-  );
-
-  // ---------------------------------------------
-  // SEARCH CHANGE
-  // ---------------------------------------------
   const handleSearchChange = (e) => {
     setSearch(e.target.value);
     setPage(1);
   };
 
-  // ---------------------------------------------
-  // PAGE SIZE CHANGE
-  // ---------------------------------------------
   const handlePageSizeChange = (e) => {
     setPageSize(Number(e.target.value));
     setPage(1);
   };
 
-  // ---------------------------------------------
-  // EARLY RETURN MUST BE AFTER ALL HOOKS
-  // ---------------------------------------------
+  const pageNumbers = Array.from({ length: totalPages }, (_, index) => index + 1);
+
   if (!open || !project) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-6">
       <div className="flex h-[85vh] w-full max-w-7xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
-
-        {/* Header */}
-        <div className="flex items-start justify-between border-b px-6 py-5">
-          <div>
-            <div className="mt-2 flex gap-8 text-sm text-muted-foreground">
-              <span>
-                <strong>Project Code:</strong>{" "}
-                {project.projectCode || "—"}
-              </span>
-
-              <span>
-                <strong>Total Tasks:</strong>{" "}
-                {tasks.length}
-              </span>
-            </div>
-          </div>
+        <div className="flex items-center justify-between border-b px-6 py-5">
+          <h2 className="text-[18px] font-semibold text-foreground">
+            Project Title : {projectTitle}
+          </h2>
 
           <button
             onClick={onClose}
-            className="rounded-lg border p-2 hover:bg-muted"
+            className="rounded-lg border border-border p-2 text-gray-600 hover:bg-muted"
           >
             <X size={18} />
           </button>
         </div>
 
-        {/* Toolbar */}
         <div className="flex items-center justify-between border-b px-6 py-4">
           <div className="flex items-center gap-2">
-            <label className="text-sm">
-              Search:
-            </label>
-
+            <label className="text-sm text-muted-foreground">Search:</label>
             <input
               value={search}
               onChange={handleSearchChange}
-              className="h-10 w-72 rounded-md border px-3 outline-none"
-              placeholder="Task title..."
+              className="h-10 w-72 rounded-md border border-border bg-white px-3 text-sm outline-none focus:border-[#E12729] focus:ring-2 focus:ring-[#E12729]/20"
+              placeholder="Search by task..."
             />
           </div>
 
-          <div className="flex items-center gap-5">
-            <div className="flex items-center gap-2">
-              <span className="text-sm">
-                Show
-              </span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Show</span>
+            <select
+              value={pageSize}
+              onChange={handlePageSizeChange}
+              className="h-10 rounded-md border border-border bg-white px-3 text-sm outline-none"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+            </select>
+            <span className="text-sm text-muted-foreground">entries</span>
 
-              <select
-                value={pageSize}
-                onChange={handlePageSizeChange}
-                className="h-10 rounded-md border px-3"
-              >
-                <option value={10}>10</option>
-                <option value={25}>25</option>
-                <option value={50}>50</option>
-              </select>
-
-              <span className="text-sm">
-                entries
-              </span>
-            </div>
-
-            {/* <button className="rounded-md border px-4 py-2 hover:bg-muted">
-              Export
-            </button> */}
+            <button
+              type="button"
+              className="ml-4 inline-flex items-center gap-2 rounded-md border border-border bg-white px-3 py-2 text-sm font-medium text-foreground hover:bg-muted"
+            >
+              Export ▾
+            </button>
           </div>
         </div>
 
-        {/* Table */}
         <div className="flex-1 overflow-auto">
           <table className="w-full border-collapse">
-            <thead className="sticky top-0 z-10 bg-white">
-              <tr className="border-b bg-muted/40 text-left">
-                <th className="px-4 py-3">Task ID</th>
-
-                <th className="min-w-[320px] px-4 py-3">
+            <thead className="sticky top-0 z-10 bg-[#f2f2f2]">
+              <tr className="border-b border-border text-left">
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Task ID
+                </th>
+                <th className="min-w-[320px] px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Task Title
                 </th>
-
-                <th className="px-4 py-3">
-                  Employee
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Planned Hours
                 </th>
-
-                <th className="px-4 py-3">
-                  Start Date
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Actual Hours
                 </th>
-
-                <th className="px-4 py-3">
-                  End Date
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Difference
                 </th>
-
-                <th className="px-4 py-3 text-center">
-                  Planned
-                </th>
-
-                <th className="px-4 py-3 text-center">
-                  Actual
-                </th>
-
-                <th className="px-4 py-3">
-                  Status
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Client Title
                 </th>
               </tr>
             </thead>
 
             <tbody>
               {paginatedTasks.length > 0 ? (
-                paginatedTasks.map((task, index) => (
-                  <tr
-                    key={
-                      task.taskId ??
-                      `${task.taskTitle}-${index}`
-                    }
-                    className="border-b hover:bg-muted/20"
-                  >
-                    <td className="px-4 py-3">
-                      {task.taskId ?? "—"}
-                    </td>
+                paginatedTasks.map((task, index) => {
+                  const planned = Number(task.planned ?? 0);
+                  const actual = Number(task.actual ?? 0);
+                  const difference = actual - planned;
 
-                    <td className="px-4 py-3">
-                      {task.taskTitle || "—"}
-                    </td>
-
-                    <td className="px-4 py-3">
-                      {task.employee || "—"}
-                    </td>
-
-                    <td className="px-4 py-3">
-                      {task.startDate || "—"}
-                    </td>
-
-                    <td className="px-4 py-3">
-                      {task.endDate || "—"}
-                    </td>
-
-                    <td className="px-4 py-3 text-center">
-                      {task.planned ?? "—"}
-                    </td>
-
-                    <td className="px-4 py-3 text-center">
-                      {task.actual ?? "—"}
-                    </td>
-
-                    <td className="px-4 py-3">
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-medium ${
-                          task.status === "Completed"
-                            ? "bg-green-100 text-green-700"
-                            : task.status === "In Progress"
-                            ? "bg-yellow-100 text-yellow-700"
-                            : "bg-red-100 text-red-700"
-                        }`}
-                      >
-                        {task.status || "—"}
-                      </span>
-                    </td>
-                  </tr>
-                ))
+                  return (
+                    <tr key={task.taskId ?? `${task.taskTitle}-${index}`} className="border-b border-border hover:bg-muted/20">
+                      <td className="px-4 py-3 text-sm font-medium text-foreground">{task.taskId ?? "—"}</td>
+                      <td className="px-4 py-3 text-sm text-foreground">{task.taskTitle || "—"}</td>
+                      <td className="px-4 py-3 text-sm text-foreground text-center">{formatDisplayNumber(task.planned)}</td>
+                      <td className="px-4 py-3 text-sm text-foreground text-center">{formatDisplayNumber(task.actual)}</td>
+                      <td className="px-4 py-3 text-sm text-foreground text-center">{formatDisplayNumber(difference)}</td>
+                      <td className="px-4 py-3 text-sm text-foreground">{task.clientTitle || "—"}</td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
-                  <td
-                    colSpan={8}
-                    className="px-4 py-10 text-center text-sm text-muted-foreground"
-                  >
-                    {search
-                      ? "No tasks found for your search."
-                      : "No tasks found."}
+                  <td colSpan={6} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                    {search ? "No tasks found for your search." : "No tasks found."}
                   </td>
                 </tr>
               )}
@@ -270,17 +165,46 @@ export default function ProjectDetailsModal({
           </table>
         </div>
 
-        {/* Footer */}
-        <div className="border-t px-6 py-4">
-          <DataPagination
-            page={currentPage}
-            setPage={setPage}
-            pageSize={pageSize}
-            total={total}
-            totalPages={totalPages}
-          />
-        </div>
+        <div className="flex items-center justify-between border-t border-border bg-white px-6 py-4">
+          <p className="text-sm text-muted-foreground">
+            Showing {total === 0 ? 0 : startIndex + 1} to {Math.min(startIndex + pageSize, total)} of {total} entries
+          </p>
 
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={currentPage === 1}
+              onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+              className="rounded-md border border-border bg-white px-3 py-1.5 text-sm text-foreground disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Previous
+            </button>
+
+            {pageNumbers.map((pageNumber) => (
+              <button
+                key={pageNumber}
+                type="button"
+                onClick={() => setPage(pageNumber)}
+                className={`h-8 min-w-[32px] rounded-md border px-2 text-sm ${
+                  pageNumber === currentPage
+                    ? "border-[#E12729] bg-[#E12729] text-white"
+                    : "border-border bg-white text-foreground"
+                }`}
+              >
+                {pageNumber}
+              </button>
+            ))}
+
+            <button
+              type="button"
+              disabled={currentPage === totalPages}
+              onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+              className="rounded-md border border-border bg-white px-3 py-1.5 text-sm text-foreground disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Next
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

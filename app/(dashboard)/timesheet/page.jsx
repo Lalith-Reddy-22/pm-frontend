@@ -39,8 +39,36 @@ function formatApiDate(date) {
   return `${year}-${month}-${day}`;
 }
 
+function parseDateInput(value) {
+  if (!value) return null;
+
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value;
+  }
+
+  const raw = String(value).trim();
+  if (!raw) return null;
+
+  const isoMatch = raw.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+  if (isoMatch) {
+    const [, year, month, day] = isoMatch;
+    return new Date(Number(year), Number(month) - 1, Number(day));
+  }
+
+  const slashMatch = raw.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})/);
+  if (slashMatch) {
+    const [, month, day, year] = slashMatch;
+    return new Date(Number(year), Number(month) - 1, Number(day));
+  }
+
+  const parsed = new Date(raw);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
 function toDateKey(date) {
-  const d = new Date(date);
+  const d = parseDateInput(date);
+  if (!d) return null;
+
   d.setHours(0, 0, 0, 0);
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, "0");
@@ -88,18 +116,14 @@ const [commentText, setCommentText] = useState("");
       (task.dates || []).forEach((date) => {
         if (!date.allocated_Date) return;
 
-        const [month, day, year] = date.allocated_Date
-          .split("/")
-          .map(Number);
+        const dateKey = toDateKey(date.allocated_Date);
+        if (!dateKey) return;
 
-        const allocatedDate = new Date(year, month - 1, day);
-        const dateKey = toDateKey(allocatedDate);
-
-        planned[dateKey] = Number(date.working_hours) || 0;
-        actual[dateKey] = Number(date.loghours) || 0;
+        planned[dateKey] = Number(date.working_hours ?? date.Working_hours) || 0;
+        actual[dateKey] = Number(date.loghours ?? date.Loghours) || 0;
       });
 
-      const taskId = String(task.task_Id);
+      const taskId = String(task.task_Id ?? task.Task_Id ?? task.id ?? task.taskID ?? "");
       const taskEdits = localTaskEdits[taskId] || {};
 
       if (taskEdits.planned) {
@@ -125,6 +149,57 @@ const [commentText, setCommentText] = useState("");
         dates: task.dates || [],
       };
     });
+  }, [apiTasks, localTaskEdits]);
+
+  const rowData = useMemo(() => {
+    const rowsByTask = new Map();
+
+    (apiTasks || []).forEach((task) => {
+      const taskId = String(task.task_Id ?? task.Task_Id ?? task.id ?? task.taskID ?? "");
+      const taskEdits = localTaskEdits[taskId] || {};
+      const taskDates = Array.isArray(task.dates) ? task.dates : Array.isArray(task.Dates) ? task.Dates : [];
+      const title = task.task_Title || task.Task_Title || task.title || "";
+      const owner = task.taskowner || task.Taskowner || task.owner || "";
+      const priority = task.tskpriority || task.Priority || task.priority || "MEDIUM";
+
+      if (!rowsByTask.has(taskId)) {
+        rowsByTask.set(taskId, {
+          id: taskId,
+          taskId,
+          title,
+          owner,
+          priority,
+          planned: {},
+          actual: {},
+          entryDate: null,
+        });
+      }
+
+      const row = rowsByTask.get(taskId);
+
+      if (!taskDates.length) {
+        return;
+      }
+
+      taskDates.forEach((entry) => {
+        if (!entry.allocated_Date) return;
+
+        const dateKey = toDateKey(entry.allocated_Date);
+        if (!dateKey) return;
+
+        const plannedValue =
+          (taskEdits.planned?.[dateKey] ?? Number(entry.working_hours ?? entry.Working_hours)) || 0;
+
+        const actualValue =
+          (taskEdits.actual?.[dateKey] ?? Number(entry.loghours ?? entry.Loghours)) || 0;
+
+        row.planned[dateKey] = Number(plannedValue) || 0;
+        row.actual[dateKey] = Number(actualValue) || 0;
+        row.entryDate = row.entryDate ?? dateKey;
+      });
+    });
+
+    return Array.from(rowsByTask.values());
   }, [apiTasks, localTaskEdits]);
 
   const handleCommentSubmit = () => {
@@ -238,15 +313,15 @@ useEffect(() => {
  const filtered = useMemo(() => {
   const q = search.trim().toLowerCase();
 
-  if (!q) return data;
+  if (!q) return rowData;
 
-  return data.filter(
+  return rowData.filter(
     (task) =>
       (task.title || "").toLowerCase().includes(q) ||
       (task.owner || "").toLowerCase().includes(q) ||
-      String(task.id || "").includes(q)
+      String(task.taskId || task.id || "").includes(q)
   );
-}, [data, search]);
+}, [rowData, search]);
 
 function updatePlanned(taskId, dateKey, value) {
   const num =
@@ -287,13 +362,6 @@ const {
   pageSize: 50,
 });
 
-console.log("========== TIMESHEET DEBUG ==========");
-console.log("API TASKS:", apiTasks);
-console.log("LOCAL DATA:", data);
-console.log("FILTERED:", filtered);
-console.log("PAGE ROWS:", pageRows);
-console.log("======================================");
-
   // Update Actual Hours
   function updateActual(taskId, dateKey, value) {
     const num =
@@ -331,8 +399,6 @@ console.log("======================================");
   const inputBg = isDark
     ? "bg-white/5"
     : "bg-white";
-
-    console.log("COMMENT MODAL TASK:", commentTask);
 
     return (
     <div className="flex h-[calc(100vh-80px)] flex-col p-6 overflow-hidden">
