@@ -3,11 +3,8 @@
 import {
   Bell,
   ChevronDown,
-  Sun,
-  Moon,
   Menu,
 } from "lucide-react";
-import { api } from "@/lib/api";
 
 import { useTheme } from "../context/ThemeContext";
 import { usePathname, useRouter } from "next/navigation";
@@ -21,9 +18,8 @@ import {
 import { clearAuthSession } from "@/lib/session";
 
 export default function Navbar({ onMenuClick }) {
-  const { isDark, toggle, t } = useTheme();
+  const { isDark, t } = useTheme();
   const pathname = usePathname();
-  console.log("CURRENT NAVBAR PATHNAME:", pathname);
 
   const dispatch = useDispatch();
 
@@ -53,24 +49,13 @@ const {
   // =====================================================
 
   useEffect(() => {
-    const storedEmpName =
-  sessionStorage.getItem("employeeName") || "";
-
-    const storedDesignation =
-      sessionStorage.getItem("designation") || "";
-
-    const storedEmpId =
-      sessionStorage.getItem("empId") || "";
-
-       console.log("================================");
-  console.log("NAVBAR EMP ID:", storedEmpId);
-  console.log("================================");
+    const storedEmpName = sessionStorage.getItem("employeeName") || "";
+    const storedDesignation = sessionStorage.getItem("designation") || "";
+    const storedEmpId = sessionStorage.getItem("empId") || "";
 
     setEmpName(storedEmpName);
     setDesignation(storedDesignation);
     setEmpId(storedEmpId);
-
-    console.log("NAVBAR EMP ID:", storedEmpId);
   }, []);
 
   // =====================================================
@@ -110,13 +95,6 @@ const unreadCount = notifications.filter(
   // =====================================================
 
   const handleNotificationClick = (notification) => {
-  console.log(
-    "NOTIFICATION CLICKED:",
-    notification
-  );
-
-
-
   // 1. Mark notification as read
   if (!isNotificationRead(notification)) {
     dispatch(
