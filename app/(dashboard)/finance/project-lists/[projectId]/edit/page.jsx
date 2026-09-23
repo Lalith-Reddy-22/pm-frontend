@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft, FolderOpen, Save, DollarSign, Calendar,
   Globe, ShoppingCart, Hash, Tag, Users, Building2,
@@ -42,6 +43,7 @@ export default function EditProjectPage() {
 function EditProjectPageInner() {
   const { t } = useTheme();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { projectId } = useParams();
   const searchParams = useSearchParams();
 
@@ -131,6 +133,7 @@ function EditProjectPageInner() {
         includeInBuyingCenter: form.includeInBuyingCenter,
       };
       await updateFinanceProject({ projectId, payload });
+      queryClient.invalidateQueries({ queryKey: ["financeProjects"] });
       router.push(backPath);
     } catch (e) {
       const errData = e.response?.data;
