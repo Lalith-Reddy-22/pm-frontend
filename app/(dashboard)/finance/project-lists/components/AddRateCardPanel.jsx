@@ -1,6 +1,6 @@
 "use client";
 
-import { X, Plus, FolderOpen, Users, DollarSign, Loader2, Search } from "lucide-react";
+import { X, Plus, Minus, FolderOpen, Users, DollarSign, Loader2, Search } from "lucide-react";
 import { useTheme } from "../../../../context/ThemeContext";
 import { useState, useEffect, useRef } from "react";
 import { getRateCardProjects, getRateCardBuyingCenter, getRateCardEmployees, saveRateCardBuyingCenter, updateRateCardBuyingCenter } from "@/services/financeClientService";
@@ -37,6 +37,7 @@ export default function AddRateCardPanel({ onClose }) {
   const originalEmployees                     = useRef([]);
   const [saving, setSaving]                   = useState(false);
   const [submitError, setSubmitError]         = useState("");
+  const [dupToast, setDupToast]               = useState(""); // name of the duplicate employee
 
   // Load projects + global employee list in parallel on mount
   useEffect(() => {
@@ -111,7 +112,7 @@ console.log("DUPLICATE EMP IDS:", duplicateEmpIds);
   const addRow = () =>
     setEmployees((prev) => [...prev, { empId: null, employee: "", value: "", dupError: false }]);
 
-  // When changing the employee selection, check for duplicates across all rows
+  // When changing the employee selection, remove the row if the selected employee is a duplicate
   const updateRow = (i, k, v) => {
     setEmployees((prev) => {
       const next = prev.map((r, idx) => (idx === i ? { ...r, [k]: v, dupError: false } : r));
@@ -119,11 +120,25 @@ console.log("DUPLICATE EMP IDS:", duplicateEmpIds);
       if (k === "employee" && v) {
         const isDup = next.some((r, idx) => idx !== i && r.employee === v);
         if (isDup) {
-          next[i] = { ...next[i], dupError: true };
+          // Show a brief toast then remove the duplicate row
+          const empName = employeeOpts.find((o) => o.value === v)?.label ?? "Employee";
+          setDupToast(`${empName} is already present`);
+          setTimeout(() => setDupToast(""), 3000);
+          return next.filter((_, idx) => idx !== i);
         }
       }
 
       return next;
+    });
+  };
+
+  const removeRow = (i) => {
+    setEmployees((prev) => {
+      if (prev.length === 1) {
+        // Keep at least one empty row
+        return [{ empId: null, employee: "", value: "", dupError: false }];
+      }
+      return prev.filter((_, idx) => idx !== i);
     });
   };
 
@@ -133,7 +148,7 @@ console.log("DUPLICATE EMP IDS:", duplicateEmpIds);
     if (!projectId)    { setSubmitError("Please select a project."); return; }
     if (!buyingCenter) { setSubmitError("Buying center name is required."); return; }
 
-    // Block if any row has a duplicate error
+    // Block if any row has a duplicate error — kept as safety net
     if (employees.some((r) => r.dupError)) {
       setSubmitError("Please fix duplicate employees before saving.");
       return;
@@ -361,7 +376,7 @@ console.log("DUPLICATE EMP IDS:", duplicateEmpIds);
                           {/* Employee dropdown */}
                           <div
                             className={`flex-1 flex items-start gap-1.5 border rounded-lg px-2.5 py-1.5 ${t.clientInputBg} ${
-                              row.dupError ? "border-red-500" : isHighlighted ? "border-red-400" : t.clientBorder
+                              isHighlighted ? "border-red-400" : t.clientBorder
                             }`}
                           >
                             <Users className="w-3 h-3 text-red-500 shrink-0 mt-0.5" />
@@ -386,6 +401,16 @@ console.log("DUPLICATE EMP IDS:", duplicateEmpIds);
                             />
                           </div>
 
+                          {/* Remove row button */}
+                          <button
+                            type="button"
+                            onClick={() => removeRow(origIdx)}
+                            className="w-8 h-8 flex items-center justify-center bg-gray-200 hover:bg-red-100 hover:text-red-600 text-gray-500 rounded-lg shrink-0 transition-colors"
+                            title="Remove row"
+                          >
+                            <Minus className="w-4 h-4" />
+                          </button>
+
                           {/* Add row — only on the last display row */}
                           {displayIdx === withOrigIdx.length - 1 && (
                             <button
@@ -397,11 +422,6 @@ console.log("DUPLICATE EMP IDS:", duplicateEmpIds);
                             </button>
                           )}
                         </div>
-
-                        {/* Duplicate error */}
-                        {row.dupError && (
-                          <p className="text-xs text-red-500 pl-0.5">Employee already present</p>
-                        )}
                       </div>
                     </div>
                   );
@@ -414,6 +434,13 @@ console.log("DUPLICATE EMP IDS:", duplicateEmpIds);
 
         {/* Footer */}
         <div className={`px-6 py-4 border-t ${t.clientBorder} shrink-0 flex flex-col gap-2 items-start`}>
+          {/* Duplicate employee toast */}
+          {dupToast && (
+            <div className="w-full flex items-center gap-2 bg-red-50 border border-red-300 text-red-600 rounded-lg px-3 py-2 text-xs font-medium animate-pulse">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
+              {dupToast}
+            </div>
+          )}
           {submitError && (
             <p className="text-xs text-red-500">{submitError}</p>
           )}

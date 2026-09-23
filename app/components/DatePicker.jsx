@@ -97,7 +97,7 @@ export default function DatePicker({ value, onChange, placeholder = "Select date
                 {d && (
                   <button
                     onClick={() => select(d)}
-                    className={`h-7 w-7 rounded-full text-xs font-medium transition-colors
+                    className={`h-7 w-7 rounded-full text-xs font-medium transition-colors cursor-pointer
                       ${isSelected(d)
                         ? "bg-red-500 text-white shadow-sm"
                         : isToday(d)
