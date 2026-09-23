@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useDispatch } from "react-redux";
 import {
   ArrowLeft, FolderOpen, Save, DollarSign, Calendar,
   Globe, ShoppingCart, Hash, Tag, Users, Building2, AlignLeft,
@@ -10,10 +11,12 @@ import { useTheme } from "@/app/context/ThemeContext";
 import { getProjectLookups } from "@/services/financeClientService";
 import axiosClient from "@/services/axiosClient";
 import SmartSelect from "@/app/components/SmartSelect";
+import { clearClientsCache } from "@/store/slices/financeClientSlice";
+import { clearProjects } from "@/store/slices/projectSlice";
 
-const STATUS_MAP   = { Active: 1, Inactive: 2, Completed: 3, "On Hold": 4 };
+const STATUS_MAP   = { Active: 2, Inactive: 4, Completed: 3, "On Hold": 1 };
 const BILLING_MAP  = { Billable: 1, "Non-Billable": 2, Internal: 3 };
-const STATUS_OPTS  = ["Active", "Inactive", "Completed", "On Hold"].map((s) => ({ value: s, label: s }));
+const STATUS_OPTS  = ["Active", "Completed", "On Hold"].map((s) => ({ value: s, label: s }));
 const BILLING_OPTS = ["Billable", "Non-Billable", "Internal"].map((s) => ({ value: s, label: s }));
 
 // Stable — prevents focus loss on every keystroke
@@ -32,6 +35,7 @@ function Field({ label, icon: Icon, children, span, t }) {
 export default function AddProject() {
   const { t } = useTheme();
   const router = useRouter();
+  const dispatch = useDispatch();
 
   const [form, setForm] = useState({
     projectName:         "",
@@ -109,6 +113,8 @@ export default function AddProject() {
       };
 
       await axiosClient.post("/finance-project", payload);
+      dispatch(clearClientsCache());
+      dispatch(clearProjects());
       router.push("/finance/project-lists");
     } catch (e) {
       const errData = e.response?.data;

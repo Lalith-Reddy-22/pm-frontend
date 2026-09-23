@@ -62,7 +62,7 @@ export default function DatePicker({ value, onChange, placeholder = "Select date
       {/* Trigger */}
       <button
         onClick={() => handleToggle()}
-        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors
+        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer
           border border-red-200 bg-white text-red-600 hover:bg-red-50
           ${open ? "bg-red-50 border-red-400" : ""}`}
       >

@@ -108,6 +108,9 @@ const financeClientSlice = createSlice({
     setSelectedYear: (state, action) => {
       state.selectedYear = action.payload;
     },
+    clearClientsCache: (state) => {
+      state.clientsCache = {};
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -164,5 +167,5 @@ const financeClientSlice = createSlice({
   },
 });
 
-export const { setSelectedYear } = financeClientSlice.actions;
+export const { setSelectedYear, clearClientsCache } = financeClientSlice.actions;
 export default financeClientSlice.reducer;

@@ -21,7 +21,7 @@ export default function FilterSection({
           type="date"
           value={startDate}
           onChange={(e) => onStartDateChange(e.target.value)}
-          className="border w-60 h-10 rounded px-3 mt-1"
+          className="border w-60 h-10 rounded px-3 mt-1 cursor-pointer"
         />
       </div>
 
@@ -34,7 +34,7 @@ export default function FilterSection({
           type="date"
           value={endDate}
           onChange={(e) => onEndDateChange(e.target.value)}
-          className="border w-60 h-10 rounded px-3 mt-1"
+          className="border w-60 h-10 rounded px-3 mt-1 cursor-pointer"
         />
       </div>
 
