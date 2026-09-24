@@ -5,7 +5,7 @@ import { CalendarDays } from "lucide-react";
 import { useTheme } from "../../../../context/ThemeContext";
 import MiniCalendar from "../../../calendar/components/MiniCalendar";
 
-export default function DatePicker({ value, onChange, placeholder = "Select date" }) {
+export default function DatePicker({ value, onChange, placeholder = "Select date", error = false }) {
   const { t, isDark } = useTheme();
   const [open, setOpen] = useState(false);
   const [viewYear, setViewYear] = useState(() => (value ? new Date(value).getFullYear() : new Date().getFullYear()));
@@ -47,7 +47,12 @@ export default function DatePicker({ value, onChange, placeholder = "Select date
         type="button"
         onClick={() => setOpen(o => !o)}
         className={`w-full flex items-center justify-between px-3 py-2 rounded-md border text-sm transition-colors
-          ${isDark ? "bg-[#1c1c1c] border-white/10 text-gray-200 hover:border-white/20" : "bg-white border-gray-200 text-gray-700 hover:border-gray-300"}
+          ${error
+            ? "border-red-500 bg-white text-gray-700"
+            : isDark
+              ? "bg-[#1c1c1c] border-white/10 text-gray-200 hover:border-white/20"
+              : "bg-white border-gray-200 text-gray-700 hover:border-gray-300"
+          }
         `}
       >
         <span className={display ? "" : (isDark ? "text-gray-500" : "text-gray-400")}>

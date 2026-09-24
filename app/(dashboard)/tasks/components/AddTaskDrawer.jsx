@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import CustomSelect from "@/components/ui/CustomSelect";
 import { fetchTaskProjects } from "@/store/slices/taskSlice";
 
@@ -97,7 +98,7 @@ export default function AddTaskDrawer({ open, onClose }) {
 
   const handleAddTask = () => {
     if (!selectedProject) {
-      alert("Please select a project");
+      toast.error("Please select a project");
       return;
     }
 

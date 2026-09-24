@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import {
@@ -108,10 +109,10 @@ async function handleSubmitReschedule(data) {
     // Close only after API succeeds
     handleCloseReschedule();
 
-    alert("Task rescheduled successfully.");
+    toast.success("Task rescheduled successfully.");
 
   } catch (error) {
-    alert(
+    toast.error(
       typeof error === "string"
         ? error
         : error?.message ||
@@ -141,7 +142,7 @@ async function handleDeleteTask(task) {
   }
 
   if (!deleteReason.trim()) {
-    alert("Delete reason is required.");
+    toast.error("Delete reason is required.");
     return;
   }
 
@@ -150,7 +151,7 @@ async function handleDeleteTask(task) {
   );
 
   if (!deletedBy) {
-    alert("Unable to identify the logged-in user.");
+    toast.error("Unable to identify the logged-in user.");
     return;
   }
 
@@ -163,9 +164,9 @@ async function handleDeleteTask(task) {
       })
     ).unwrap();
 
-    alert("Task deleted successfully.");
+    toast.success("Task deleted successfully.");
   } catch (error) {
-    alert(
+    toast.error(
       typeof error === "string"
         ? error
         : error?.message || "Failed to delete task."

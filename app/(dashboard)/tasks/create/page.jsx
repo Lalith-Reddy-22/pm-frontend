@@ -78,6 +78,8 @@ const currentTaskDetails =
 
   const [showHours, setShowHours] = useState(false);
 
+  const [validationErrors, setValidationErrors] = useState({});
+
   const [formData, setFormData] = useState({
     taskId: 0,
 
@@ -511,30 +513,24 @@ useEffect(() => {
       "status",
     ];
 
-    const emptyFields =
-      requiredFields.filter(
-        (field) =>
-          !formData[field] ||
-          formData[field]
-            .toString()
-            .trim() === ""
-      );
+    const errors = {};
 
-    if (
-      emptyFields.length > 0
-    ) {
-      alert(
-        `Missing fields: ${emptyFields.join(
-          ", "
-        )}`
-      );
+    requiredFields.forEach((field) => {
+      if (
+        !formData[field] ||
+        formData[field].toString().trim() === ""
+      ) {
+        errors[field] = "This field is required";
+      }
+    });
 
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
       return;
     }
 
-    setShowHours(
-      (prev) => !prev
-    );
+    setValidationErrors({});
+    setShowHours((prev) => !prev);
   };
 
  // =====================================================
@@ -593,6 +589,8 @@ if (
           formData={formData}
           setFormData={setFormData}
           isUpdate={isUpdate}
+          validationErrors={validationErrors}
+          setValidationErrors={setValidationErrors}
         />
       </div>
 

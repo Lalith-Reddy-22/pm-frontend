@@ -2,6 +2,7 @@
 
 import CustomSelect from "@/components/ui/CustomSelect";
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { createEmployee, getEmployeeTypes } from "@/services/employeeService";
 
 export default function AddEmployeeDrawer({
@@ -203,13 +204,13 @@ const handleAddEmployee = async () => {
 
     console.log("Employee Created Successfully:", result);
 
-    alert("Employee added successfully!");
+    toast.success("Employee added successfully!");
 
     setShowDrawer(false);
   } catch (error) {
     console.error("Failed to add employee:", error);
 
-    alert(error.message);
+    toast.error(error.message || "Failed to add employee.");
   }
 };
 

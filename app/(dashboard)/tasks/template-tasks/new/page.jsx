@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 import { ArrowLeft, Eye, Plus, UploadCloud } from "lucide-react";
 
 export default function NewTemplateTaskPage() {
@@ -15,7 +16,7 @@ export default function NewTemplateTaskPage() {
 
   const handleShowFileData = () => {
     if (!selectedFileName) {
-      window.alert("Please select file");
+      toast.error("Please select file");
       return;
     }
 
