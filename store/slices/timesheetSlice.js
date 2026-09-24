@@ -184,7 +184,7 @@ export const markNotificationRead = createAsyncThunk(
 );
 
 const normalizeTimesheetTasks = (payload) => {
-  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload)) return payload.filter(Boolean);
   if (!payload || typeof payload !== "object") return [];
 
   const candidates = [
@@ -193,16 +193,33 @@ const normalizeTimesheetTasks = (payload) => {
     payload.task_data,
     payload.data,
     payload.result,
+    payload.items,
+    payload.records,
+    payload.value,
+    payload.values,
     payload.data?.tasks,
     payload.data?.Task_data,
     payload.data?.task_data,
+    payload.data?.items,
+    payload.data?.records,
+    payload.data?.value,
     payload.result?.tasks,
     payload.result?.Task_data,
     payload.result?.task_data,
+    payload.result?.items,
+    payload.result?.records,
   ];
 
   for (const candidate of candidates) {
-    if (Array.isArray(candidate)) return candidate;
+    if (Array.isArray(candidate)) return candidate.filter(Boolean);
+  }
+
+  const nestedList = Object.values(payload).find(
+    (value) => Array.isArray(value) && value.some((item) => item && typeof item === "object")
+  );
+
+  if (Array.isArray(nestedList)) {
+    return nestedList.filter(Boolean);
   }
 
   return [];

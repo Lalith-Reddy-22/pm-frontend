@@ -62,11 +62,13 @@ export const fetchLeaves = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      return await getLeaves({
+      const response = await getLeaves({
         teamName,
         pageNumber,
         pageSize,
       });
+
+      return response;
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message ||
@@ -256,8 +258,10 @@ const leaveSlice = createSlice({
         (state, action) => {
           state.loadingLeaves = false;
 
-          state.leaves =
-            action.payload?.data || [];
+          const payload = action.payload;
+          state.leaves = Array.isArray(payload)
+            ? payload
+            : payload?.data || payload?.items || [];
         }
       )
 
@@ -284,9 +288,20 @@ const leaveSlice = createSlice({
 
       .addCase(
         addLeave.fulfilled,
-        (state) => {
+        (state, action) => {
           state.submitting = false;
           state.success = true;
+
+          const created = action.payload;
+          if (!created) return;
+
+          const nextItem = Array.isArray(created)
+            ? created[0]
+            : created?.data || created?.item || created;
+
+          if (nextItem && !state.leaves.some((item) => item.id === nextItem.id)) {
+            state.leaves = [nextItem, ...state.leaves];
+          }
         }
       )
 

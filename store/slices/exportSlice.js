@@ -9,34 +9,88 @@ import axiosClient from "@/services/axiosClient";
 export const exportFile = createAsyncThunk(
   "export/exportFile",
   async (
-    {
-      fileName,
-      format,
-      columns,
-      data,
-    },
-    { rejectWithValue }
-  ) => {
+  {
+    fileName,
+    format,
+    columns,
+    data,
+    sections = [],
+  },
+  { rejectWithValue }
+) => {
     try {
       const response = await axiosClient.post(
         "/export",
         {
-          fileName,
-          format,
-          columns,
-          data,
-        },
+    fileName,
+    format,
+    columns,
+    data,
+    sections,
+  },
         {
           responseType: "blob",
         }
       );
 
-      // Create downloadable file
       const blob = new Blob([response.data]);
 
+      // =====================================================
+      // COPY
+      // =====================================================
+      if (format === "copy") {
+        const text = await blob.text();
+
+        await navigator.clipboard.writeText(text);
+
+        return {
+          success: true,
+          fileName,
+          format,
+        };
+      }
+
+      // =====================================================
+      // PRINT
+      // =====================================================
+      if (format === "print") {
+        const html = await blob.text();
+
+        const printWindow = window.open(
+          "",
+          "_blank",
+          "width=1000,height=700"
+        );
+
+        if (!printWindow) {
+          throw new Error(
+            "Unable to open print window. Please allow popups."
+          );
+        }
+
+        printWindow.document.open();
+        printWindow.document.write(html);
+        printWindow.document.close();
+
+        printWindow.onload = () => {
+          printWindow.focus();
+          printWindow.print();
+        };
+
+        return {
+          success: true,
+          fileName,
+          format,
+        };
+      }
+
+      // =====================================================
+      // PDF / CSV
+      // =====================================================
       const url = window.URL.createObjectURL(blob);
 
       const link = document.createElement("a");
+
       link.href = url;
       link.download = `${fileName}.${format}`;
 
@@ -52,40 +106,45 @@ export const exportFile = createAsyncThunk(
         format,
       };
     } catch (error) {
-  console.error("EXPORT ERROR:", error);
-  console.error("STATUS:", error.response?.status);
-  console.error("HEADERS:", error.response?.headers);
-  console.error("DATA:", error.response?.data);
+      console.error("EXPORT ERROR:", error);
+      console.error("STATUS:", error.response?.status);
+      console.error("HEADERS:", error.response?.headers);
+      console.error("DATA:", error.response?.data);
 
-  let errorMessage = "Failed to export file.";
+      let errorMessage = "Failed to export file.";
 
-  if (error.response?.data instanceof Blob) {
-    try {
-      const text = await error.response.data.text();
+      if (error.response?.data instanceof Blob) {
+        try {
+          const text = await error.response.data.text();
 
-      console.error("BLOB ERROR RESPONSE:", text);
+          console.error(
+            "BLOB ERROR RESPONSE:",
+            text
+          );
 
-      const parsed = JSON.parse(text);
+          const parsed = JSON.parse(text);
 
-      errorMessage =
-        parsed?.message ||
-        parsed?.title ||
-        parsed?.error ||
-        text ||
-        errorMessage;
-    } catch {
-      console.error("Could not parse blob error response.");
+          errorMessage =
+            parsed?.message ||
+            parsed?.title ||
+            parsed?.error ||
+            text ||
+            errorMessage;
+        } catch {
+          console.error(
+            "Could not parse blob error response."
+          );
+        }
+      } else {
+        errorMessage =
+          error.response?.data?.message ||
+          error.response?.data?.title ||
+          error.message ||
+          errorMessage;
+      }
+
+      return rejectWithValue(errorMessage);
     }
-  } else {
-    errorMessage =
-      error.response?.data?.message ||
-      error.response?.data?.title ||
-      error.message ||
-      errorMessage;
-  }
-
-  return rejectWithValue(errorMessage);
-}
   }
 );
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { Search, Upload, ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -39,6 +39,25 @@ export default function ReportToolbar({
   onExport,
 }) {
   const [showExport, setShowExport] = useState(false);
+
+  const projectOptions = useMemo(
+    () => [
+      {
+        value: "all",
+        label: "All Projects",
+      },
+      ...projects
+        .filter((project) => project.project_ID != null)
+        .map((project) => ({
+          value: String(project.project_ID),
+          label: `${project.project_ID} - ${
+            project.project_Title || "Unnamed Project"
+          }`.substring(0, 50),
+        })),
+    ],
+    [projects]
+  );
+
   return (
     <div className="flex flex-col gap-4 px-5 py-4">
       {/* First row: Project Filter, Date Range */}
@@ -55,20 +74,8 @@ export default function ReportToolbar({
   searchable
   searchPlaceholder="Type project name"
   className="w-[260px] min-w-[260px]"
-  options={[
-    {
-      value: "all",
-      label: "All Projects",
-    },
-    ...projects
-      .filter((project) => project.project_ID != null)
-      .map((project) => ({
-        value: String(project.project_ID),
-        label: `${project.project_ID} - ${
-          project.project_Title || "Unnamed Project"
-        }`.substring(0, 50),
-      })),
-  ]}
+  options={projectOptions}
+  portal={false}
 />
         </div>
 

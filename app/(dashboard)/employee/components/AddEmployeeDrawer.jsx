@@ -404,6 +404,7 @@ if (!showDrawer) return null;
   onChange={setUtilization}
   options={UTILIZATION_OPTIONS}
   placeholder="Select Required"
+  dropdownMaxHeight={80}
 />
 
           </div>

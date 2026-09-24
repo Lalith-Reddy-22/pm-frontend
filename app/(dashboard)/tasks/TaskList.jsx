@@ -17,7 +17,9 @@ import { exportFile } from "@/store/slices/exportSlice";
 
 export default function TaskList({
   tasks = [],
+  employeeNames = [],
   showBackButton = false,
+  loading = false,
 
   // API pagination
   totalCount = 0,
@@ -231,7 +233,134 @@ const handleExport = async (exportFormat = "csv") => {
   const setDateRange =
     externalSetDateRange ?? setLocalDateRange;
 
-    const filteredTasks = tasks;
+  const resolveEmployeeDisplayNames = (task) => {
+    const employeeNameMap = new Map(
+      (employeeNames || []).map((employee) => [
+        String(
+          employee?.employeeId ??
+            employee?.empId ??
+            employee?.employee_Id ??
+            employee?.emp_ID ??
+            ""
+        ),
+        String(
+          employee?.employeeName ||
+            employee?.employee_Name ||
+            employee?.name ||
+            ""
+        ).trim(),
+      ])
+    );
+
+    const rawEmployees = Array.isArray(task?.employees)
+      ? task.employees
+      : typeof task?.employees === "string"
+        ? task.employees.split(",")
+        : [];
+
+    const fromAllocations = (task?.employeeAllocations || []).map((entry) => {
+      const name =
+        entry?.employeeName ||
+        entry?.employee_Name ||
+        entry?.name ||
+        entry?.fullName ||
+        "";
+
+      if (name) return name.trim();
+
+      const employeeId =
+        entry?.employeeId ??
+        entry?.empId ??
+        entry?.employee_Id ??
+        entry?.emp_ID;
+
+      if (employeeId == null || employeeId === "") return "";
+
+      return employeeNameMap.get(String(employeeId)) || String(employeeId);
+    });
+
+    const resolvedEmployees = [...rawEmployees, ...fromAllocations]
+      .map((value) => {
+        if (value === null || value === undefined || value === "") return "";
+
+        if (typeof value === "object") {
+          const objectName =
+            value.employeeName ||
+            value.employee_Name ||
+            value.name ||
+            value.fullName ||
+            "";
+
+          if (objectName) return String(objectName).trim();
+
+          const employeeId =
+            value.employeeId ??
+            value.empId ??
+            value.employee_Id ??
+            value.emp_ID;
+
+          if (employeeId == null || employeeId === "") return "";
+
+          return employeeNameMap.get(String(employeeId)) || String(employeeId);
+        }
+
+        const trimmed = String(value).trim();
+        if (!trimmed) return "";
+
+        return (
+          employeeNameMap.get(trimmed) ||
+          employeeNameMap.get(String(Number(trimmed))) ||
+          trimmed
+        );
+      })
+      .filter(Boolean);
+
+    const fromEmpIds = (task?.empIds || task?.employeeIds || task?.employee_Id || task?.emp_ID || "")
+      .toString()
+      .split(",")
+      .map((value) => value.trim())
+      .filter(Boolean);
+
+    const mappedEmpIds = fromEmpIds
+      .map((id) => employeeNameMap.get(id) || employeeNameMap.get(String(Number(id))) || id)
+      .filter(Boolean);
+
+    return [...new Set([...resolvedEmployees, ...mappedEmpIds])];
+  };
+
+  const normalizedSearch = (search || "").trim().toLowerCase();
+  const enrichedTasks = (tasks || []).map((task) => ({
+    ...task,
+    employees: resolveEmployeeDisplayNames(task),
+  }));
+
+  const filteredTasks = !normalizedSearch
+    ? enrichedTasks
+    : enrichedTasks.filter((task) => {
+        const employeeNamesList = Array.isArray(task.employees)
+          ? task.employees
+          : typeof task.employees === "string"
+            ? task.employees.split(",")
+            : [];
+
+        const searchableText = [
+          task.id,
+          task.taskId,
+          task.task_Id,
+          task.TaskId,
+          task.Task_ID,
+          task.title,
+          task.projectTitle,
+          task.projectCode,
+          task.project_Code,
+          ...employeeNamesList,
+        ]
+          .filter((value) => value !== null && value !== undefined && value !== "")
+          .map((value) => String(value).toLowerCase())
+          .join(" ");
+
+        return searchableText.includes(normalizedSearch);
+      });
 
   return (
     <div className="space-y-4 p-4 sm:p-6">
@@ -253,6 +382,7 @@ const handleExport = async (exportFormat = "csv") => {
         <TaskToolbar
   search={search}
   setSearch={setSearch}
+  setPage={setCurrentPage}
   dateRange={dateRange}
   setDateRange={setDateRange}
   onAddTask={() => setOpenDrawer(true)}
@@ -263,16 +393,25 @@ const handleExport = async (exportFormat = "csv") => {
 
       <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
 
-  <div className="overflow-x-auto">
-    <TaskTable
-  rows={filteredTasks}
-  onReschedule={handleReschedule}
-  onDelete={handleDeleteTask}
-/>
-  </div>
+  {loading ? (
+    <div className="flex h-72 items-center justify-center bg-card">
+      <div className="flex items-center gap-3 text-sm font-medium text-muted-foreground">
+        <div className="h-5 w-5 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-[#E12729]" />
+        Loading tasks...
+      </div>
+    </div>
+  ) : (
+    <>
+      <div className="overflow-x-auto">
+        <TaskTable
+          rows={filteredTasks}
+          onReschedule={handleReschedule}
+          onDelete={handleDeleteTask}
+        />
+      </div>
 
-  {/* PAGINATION */}
-  <div className="flex items-center justify-between border-t px-4 py-3">
+      {/* PAGINATION */}
+      <div className="flex items-center justify-between border-t px-4 py-3">
 
     {/* Showing text */}
     <p className="text-sm text-muted-foreground">
@@ -410,7 +549,9 @@ const handleExport = async (exportFormat = "csv") => {
 
 </div>
 
-  </div>
+      </div>
+    </>
+  )}
 
 </div>
 

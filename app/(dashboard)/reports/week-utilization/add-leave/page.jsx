@@ -118,16 +118,58 @@ const PAGE_SIZE_OPTIONS = [
 
   const [searchTerm, setSearchTerm] = useState("");
 
-const mappedLeaveList = leaves.map((item) => ({
-  id: item.id,
-  teamId: item.team_Id,
-  team: item.teams_Name,
-  designation: item.designation,
-  billableHours: item.design_Billablevalue,
-  nonBillableHours: item.design_NonBillablevalue,
-  startDate: item.start_date,
-  endDate: item.end_date,
-}));
+const normalizeLeaveItem = (item = {}) => ({
+  id: item.id ?? item.leaveId ?? item.leave_Id,
+  teamId: item.team_Id ?? item.teamId ?? item.Team_Id ?? "",
+  team: item.teams_Name ?? item.teamName ?? item.team ?? item.team_Name ?? "",
+  designation:
+    item.designation ??
+    item.empDesignation ??
+    item.designationName ??
+    item.design_Name ??
+    "",
+  billableHours:
+    item.design_Billablevalue ??
+    item.billableLeaveHours ??
+    item.billableHours ??
+    item.billable_leave_hours ??
+    0,
+  nonBillableHours:
+    item.design_NonBillablevalue ??
+    item.nonBillableLeaveHours ??
+    item.nonBillableHours ??
+    item.non_billable_leave_hours ??
+    0,
+  startDate: item.start_date ?? item.startDate ?? item.start_Date ?? "",
+  endDate: item.end_date ?? item.endDate ?? item.end_Date ?? "",
+});
+
+const leaveRows = Array.isArray(leaves)
+  ? leaves
+  : Array.isArray(leaves?.data)
+    ? leaves.data
+    : Array.isArray(leaves?.items)
+      ? leaves.items
+      : [];
+
+const toNumericValue = (value) => {
+  if (value === null || value === undefined || value === "") {
+    return 0;
+  }
+
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const mappedLeaveList = leaveRows.map((item) => {
+  const normalized = normalizeLeaveItem(item);
+
+  return {
+    ...normalized,
+    billableHours: toNumericValue(normalized.billableHours),
+    nonBillableHours: toNumericValue(normalized.nonBillableHours),
+  };
+});
 
 const filteredLeaveList = mappedLeaveList.filter((row) => {
   const search = searchTerm.trim().toLowerCase();
@@ -264,16 +306,33 @@ const validateForm = () => {
     return;
   }
 
+  const numericBillable = Number(formData.billableHours) || 0;
+  const numericNonBillable = Number(formData.nonBillableHours) || 0;
+
   const payload = {
     team_Id: Number(formData.team),
+    teamId: Number(formData.team),
     designation: formData.designation,
-    design_Billablevalue:
-      Number(formData.billableHours) || 0,
-    design_NonBillablevalue:
-      Number(formData.nonBillableHours) || 0,
+    designationName: formData.designation,
+    design_Billablevalue: numericBillable,
+    design_NonBillablevalue: numericNonBillable,
+    billableHours: numericBillable,
+    nonBillableHours: numericNonBillable,
     start_date: formData.startDate,
+    startDate: formData.startDate,
     end_date: formData.endDate,
+    endDate: formData.endDate,
   };
+
+  if (numericBillable === 0 && formData.billableHours !== "") {
+    payload.design_Billablevalue = Number(formData.billableHours);
+    payload.billableHours = Number(formData.billableHours);
+  }
+
+  if (numericNonBillable === 0 && formData.nonBillableHours !== "") {
+    payload.design_NonBillablevalue = Number(formData.nonBillableHours);
+    payload.nonBillableHours = Number(formData.nonBillableHours);
+  }
 
   try {
     if (editingId) {

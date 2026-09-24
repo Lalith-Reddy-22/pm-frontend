@@ -767,7 +767,7 @@ if (projectTotalPages <= 5) {
 
       {activeTab === "task-allocation" && (
         <>
-          <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+          <div className="overflow-visible rounded-xl border border-border bg-card shadow-sm">
             <ReportToolbar
               projects={projects}
               selectedProject={selectedProject}

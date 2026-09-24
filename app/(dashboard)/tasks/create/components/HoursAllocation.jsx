@@ -169,55 +169,84 @@ useEffect(() => {
       );
 
       const payload = {
-        taskTitle:
-          formData?.taskName || "",
+  taskTitle:
+    formData?.taskName || "",
 
-        projectId: Number(
-          formData?.projectId || 0
+  projectId: Number(
+    formData?.projectId || 0
+  ),
+
+  clientId: Number(
+    formData?.clientId || 0
+  ),
+
+  templateId: Number(
+    formData?.templateId || 0
+  ),
+
+  startDate:
+    formData?.startDate || "",
+
+  endDate:
+    formData?.endDate || "",
+
+  statusId: Number(
+    formData?.statusId || 0
+  ),
+
+  priority:
+    formData?.priority || "",
+
+  taskDescription:
+    formData?.taskDescription || "",
+
+  createdBy,
+
+  employeeAllocations: resources.map((resource) => ({
+    employeeId: Number(resource.id),
+
+    dailyAllocations: dates.map((date) => {
+      const key = `${resource.id}_${date}`;
+
+      return {
+        allocationDate: formatDateForApi(date),
+
+        hours: Number(
+          hoursData[key] || 0
         ),
 
-        clientId: Number(
-          formData?.clientId || 0
-        ),
+        startTime:
+          timeData[key]?.start || "",
 
-        templateId: Number(
-          formData?.templateId || 0
-        ),
-
-        startDate:
-          formData?.startDate || "",
-
-        endDate:
-          formData?.endDate || "",
-
-        statusId: Number(
-          formData?.statusId || 0
-        ),
-
-        priority:
-          formData?.priority || "",
-
-        taskDescription:
-          formData?.taskDescription || "",
-
-        createdBy,
-
-        // Hours are saved separately
-        // through /api/Timesheet/log
-        employeeAllocations: [],
+        endTime:
+          timeData[key]?.end || "",
       };
+    }),
+  })),
+};
 
       const response = await api.post(
         "/api/v1/Task",
         payload
       );
 
+      const responseData = response?.data ?? response ?? {};
       const createdTaskId =
-        Number(response?.taskId) ||
-        Number(response?.data?.taskId) ||
-        Number(response?.data?.TaskId) ||
-        Number(response?.TaskId) ||
-        0;
+        Number(
+          responseData?.taskId ??
+          responseData?.TaskId ??
+          responseData?.task_ID ??
+          responseData?.Task_ID ??
+          responseData?.id ??
+          responseData?.Id ??
+          response?.taskId ??
+          response?.TaskId ??
+          response?.task_ID ??
+          response?.Task_ID ??
+          response?.id ??
+          response?.Id ??
+          0
+        ) || 0;
 
       if (!createdTaskId) {
         throw new Error(

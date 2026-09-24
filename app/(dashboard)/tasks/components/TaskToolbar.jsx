@@ -35,7 +35,7 @@ export default function TaskToolbar({
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
-              setPage();
+              setPage?.(1);
             }}
             placeholder="Task title, project code, or employee…"
             className="h-8 w-56 pl-9 text-sm sm:w-72 focus-visible:border-[#E12729] focus-visible:ring-[#E12729]/20"

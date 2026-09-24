@@ -114,31 +114,35 @@ export default function DataPagination({
     }
 
     return pages.map((p, idx) =>
-      p === "…" ? (
-        <span
-          key={`ellipsis-${idx}`}
-          className="px-1 text-sm text-muted-foreground select-none"
-        >
-          …
-        </span>
-      ) : (
-        <Button
-          key={p}
-          variant={p === page ? "default" : "outline"}
-          size="icon-sm"
-          onClick={() => goToPage(p)}
-          aria-label={`Page ${p}`}
-          aria-current={p === page ? "page" : undefined}
-          className={
-            p === page
-              ? "bg-[#E12729] text-white border-[#E12729] hover:bg-[#c81f21] hover:border-[#c81f21]"
-              : ""
-          }
-        >
-          {p}
-        </Button>
-      )
-    );
+  p === "…" ? (
+    <span
+      key={`ellipsis-${idx}`}
+      className="px-1 text-sm text-muted-foreground select-none"
+    >
+      …
+    </span>
+  ) : (
+    <div
+  key={p}
+  className="flex items-center gap-1"
+>
+  <Button
+    variant={p === page ? "default" : "outline"}
+    size="icon-sm"
+    onClick={() => goToPage(p)}
+    aria-label={`Page ${p}`}
+    aria-current={p === page ? "page" : undefined}
+    className={
+      p === page
+        ? "bg-[#E12729] text-white border-[#E12729] hover:bg-[#c81f21] hover:border-[#c81f21]"
+        : ""
+    }
+  >
+    {p}
+  </Button>
+</div>
+  )
+);
   })()}
 </div>
 

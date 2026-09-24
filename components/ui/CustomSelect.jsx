@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { ChevronDown } from "lucide-react";
 
@@ -12,6 +12,8 @@ export default function CustomSelect({
   className = "",
   searchable = false,
   searchPlaceholder = "Search...",
+  portal = true,
+  dropdownMaxHeight = 240,
 }) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -21,43 +23,112 @@ export default function CustomSelect({
   const buttonRef = useRef(null);
   const dropdownRef = useRef(null);
 
-  const selectedItem = options.find(
-    (item) => String(item.id ?? item.value) === String(value)
+  const selectedItem = useMemo(
+    () =>
+      options.find(
+        (item) => String(item.id ?? item.value) === String(value)
+      ) ?? null,
+    [options, value]
   );
 
-  const filteredOptions = searchable
-    ? options.filter((item) => {
-        const label = String(item.name ?? item.label ?? "");
-        return label.toLowerCase().includes(searchTerm.toLowerCase());
-      })
-    : options;
+  const filteredOptions = useMemo(() => {
+    if (!searchable) return options;
+
+    return options.filter((item) => {
+      const label = String(item.name ?? item.label ?? "");
+      return label.toLowerCase().includes(searchTerm.toLowerCase());
+    });
+  }, [options, searchTerm, searchable]);
+
+  const dropdownContent = (
+    <div
+      ref={dropdownRef}
+      style={portal ? popupStyle : undefined}
+      className={
+  portal
+    ? "rounded-md border border-gray-200 bg-white shadow-xl"
+    : "absolute left-0 right-0 top-full z-30 mt-1 rounded-md border border-gray-200 bg-white shadow-xl"
+}
+    >
+      {searchable && (
+        <div className="border-b border-gray-200 p-2">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder={searchPlaceholder}
+            autoFocus
+            className="h-8 w-full rounded-md border border-gray-300 bg-white px-2 text-sm outline-none focus:border-[#E12729] focus:ring-2 focus:ring-[#E12729]/20"
+          />
+        </div>
+      )}
+
+     <div
+  className="overflow-y-auto"
+  style={{ maxHeight: `${dropdownMaxHeight}px` }}
+>
+        {filteredOptions.length === 0 ? (
+          <div className="px-4 py-2 text-sm text-gray-500">
+            No options found
+          </div>
+        ) : (
+          filteredOptions.map((item) => {
+            const itemValue = String(item.id ?? item.value);
+            const selected = itemValue === String(value);
+
+            return (
+              <button
+                key={itemValue}
+                type="button"
+                onClick={() => {
+                  onChange(itemValue);
+                  setOpen(false);
+                  setSearchTerm("");
+                }}
+                className={`block w-full px-4 py-2 text-left text-sm transition
+                  ${
+                    selected
+                      ? "bg-red-50 text-[#E12729] font-medium"
+                      : "hover:bg-red-50 hover:text-[#E12729]"
+                  }`}
+              >
+                {item.name ?? item.label}
+              </button>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Update dropdown position
   useEffect(() => {
+    if (!open) {
+      setSearchTerm("");
+    }
+  }, [open]);
+
+  // Update dropdown position
+useEffect(() => {
   if (!open || !buttonRef.current) return;
 
   const updatePosition = () => {
     const rect = buttonRef.current.getBoundingClientRect();
 
-    const gap = 8;
-    const dropdownHeight = Math.min(
-      240,
-      Math.max(80, options.length * 40 + 8)
-    );
+    const gap = 4;
 
-    let top = rect.bottom + gap;
+    // Keep dropdown below the select
+    const top = rect.bottom + gap;
 
-    // Keep dropdown below the field.
-    // If it would go beyond the viewport, limit its height.
+    // Maximum height for scrolling
     const availableBelow = window.innerHeight - top - 8;
 
-    const maxHeight = Math.min(
-      dropdownHeight,
-      Math.max(80, availableBelow)
+    const maxHeight = Math.max(
+      80,
+      Math.min(240, availableBelow)
     );
 
     setPopupStyle({
@@ -130,62 +201,9 @@ export default function CustomSelect({
       </button>
 
       {/* Dropdown */}
-      {mounted &&
-        open &&
-        createPortal(
-          <div
-            ref={dropdownRef}
-            style={popupStyle}
-            className="overflow-hidden rounded-md border border-gray-200 bg-white shadow-xl custom-scrollbar"
-          >
-            {searchable && (
-              <div className="border-b border-gray-200 p-2">
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder={searchPlaceholder}
-                  autoFocus
-                  className="h-8 w-full rounded-md border border-gray-300 bg-white px-2 text-sm outline-none focus:border-[#E12729] focus:ring-2 focus:ring-[#E12729]/20"
-                />
-              </div>
-            )}
-
-            <div className="max-h-[240px] overflow-y-auto">
-              {filteredOptions.length === 0 ? (
-                <div className="px-4 py-2 text-sm text-gray-500">
-                  No options found
-                </div>
-              ) : (
-                filteredOptions.map((item) => {
-                  const itemValue = String(item.id ?? item.value);
-                  const selected = itemValue === String(value);
-
-                  return (
-                    <button
-                      key={itemValue}
-                      type="button"
-                      onClick={() => {
-                        onChange(itemValue);
-                        setOpen(false);
-                        setSearchTerm("");
-                      }}
-                      className={`block w-full px-4 py-2 text-left text-sm transition
-                        ${
-                          selected
-                            ? "bg-red-50 text-[#E12729] font-medium"
-                            : "hover:bg-red-50 hover:text-[#E12729]"
-                        }`}
-                    >
-                      {item.name ?? item.label}
-                    </button>
-                  );
-                })
-              )}
-            </div>
-          </div>,
-          document.body
-        )}
+      {mounted && open && (
+        portal ? createPortal(dropdownContent, document.body) : <div className="relative">{dropdownContent}</div>
+      )}
     </div>
   );
 }

@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/table";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchDailyReports } from "@/store/slices/dailyReportSlice";
+import { getDailyReports } from "@/services/reportService";
 import { exportFile } from "@/store/slices/exportSlice";
 
 // ---------------------------------------------------------
@@ -119,6 +120,12 @@ const {
       pageSize: 10,
     });
 
+  const [selectedPages, setSelectedPages] = useState([]);  
+  const [showPageSelection, setShowPageSelection] = useState(false);
+const [selectedExportFormat, setSelectedExportFormat] =
+  useState(null);
+  const [isExporting, setIsExporting] = useState(false);
+
   const MIN_SEARCH_LENGTH = 2;
 
   useEffect(() => {
@@ -156,15 +163,16 @@ const {
     useEffect(() => {
   if (!formattedDate) return;
 
-  const hasSearch = Boolean(searchQuery.trim());
+  const normalizedSearch = searchQuery.trim();
+  const isSearching = Boolean(normalizedSearch);
 
   dispatch(
     fetchDailyReports({
       todayDate: formattedDate,
       resourceName: employeeFilter,
-      searchText: hasSearch ? searchQuery : "",
-      pageNumber: hasSearch ? 1 : pagination.pageIndex + 1,
-      pageSize: hasSearch ? 5000 : pagination.pageSize,
+      searchText: isSearching ? normalizedSearch : "",
+      pageNumber: isSearching ? 1 : pagination.pageIndex + 1,
+      pageSize: isSearching ? 1000 : pagination.pageSize,
     })
   );
 }, [
@@ -239,30 +247,201 @@ const {
   }));
 }, [apiReports]);
 
-const filteredReports = useMemo(() => {
-  const normalizedSearch = searchInput.trim().toLowerCase();
+const exportColumns = [
+  { key: "resourceName", header: "Resource" },
+  { key: "id", header: "Task ID" },
+  { key: "taskTitle", header: "Task Title" },
+  { key: "owner", header: "Task Owner" },
+  { key: "allocatedHours", header: "Allocated Hours" },
+  { key: "client", header: "Client" },
+  { key: "projectTitle", header: "Project Title" },
+  { key: "startTime", header: "Start Time" },
+  { key: "endTime", header: "End Time" },
+];
 
-  if (!normalizedSearch) {
-    return reports;
+const mapReportForExport = (report) => ({
+  resourceName: report.resourceName ?? "",
+  id: report.task_ID ?? "",
+  taskTitle: report.taskName ?? "",
+  owner: report.owner ?? "",
+  allocatedHours: report.working_hours ?? 0,
+  client: report.clientName ?? "",
+  projectTitle: report.projectCode
+    ? `${report.projectCode} - ${
+        report.projectName ?? ""
+      }`
+    : report.projectName ?? "",
+  startTime: report.allocStartTime ?? "",
+  endTime: report.allocEndTime ?? "",
+});
+
+const fetchExportPage = async (pageNumber, pageSize) => {
+  const response = await getDailyReports({
+    todayDate: formattedDate,
+    resourceName: employeeFilter,
+    searchText: searchQuery,
+    pageNumber,
+    pageSize,
+  });
+
+  return response;
+};
+
+const handleFullData = async (format) => {
+  try {
+    console.log("FULL DATA EXPORT STARTED");
+
+    // First request
+    const firstResponse = await fetchExportPage(
+      1,
+      pagination.pageSize
+    );
+
+    const allData = [
+      ...(firstResponse?.data ?? []),
+    ];
+
+    const totalPages =
+      firstResponse?.totalPages ?? 1;
+
+    console.log("TOTAL PAGES:", totalPages);
+    console.log(
+      "PAGE 1 RECORDS:",
+      allData.length
+    );
+
+    // Fetch remaining pages
+    for (
+      let pageNumber = 2;
+      pageNumber <= totalPages;
+      pageNumber++
+    ) {
+      const response = await fetchExportPage(
+        pageNumber,
+        pagination.pageSize
+      );
+
+      const pageData = response?.data ?? [];
+
+      console.log(
+        `PAGE ${pageNumber} RECORDS:`,
+        pageData.length
+      );
+
+      allData.push(...pageData);
+    }
+
+    console.log(
+      "TOTAL EXPORT RECORDS:",
+      allData.length
+    );
+
+    const mappedData =
+      allData.map(mapReportForExport);
+
+    await dispatch(
+      exportFile({
+        fileName: "daily-report",
+        format,
+        columns: exportColumns,
+        data: mappedData,
+      })
+    ).unwrap();
+
+    console.log(
+      "FULL DATA EXPORT COMPLETED"
+    );
+  } catch (error) {
+    console.error("FULL DATA EXPORT ERROR:", error);
+  } finally {
+    setIsExporting(false);
   }
+};
 
-  return reports.filter((report) =>
-    [
-      report.resourceName,
-      report.taskTitle,
-      report.projectTitle,
-      report.owner,
-      report.client,
-      report.department,
-      report.projectCode,
-      String(report.id ?? ""),
-    ].some((value) =>
-      String(value ?? "")
-        .toLowerCase()
-        .includes(normalizedSearch)
-    )
-  );
-}, [reports, searchInput]);
+const exportPagesByRange = async (
+  format,
+  fromPage,
+  toPage
+) => {
+  try {
+    console.log(
+      `RANGE EXPORT STARTED: ${fromPage} → ${toPage}`
+    );
+
+    const allData = [];
+
+    for (
+      let pageNumber = fromPage;
+      pageNumber <= toPage;
+      pageNumber++
+    ) {
+      const response = await fetchExportPage(
+        pageNumber,
+        pagination.pageSize
+      );
+
+      const pageData = response?.data ?? [];
+
+      console.log(
+        `PAGE ${pageNumber} RECORDS:`,
+        pageData.length
+      );
+
+      allData.push(...pageData);
+    }
+
+    console.log(
+      "TOTAL RANGE EXPORT RECORDS:",
+      allData.length
+    );
+
+    const mappedData =
+      allData.map(mapReportForExport);
+
+    await dispatch(
+      exportFile({
+        fileName: `daily-report-pages-${fromPage}-to-${toPage}`,
+        format,
+        columns: exportColumns,
+        data: mappedData,
+      })
+    ).unwrap();
+
+    console.log(
+      `RANGE EXPORT COMPLETED: ${fromPage} → ${toPage}`
+    );
+  } catch (error) {
+    console.error(
+      "RANGE EXPORT ERROR:",
+      error
+    );
+  } finally {
+    setIsExporting(false);
+  }
+};
+
+const handleSelectedPages = async (format, fromPage, toPage) => {
+  try {
+    await exportPagesByRange(format, fromPage, toPage);
+  } catch (error) {
+    console.error("Selected pages export failed:", error);
+  }
+};
+
+const togglePageSelection = (pageNumber) => {
+  setSelectedPages((prev) => {
+    if (prev.includes(pageNumber)) {
+      return prev.filter(
+        (page) => page !== pageNumber
+      );
+    }
+
+    return [...prev, pageNumber].sort(
+      (a, b) => a - b
+    );
+  });
+};
+
 
 const handleExport = (format) => {
   const rows = table
@@ -495,16 +674,35 @@ const handleExport = (format) => {
   // -------------------------------------------------------
 
   const table = useReactTable({
-  data: filteredReports,
+  data: reports,
   columns,
 
   state: {
     sorting,
+    globalFilter: searchQuery,
   },
 
   onSortingChange: setSorting,
+  onGlobalFilterChange: setSearchQuery,
+
+  globalFilterFn: (row, columnId, filterValue) => {
+    const normalizedSearch = String(filterValue ?? "")
+      .trim()
+      .toLowerCase();
+
+    if (!normalizedSearch) {
+      return true;
+    }
+
+    return Object.values(row.original).some((value) =>
+      String(value ?? "")
+        .toLowerCase()
+        .includes(normalizedSearch)
+    );
+  },
 
   getCoreRowModel: getCoreRowModel(),
+  getFilteredRowModel: getFilteredRowModel(),
   getSortedRowModel: getSortedRowModel(),
 });
 
@@ -582,21 +780,6 @@ const endIndex =
     pageCount,
     pageIndex,
   ]);
-
-
-  // -------------------------------------------------------
-  // LOADING
-  // -------------------------------------------------------
-
-  if (reportsLoading) {
-    return (
-      <div className="flex h-full min-h-[400px] items-center justify-center">
-        <div className="text-sm text-muted-foreground">
-          Loading daily reports...
-        </div>
-      </div>
-    );
-  }
 
 
   // -------------------------------------------------------
@@ -699,49 +882,9 @@ const endIndex =
   isDark={isDark}
   showExport={showExport}
   setShowExport={setShowExport}
-
-  handleCopy={async () => {
-    const csv =
-      table
-        .getFilteredRowModel()
-        .rows
-        .map((row) => row.original)
-        .map((row) => [
-          row.resourceName,
-          row.id,
-          row.taskTitle,
-          row.owner,
-          row.allocatedHours,
-          row.client,
-          row.projectCode
-            ? `${row.projectCode} - ${row.projectTitle}`
-            : row.projectTitle,
-          row.startTime,
-          row.endTime,
-        ])
-        .map((row) =>
-          row
-            .map(
-              (cell) =>
-                `"${String(cell ?? "").replace(/"/g, '""')}"`
-            )
-            .join(",")
-        )
-        .join("\n");
-
-    await navigator.clipboard.writeText(
-      [
-        "Resource,Task ID,Task Title,Task Owner,Allocated Hours,Client,Project Title,Start Time,End Time",
-        csv,
-      ].join("\n")
-    );
-  }}
-
-  handlePrint={() => window.print()}
-
-  handlePDF={() => handleExport("pdf")}
-
-  handleCSV={() => handleExport("csv")}
+  handleFullData={handleFullData}
+  handleSelectedPages={handleSelectedPages}
+  totalPages={totalPages}
 />
 
           </div>
@@ -1000,7 +1143,8 @@ const endIndex =
   endIndex={endIndex}
   hasPrev={pageIndex > 0}
   hasNext={pageIndex < pageCount - 1}
-
+  selectedPages={selectedPages}
+  onPageSelect={togglePageSelection}
   prevPage={() =>
     setPagination((prev) => ({
       ...prev,
@@ -1024,9 +1168,197 @@ const endIndex =
 
   pageNumbers={pageNumbers}
   className="border-t border-border"
+
 />
 
       </div>
+
+      {showPageSelection && (
+  <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40">
+    <div className="w-[420px] rounded-xl border border-border bg-card p-5 shadow-2xl">
+      
+      {/* Header */}
+      <div className="mb-4">
+        <h2 className="text-lg font-semibold text-foreground">
+          Select Pages
+        </h2>
+
+        <p className="mt-1 text-sm text-muted-foreground">
+          Select the pages you want to export.
+        </p>
+      </div>
+
+      {/* Select / Clear All */}
+<div className="mb-3 flex items-center justify-between">
+  <button
+    type="button"
+    onClick={() => {
+      const allPages = Array.from(
+        { length: totalPages },
+        (_, index) => index + 1
+      );
+
+      setSelectedPages(allPages);
+    }}
+    className="text-sm font-medium text-[#E12729] hover:underline"
+  >
+    Select All
+  </button>
+
+  <button
+    type="button"
+    onClick={() => {
+      setSelectedPages([]);
+    }}
+    className="text-sm text-muted-foreground hover:underline"
+  >
+    Clear All
+  </button>
+</div>
+
+      {/* Pages */}
+      <div className="grid grid-cols-2 gap-3">
+        {Array.from(
+          { length: totalPages },
+          (_, index) => index + 1
+        ).map((pageNumber) => (
+          <label
+            key={pageNumber}
+            className="flex cursor-pointer items-center gap-2 rounded-lg border border-border px-3 py-2 hover:bg-muted"
+          >
+            <input
+              type="checkbox"
+              checked={selectedPages.includes(pageNumber)}
+              onChange={() =>
+                togglePageSelection(pageNumber)
+              }
+              className="h-4 w-4 accent-[#E12729]"
+            />
+
+            <span className="text-sm text-foreground">
+              Page {pageNumber}
+            </span>
+          </label>
+        ))}
+      </div>
+
+      {/* Selected count */}
+      <div className="mt-4 text-sm text-muted-foreground">
+        {selectedPages.length} page
+        {selectedPages.length !== 1 ? "s" : ""} selected
+      </div>
+
+      {/* Buttons */}
+      <div className="mt-5 flex justify-end gap-2">
+        <button
+          type="button"
+          onClick={() => {
+            setShowPageSelection(false);
+            setSelectedPages([]);
+            setSelectedExportFormat(null);
+          }}
+          className="rounded-lg border border-border px-4 py-2 text-sm"
+        >
+          Cancel
+        </button>
+
+        <button
+  type="button"
+  disabled={
+    selectedPages.length === 0 ||
+    isExporting
+  }
+  onClick={async () => {
+    if (
+      selectedPages.length === 0 ||
+      !selectedExportFormat ||
+      isExporting
+    ) {
+      return;
+    }
+
+    try {
+      setIsExporting(true);
+
+      console.log(
+        "EXPORT FORMAT:",
+        selectedExportFormat
+      );
+
+      console.log(
+        "SELECTED PAGES:",
+        selectedPages
+      );
+
+      const allSelectedData = [];
+
+      // Fetch every selected page
+      for (const pageNumber of selectedPages) {
+        const response = await fetchExportPage(
+          pageNumber,
+          pagination.pageSize
+        );
+
+        const pageData = response?.data ?? [];
+
+        console.log(
+          `PAGE ${pageNumber} RECORDS:`,
+          pageData.length
+        );
+
+        allSelectedData.push(...pageData);
+      }
+
+      console.log(
+        "TOTAL SELECTED RECORDS:",
+        allSelectedData.length
+      );
+
+      // Convert API data to export format
+      const mappedData =
+        allSelectedData.map(
+          mapReportForExport
+        );
+
+      // Send to common export API
+      await dispatch(
+        exportFile({
+          fileName:
+            "daily-report-selected-pages",
+          format: selectedExportFormat,
+          columns: exportColumns,
+          data: mappedData,
+        })
+      ).unwrap();
+
+      console.log(
+        "SELECTED PAGES EXPORT COMPLETED"
+      );
+
+      // Close popup
+      setShowPageSelection(false);
+      setSelectedPages([]);
+      setSelectedExportFormat(null);
+
+    } catch (error) {
+      console.error(
+        "SELECTED PAGES EXPORT ERROR:",
+        error
+      );
+    } finally {
+      setIsExporting(false);
+    }
+  }}
+  className="rounded-lg bg-[#E12729] px-4 py-2 text-sm text-white disabled:cursor-not-allowed disabled:opacity-50"
+>
+  {isExporting
+    ? "Exporting..."
+    : "Export"}
+</button>
+      </div>
+    </div>
+  </div>
+)}
 
     </div>
   );

@@ -55,6 +55,38 @@ body {
   padding: 0;
 }
 
+button,
+a,
+summary,
+label,
+select,
+option,
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+[role="button"],
+[role="tab"],
+[role="menuitem"],
+[role="option"],
+[role="link"],
+[tabindex]:not([tabindex="-1"]),
+[data-slot*="trigger"],
+[data-slot*="button"],
+[data-slot*="tab"],
+[onclick],
+li[onclick],
+div[onclick],
+span[onclick],
+td[onclick],
+tr[onclick] {
+  cursor: pointer;
+}
+
+input,
+textarea {
+  cursor: text;
+}
+
 /* ── Hide scrollbars globally except the sidebar nav ── */
 * {
   scrollbar-width: none;

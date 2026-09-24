@@ -28,10 +28,29 @@ export async function getTasks({
   }
 
   const response = await axiosClient.get(
-    `/Task?${params.toString()}`
-  );
+  `/Task?${params.toString()}`
+);
 
-  return response.data;
+console.log("=================================");
+console.log("RAW TASK API - FIRST TASK");
+console.log("=================================");
+
+console.log(
+  JSON.stringify(response.data?.tasks?.[0], null, 2)
+);
+
+console.log("=================================");
+console.log("RAW TASK API - NEW TASKS");
+console.log("=================================");
+
+const newTasks = (response.data?.tasks || []).filter(
+  task =>
+    Number(task.taskId ?? task.Task_Id ?? task.id ?? task.Id) >= 69804
+);
+
+console.log(JSON.stringify(newTasks, null, 2));
+
+return response.data;
 }
 
 export async function getTaskProjects({ empId, userType }) {

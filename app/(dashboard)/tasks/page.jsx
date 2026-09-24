@@ -39,8 +39,191 @@ const userTypeFromUrl =
 
   const [currentPage, setCurrentPage] = useState(1);
 
-  const [debouncedSearch, setDebouncedSearch] =
-    useState("");
+const resolveEmployeeDisplayNames = (task) => {
+  // --------------------------------------------------
+  // EMPLOYEE MASTER MAP
+  // --------------------------------------------------
+  const employeeNameMap = new Map(
+    (employeeNames || [])
+      .map((employee) => {
+        const id =
+          employee?.employeeId ??
+          employee?.empId ??
+          employee?.employee_Id ??
+          employee?.emp_ID ??
+          employee?.id;
+
+        const name =
+          employee?.employeeName ??
+          employee?.employee_Name ??
+          employee?.name ??
+          employee?.fullName;
+
+        if (id == null || !name) return null;
+
+        return [
+          String(id).trim(),
+          String(name).trim(),
+        ];
+      })
+      .filter(Boolean)
+  );
+
+  // --------------------------------------------------
+  // HELPER
+  // --------------------------------------------------
+  const resolveId = (id) => {
+    if (id == null || id === "") return "";
+
+    const key = String(id).trim();
+
+    return (
+      employeeNameMap.get(key) ||
+      employeeNameMap.get(String(Number(key))) ||
+      ""
+    );
+  };
+
+  // --------------------------------------------------
+  // COLLECT EMPLOYEE IDS / NAMES
+  // --------------------------------------------------
+  const values = [];
+
+  // 1. employees
+  if (Array.isArray(task?.employees)) {
+    values.push(...task.employees);
+  } else if (typeof task?.employees === "string") {
+    values.push(...task.employees.split(","));
+  }
+
+  // 2. empIds
+  if (task?.empIds) {
+    values.push(...String(task.empIds).split(","));
+  }
+
+  // 3. employeeIds
+  if (task?.employeeIds) {
+    values.push(...String(task.employeeIds).split(","));
+  }
+
+  // 4. employeeId
+  if (task?.employeeId != null) {
+    values.push(task.employeeId);
+  }
+
+  // 5. empId
+  if (task?.empId != null) {
+    values.push(task.empId);
+  }
+
+  // 6. employee_Id
+  if (task?.employee_Id != null) {
+    values.push(task.employee_Id);
+  }
+
+  // 7. emp_ID
+  if (task?.emp_ID != null) {
+    values.push(task.emp_ID);
+  }
+
+  // 8. assignedEmployeeId
+  if (task?.assignedEmployeeId != null) {
+    values.push(task.assignedEmployeeId);
+  }
+
+  // 9. assignedEmployeeIds
+  if (task?.assignedEmployeeIds) {
+    values.push(
+      ...String(task.assignedEmployeeIds).split(",")
+    );
+  }
+
+  // --------------------------------------------------
+  // EMPLOYEE ALLOCATIONS
+  // --------------------------------------------------
+  if (Array.isArray(task?.employeeAllocations)) {
+    task.employeeAllocations.forEach((entry) => {
+      const name =
+        entry?.employeeName ??
+        entry?.employee_Name ??
+        entry?.name ??
+        entry?.fullName;
+
+      if (name) {
+        values.push(name);
+        return;
+      }
+
+      const id =
+        entry?.employeeId ??
+        entry?.empId ??
+        entry?.employee_Id ??
+        entry?.emp_ID;
+
+      if (id != null) {
+        values.push(id);
+      }
+    });
+  }
+
+  // --------------------------------------------------
+  // RESOLVE IDS → NAMES
+  // --------------------------------------------------
+  const resolvedNames = values
+    .flatMap((value) => {
+      if (value == null || value === "") {
+        return [];
+      }
+
+      // Object
+      if (typeof value === "object") {
+        const name =
+          value?.employeeName ??
+          value?.employee_Name ??
+          value?.name ??
+          value?.fullName;
+
+        if (name) {
+          return [String(name).trim()];
+        }
+
+        const id =
+          value?.employeeId ??
+          value?.empId ??
+          value?.employee_Id ??
+          value?.emp_ID ??
+          value?.id;
+
+        const resolved = resolveId(id);
+
+        return resolved ? [resolved] : [];
+      }
+
+      const valueString = String(value).trim();
+
+      if (!valueString) {
+        return [];
+      }
+
+      // If API already returned a name
+      if (isNaN(Number(valueString))) {
+        return [valueString];
+      }
+
+      // If API returned employee ID
+      const resolved = resolveId(valueString);
+
+      return resolved ? [resolved] : [];
+    })
+    .filter(Boolean);
+
+  // --------------------------------------------------
+  // REMOVE DUPLICATES
+  // --------------------------------------------------
+  return [...new Set(resolvedNames)];
+};
+
+
 
   const {
   tasks,
@@ -91,19 +274,33 @@ const userTypeFromUrl =
 ]);
 
 useEffect(() => {
-  if (!taskIdFromNotification) return;
-
   dispatch(fetchEmployeeNames());
-}, [
-  dispatch,
-  taskIdFromNotification,
-]);
+}, [dispatch]);
 
 const employeeNameMap = Object.fromEntries(
-  employeeNames.map((employee) => [
-    String(employee.employeeId),
-    employee.employeeName,
-  ])
+  (employeeNames || [])
+    .map((employee) => {
+      const id =
+        employee?.employeeId ??
+        employee?.empId ??
+        employee?.employee_Id ??
+        employee?.emp_ID ??
+        employee?.id;
+
+      const name =
+        employee?.employeeName ??
+        employee?.employee_Name ??
+        employee?.name ??
+        employee?.fullName;
+
+      if (id == null || !name) return null;
+
+      return [
+        String(id).trim(),
+        String(name).trim(),
+      ];
+    })
+    .filter(Boolean)
 );
 
 const notificationTask =
@@ -166,13 +363,7 @@ const notificationTask =
       }
     : null;
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(search);
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [search]);
+  const normalizedSearch = search.trim().length > 1 ? search.trim().toLowerCase() : "";
 
   useEffect(() => {
   if (taskIdFromNotification) return;
@@ -204,7 +395,7 @@ const notificationTask =
       userType,
       startDate,
       endDate,
-      searchText: debouncedSearch,
+      searchText: normalizedSearch,
       projectId: null,
       pageNumber: currentPage,
       pageSize: 10,
@@ -214,30 +405,57 @@ const notificationTask =
   dispatch,
   dateRange.from,
   dateRange.to,
-  debouncedSearch,
+  normalizedSearch,
   taskIdFromNotification,
   currentPage,
   employeeIdFromUrl,
   userTypeFromUrl,
 ]);
 
+ const mappedTasks = (tasks || []).map((task) => {
+  console.log(
+    "ACTUAL TASK DATA:",
+    JSON.stringify(task, null, 2)
+  );
+
+  const resolvedEmployees =
+    resolveEmployeeDisplayNames(task);
+
+  return {
+    ...task,
+    employees: resolvedEmployees,
+  };
+});
   const displayedTasks = taskIdFromNotification
   ? notificationTask
-    ? [notificationTask]
+    ? [{ ...notificationTask, employees: resolveEmployeeDisplayNames(notificationTask) }]
     : []
-  : tasks;
+  : mappedTasks.filter((task) => {
+      if (!normalizedSearch) return true;
 
-  if (
-  loading ||
-  (taskIdFromNotification &&
-    selectedTaskLoading)
-) {
-  return (
-    <div className="p-6 text-center text-gray-500">
-      Loading task...
-    </div>
-  );
-}
+      const employeeNames = Array.isArray(task.employees)
+        ? task.employees
+        : typeof task.employees === "string"
+          ? task.employees.split(",")
+          : [];
+
+      const searchableText = [
+        task.id,
+        task.taskId,
+        task.task_Id,
+        task.TaskId,
+        task.Task_ID,
+        task.title,
+        task.projectTitle,
+        task.projectCode,
+        ...employeeNames,
+      ]
+        .filter((value) => value !== null && value !== undefined && value !== "")
+        .map((value) => String(value).toLowerCase())
+        .join(" ");
+
+      return searchableText.includes(normalizedSearch);
+    });
 
   if (error) {
     return (
@@ -254,6 +472,8 @@ const notificationTask =
   return (
     <TaskList
   tasks={displayedTasks}
+  employeeNames={employeeNames}
+  loading={loading && !taskIdFromNotification}
 
   totalCount={totalCount}
   totalPages={totalPages}

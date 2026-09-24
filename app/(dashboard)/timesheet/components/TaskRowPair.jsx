@@ -166,7 +166,7 @@ export default function TaskRowPair({
                   min={0}
                   max={24}
                   step={0.5}
-                  value={actualValue}
+                  value={actualValue === "" || actualValue === null || actualValue === undefined ? "" : actualValue}
                   onChange={(e) =>
                     onActualChange(
                       task.id,

@@ -62,87 +62,145 @@ export default function WeekUtilization() {
       return;
     }
 
-    const exportData = [
-      ...teamData.billable.map((item) => ({
-        section: "Team Wise - Billable",
-        name: item.team,
-        employee: "",
-        hours: item.hours,
-        availableHours: item.available,
-        utilization: item.utilization,
-        revenue: item.revenue,
-        cost: "",
-      })),
+    const sections = [
+      // =====================================================
+      // 1. TEAM WISE - BILLABLE
+      // =====================================================
+      {
+        title: "Utilization Summary Team Wise - BILLABLE",
 
-      ...teamData.nonBillable.map((item) => ({
-        section: "Team Wise - Non Billable",
-        name: item.team,
-        employee: "",
-        hours: item.hours,
-        availableHours: item.available,
-        utilization: item.utilization,
-        revenue: item.revenue,
-        cost: "",
-      })),
+        columns: [
+          { key: "team", header: "Team" },
+          { key: "planHours", header: "Plan Hours" },
+          { key: "availableHours", header: "Available Hours" },
+          { key: "utilization", header: "Utilization" },
+          { key: "revenue", header: "Revenue" },
+        ],
 
-      ...designationData.billable.flatMap((department) =>
-        department.rows.map((item) => ({
-          section: `Designation Wise - Billable - ${department.department}`,
-          name: item.designation,
-          employee: item.employee,
-          hours: item.planHours,
-          availableHours: item.availableHours,
+        data: teamData.billable.map((item) => ({
+          team: item.team,
+          planHours: item.hours,
+          availableHours: item.available,
           utilization: item.utilization,
-          revenue: "",
-          cost: "",
-        }))
-      ),
+          revenue: item.revenue,
+        })),
+      },
 
-      ...designationData.nonBillable.flatMap((department) =>
-        department.rows.map((item) => ({
-          section: `Designation Wise - Non Billable - ${department.department}`,
-          name: item.designation,
-          employee: item.employee,
-          hours: item.planHours,
-          availableHours: item.availableHours,
+      // =====================================================
+      // 2. TEAM WISE - NON BILLABLE
+      // =====================================================
+      {
+        title: "Utilization Summary Team Wise - NON BILLABLE",
+
+        columns: [
+          { key: "team", header: "Team" },
+          { key: "planHours", header: "Plan Hours" },
+          { key: "availableHours", header: "Available Hours" },
+          { key: "utilization", header: "Utilization" },
+          { key: "revenue", header: "Revenue" },
+        ],
+
+        data: teamData.nonBillable.map((item) => ({
+          team: item.team,
+          planHours: item.hours,
+          availableHours: item.available,
           utilization: item.utilization,
-          revenue: "",
-          cost: "",
-        }))
-      ),
+          revenue: item.revenue,
+        })),
+      },
 
-      ...clientData.map((item) => ({
-        section: "Client Wise",
-        name: item.name,
-        employee: "",
-        hours: item.hours,
-        availableHours: "",
-        utilization: item.utilization,
-        revenue: "",
-        cost: item.cost,
-      })),
+      // =====================================================
+      // 3. DESIGNATION WISE - BILLABLE
+      // =====================================================
+      {
+        title: "Utilization Summary Designation Wise - BILLABLE",
+
+        columns: [
+          { key: "department", header: "Department" },
+          { key: "designation", header: "Designation" },
+          { key: "employee", header: "No. of Employees" },
+          { key: "planHours", header: "Plan Hours" },
+          { key: "availableHours", header: "Available Hours" },
+          { key: "utilization", header: "Utilization" },
+        ],
+
+        data: designationData.billable.flatMap((department) =>
+          department.rows.map((item) => ({
+            department: department.department,
+            designation: item.designation,
+            employee: item.employee,
+            planHours: item.planHours,
+            availableHours: item.availableHours,
+            utilization: item.utilization,
+          }))
+        ),
+      },
+
+      // =====================================================
+      // 4. DESIGNATION WISE - NON BILLABLE
+      // =====================================================
+      {
+        title: "Utilization Summary Designation Wise - NON BILLABLE",
+
+        columns: [
+          { key: "department", header: "Department" },
+          { key: "designation", header: "Designation" },
+          { key: "employee", header: "No. of Employees" },
+          { key: "planHours", header: "Plan Hours" },
+          { key: "availableHours", header: "Available Hours" },
+          { key: "utilization", header: "Utilization" },
+        ],
+
+        data: designationData.nonBillable.flatMap((department) =>
+          department.rows.map((item) => ({
+            department: department.department,
+            designation: item.designation,
+            employee: item.employee,
+            planHours: item.planHours,
+            availableHours: item.availableHours,
+            utilization: item.utilization,
+          }))
+        ),
+      },
+
+      // =====================================================
+      // 5. CLIENT WISE
+      // =====================================================
+      {
+        title: "Utilization Summary Client Wise",
+
+        columns: [
+          { key: "client", header: "Client" },
+          { key: "planHours", header: "Plan Hours" },
+          { key: "utilization", header: "Utilization" },
+          { key: "cost", header: "Cost" },
+        ],
+
+        data: clientData.map((item) => ({
+          client: item.name,
+          planHours: item.hours,
+          utilization: item.utilization,
+          cost: item.cost,
+        })),
+      },
     ];
 
     await dispatch(
-  exportFile({
-    fileName: `week-utilization-${startDate}-to-${endDate}`,
-    format: "csv",
-    columns: [
-      { key: "section", header: "Section" },
-      { key: "name", header: "Team / Designation / Client" },
-      { key: "employee", header: "Employees" },
-      { key: "hours", header: "Plan Hours" },
-      { key: "availableHours", header: "Available Hours" },
-      { key: "utilization", header: "Utilization" },
-      { key: "revenue", header: "Revenue" },
-      { key: "cost", header: "Cost" },
-    ],
-    data: exportData,
-  })
-).unwrap();
+      exportFile({
+        fileName: `week-utilization-${startDate}-to-${endDate}`,
+        format: "xlsx",
+
+        // Keep these empty because this export
+        // uses sections instead of one flat table.
+        columns: [],
+        data: [],
+
+        sections,
+      })
+    ).unwrap();
 
   } catch (error) {
-    console.error("EXCEL EXPORT ERROR:", error);
+    console.error("WEEK UTILIZATION EXPORT ERROR:", error);
   }
 };
 
@@ -220,6 +278,19 @@ const clientData = mapClientData(client);
   
 
   const handleGenerateReport = () => {
+    const normalizedStart = startDate ? new Date(`${startDate}T12:00:00`) : null;
+    const normalizedEnd = endDate ? new Date(`${endDate}T12:00:00`) : null;
+
+    if (!startDate || !endDate || Number.isNaN(normalizedStart?.getTime()) || Number.isNaN(normalizedEnd?.getTime())) {
+      alert("Please select a valid start date and end date.");
+      return;
+    }
+
+    if (normalizedStart > normalizedEnd) {
+      alert("Start date cannot be greater than end date.");
+      return;
+    }
+
     dispatch(
       fetchWeekUtilization({
         startDate,

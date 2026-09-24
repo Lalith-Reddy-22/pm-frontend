@@ -27,6 +27,154 @@ const getClientTitle = (item = {}) =>
   item.client ||
   "";
 
+const getFirstValue = (item = {}, keys = []) => {
+  for (const key of keys) {
+    const value = item?.[key];
+    if (value !== null && value !== undefined && value !== "") {
+      return value;
+    }
+  }
+
+  return "";
+};
+
+const normalizeTaskId = (item = {}) => {
+  const value = getFirstValue(item, [
+    "task_Id",
+    "Task_Id",
+    "taskId",
+    "TaskId",
+    "task_ID",
+    "Task_ID",
+    "id",
+    "Id",
+  ]);
+
+  return value === "" ? null : Number(value) || value;
+};
+
+const normalizeTaskTitle = (item = {}) => {
+  return String(
+    getFirstValue(item, [
+      "task_Title",
+      "Task_Title",
+      "taskTitle",
+      "TaskTitle",
+      "taskName",
+      "TaskName",
+      "title",
+      "Title",
+    ]) || ""
+  );
+};
+
+const normalizePriority = (item = {}) => {
+  return String(
+    getFirstValue(item, [
+      "tskpriority",
+      "taskPriority",
+      "TaskPriority",
+      "priority",
+      "Priority",
+      "task_Priority",
+      "Task_Priority",
+    ]) || ""
+  );
+};
+
+const normalizeEmployeeNames = (item = {}) => {
+  const namesSource = getFirstValue(item, [
+    "employee_Names",
+    "employeeNames",
+    "EmployeeNames",
+    "employees",
+    "empNames",
+    "EmpNames",
+    "emp_Names",
+    "Emp_Names",
+    "assignedEmployees",
+    "assigned_Employees",
+    "employee_Name",
+    "Employee_Name",
+    "resourceNames",
+    "resource_Names",
+  ]);
+
+  const idSource = getFirstValue(item, [
+    "empIds",
+    "EmpIds",
+    "employeeIds",
+    "EmployeeIds",
+    "employee_Id",
+    "Employee_Id",
+    "emp_ID",
+    "Emp_ID",
+  ]);
+
+  const toEmployeeName = (entry) => {
+    if (typeof entry === "string") return entry.trim();
+    if (entry && typeof entry === "object") {
+      return (
+        entry.employeeName ||
+        entry.employee_Name ||
+        entry.name ||
+        entry.fullName ||
+        entry.EmployeeName ||
+        entry.Employee_Name ||
+        entry.employee ||
+        ""
+      ).trim();
+    }
+    return "";
+  };
+
+  if (Array.isArray(namesSource)) {
+    return namesSource
+      .map((entry) => toEmployeeName(entry))
+      .filter(Boolean);
+  }
+
+  if (typeof namesSource === "string") {
+    return namesSource
+      .split(",")
+      .map((name) => name.trim())
+      .filter(Boolean);
+  }
+
+  if (typeof idSource === "string") {
+    return idSource
+      .split(",")
+      .map((id) => id.trim())
+      .filter(Boolean);
+  }
+
+  if (Array.isArray(idSource)) {
+    return idSource
+      .map((id) => String(id).trim())
+      .filter(Boolean);
+  }
+
+  if (item?.employeeAllocations && Array.isArray(item.employeeAllocations)) {
+    return item.employeeAllocations
+      .map((entry) => {
+        const name = toEmployeeName(entry);
+        if (name) return name;
+
+        const employeeId =
+          entry?.employeeId ??
+          entry?.empId ??
+          entry?.employee_Id ??
+          entry?.emp_ID ??
+          "";
+
+        return String(employeeId).trim();
+      })
+      .filter(Boolean);
+  }
+
+  return [];
+};
+
 export const fetchTasks = createAsyncThunk(
   "task/fetchTasks",
   async (params, { rejectWithValue }) => {
@@ -333,35 +481,54 @@ const taskSlice = createSlice({
     .addCase(fetchTasks.fulfilled, (state, action) => {
   state.loading = false;
 
-  state.tasks = (action.payload?.tasks || []).map((item) => ({
-    id: item.task_Id,
-    title: item.task_Title || "",
+  const payload = action.payload ?? {};
+  const records = Array.isArray(payload)
+    ? payload
+    : Array.isArray(payload?.tasks)
+      ? payload.tasks
+      : Array.isArray(payload?.items)
+        ? payload.items
+        : Array.isArray(payload?.data)
+          ? payload.data
+          : Array.isArray(payload?.result)
+            ? payload.result
+            : [];
+
+  state.tasks = records.map((item) => ({
+    id: normalizeTaskId(item),
+    title: normalizeTaskTitle(item),
 
     projectId: Number(
       item.projectId ??
       item.ProjectId ??
       item.project_ID ??
+      item.Project_ID ??
+      item.projectId_ ??
       0
     ),
 
     projectTitle: getProjectTitle(item),
-    projectCode: item.projectCode || "",
-    priority: item.tskpriority || "",
+    projectCode: item.projectCode || item.ProjectCode || "",
+    priority: normalizePriority(item),
 
-    employees: item.employee_Names
-      ? item.employee_Names
-          .split(",")
-          .map((name) => name.trim())
-      : [],
+    employees: normalizeEmployeeNames(item),
 
-    startDate: item.start_Date_Formatted || "",
-    endDate: item.end_Date_Formatted || "",
+    startDate:
+      item.start_Date_Formatted ||
+      item.startDate ||
+      item.StartDate ||
+      "",
+    endDate:
+      item.end_Date_Formatted ||
+      item.endDate ||
+      item.EndDate ||
+      "",
   }));
 
-  state.totalCount = action.payload?.totalCount || 0;
-  state.pageNumber = action.payload?.pageNumber || 1;
-  state.pageSize = action.payload?.pageSize || 10;
-  state.totalPages = action.payload?.totalPages || 0;
+  state.totalCount = payload?.totalCount || payload?.totalRecords || 0;
+  state.pageNumber = payload?.pageNumber || 1;
+  state.pageSize = payload?.pageSize || 10;
+  state.totalPages = payload?.totalPages || 0;
 })
 
     .addCase(fetchTasks.rejected, (state, action) => {
