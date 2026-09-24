@@ -3,6 +3,7 @@
 import { useRouter, useParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { useDispatch, useSelector } from "react-redux";
 
 import {
@@ -92,7 +93,7 @@ useEffect(() => {
       result
     );
 
-    alert("Rate card updated successfully.");
+    toast.success("Rate card updated successfully.");
 
     router.push(`/employee/${empId}`);
   } catch (error) {
@@ -101,7 +102,7 @@ useEffect(() => {
       error
     );
 
-    alert(
+    toast.error(
       typeof error === "string"
         ? error
         : "Failed to update rate card."

@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import QueryProvider from "./providers/QueryProvider";
 import StoreProvider from "@/store/storeProvider";
+import { Toaster } from "sonner";
 import "./globals.css";
 import ReduxProvider from "./components/ReduxProvider";
 
@@ -21,6 +22,7 @@ export default function RootLayout({ children }) {
         <StoreProvider>
           <QueryProvider>
             {children}
+            <Toaster richColors position="top-right" />
           </QueryProvider>
         </StoreProvider>
       </body>

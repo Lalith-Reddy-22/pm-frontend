@@ -1,5 +1,6 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { toast } from "sonner";
 
 // Copy
 export async function handleCopy(sorted) {
@@ -12,7 +13,7 @@ export async function handleCopy(sorted) {
 
   await navigator.clipboard.writeText(text);
 
-  alert("Employee list copied successfully!");
+  toast.success("Employee list copied successfully!");
 }
 
 // CSV

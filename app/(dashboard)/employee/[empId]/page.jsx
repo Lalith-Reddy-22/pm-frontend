@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import { toast } from "sonner";
 import {
   ArrowLeft,
   Mail,
@@ -1198,7 +1199,7 @@ function EditEmployeeModal({ employee, empId, onClose }) {
 
     console.log("UPDATE SUCCESS:", response);
 
-    alert("Employee details updated successfully.");
+    toast.success("Employee details updated successfully.");
 
     onClose();
 
@@ -1206,7 +1207,7 @@ function EditEmployeeModal({ employee, empId, onClose }) {
   } catch (error) {
     console.error("UPDATE FAILED:", error);
 
-    alert(
+    toast.error(
       typeof error === "string"
         ? error
         : "Failed to update employee details."

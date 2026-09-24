@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { toast } from "sonner";
 import { CalendarDays } from "lucide-react";
 
 function normalizeDate(dateValue) {
@@ -85,17 +86,17 @@ const taskDates =
     e.preventDefault();
 
     if (!originalDate) {
-      alert("Please select original date.");
+      toast.error("Please select original date.");
       return;
     }
 
     if (!rescheduleDate) {
-      alert("Please select reschedule date.");
+      toast.error("Please select reschedule date.");
       return;
     }
 
     if (rescheduleDate <= originalDate) {
-      alert("Reschedule date must be after original date.");
+      toast.error("Reschedule date must be after original date.");
       return;
     }
 

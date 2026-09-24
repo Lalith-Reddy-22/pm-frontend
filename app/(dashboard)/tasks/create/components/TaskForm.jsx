@@ -13,6 +13,8 @@ export default function TaskForm({
   formData,
   setFormData,
   isUpdate = false,
+  validationErrors = {},
+  setValidationErrors = () => {},
 }) {
   const dispatch = useDispatch();
 
@@ -265,6 +267,20 @@ export default function TaskForm({
   };
 
   // =====================================================
+  // CLEAR A FIELD ERROR
+  // =====================================================
+
+  const clearError = (field) => {
+    if (validationErrors[field]) {
+      setValidationErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
+  };
+
+  // =====================================================
   // RENDER
   // =====================================================
 
@@ -300,14 +316,26 @@ export default function TaskForm({
             value={
               formData.taskName || ""
             }
-            onChange={(e) =>
+            onChange={(e) => {
+              clearError("taskName");
               setFormData((prev) => ({
                 ...prev,
                 taskName:
                   e.target.value,
-              }))
+              }));
+            }}
+            className={
+              validationErrors.taskName
+                ? "border-red-500 focus-visible:ring-red-500"
+                : ""
             }
           />
+
+          {validationErrors.taskName && (
+            <p className="mt-1 text-xs text-red-500">
+              {validationErrors.taskName}
+            </p>
+          )}
         </div>
 
         {/* =================================================
@@ -325,12 +353,14 @@ export default function TaskForm({
           <CustomSelect
             placeholder="Select Priority"
             value={priorityValue}
-            onChange={(value) =>
+            onChange={(value) => {
+              clearError("priority");
               setFormData((prev) => ({
                 ...prev,
                 priority: value,
-              }))
-            }
+              }));
+            }}
+            error={!!validationErrors.priority}
             options={[
               {
                 label: "Select Priority",
@@ -354,6 +384,12 @@ export default function TaskForm({
               },
             ]}
           />
+
+          {validationErrors.priority && (
+            <p className="mt-1 text-xs text-red-500">
+              {validationErrors.priority}
+            </p>
+          )}
         </div>
 
         {/* =================================================
@@ -408,14 +444,22 @@ export default function TaskForm({
             value={
               formData.startDate || ""
             }
-            onChange={(value) =>
+            onChange={(value) => {
+              clearError("startDate");
               setFormData((prev) => ({
                 ...prev,
                 startDate: value,
-              }))
-            }
+              }));
+            }}
             placeholder="Select Start Date"
+            error={!!validationErrors.startDate}
           />
+
+          {validationErrors.startDate && (
+            <p className="mt-1 text-xs text-red-500">
+              {validationErrors.startDate}
+            </p>
+          )}
         </div>
 
         {/* =================================================
@@ -434,14 +478,22 @@ export default function TaskForm({
             value={
               formData.endDate || ""
             }
-            onChange={(value) =>
+            onChange={(value) => {
+              clearError("endDate");
               setFormData((prev) => ({
                 ...prev,
                 endDate: value,
-              }))
-            }
+              }));
+            }}
             placeholder="Select End Date"
+            error={!!validationErrors.endDate}
           />
+
+          {validationErrors.endDate && (
+            <p className="mt-1 text-xs text-red-500">
+              {validationErrors.endDate}
+            </p>
+          )}
         </div>
 
         {/* =================================================
@@ -648,12 +700,14 @@ export default function TaskForm({
           <CustomSelect
             placeholder="Select Status"
             value={statusValue}
-            onChange={(value) =>
+            onChange={(value) => {
+              clearError("status");
               setFormData((prev) => ({
                 ...prev,
                 status: value,
-              }))
-            }
+              }));
+            }}
+            error={!!validationErrors.status}
             options={[
               {
                 label: "Select Status",
@@ -673,6 +727,12 @@ export default function TaskForm({
               },
             ]}
           />
+
+          {validationErrors.status && (
+            <p className="mt-1 text-xs text-red-500">
+              {validationErrors.status}
+            </p>
+          )}
         </div>
       </div>
     </div>

@@ -2,6 +2,7 @@
 
 import { Info } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { api } from "@/lib/api";
 
 export default function HoursAllocation({
@@ -482,9 +483,7 @@ useEffect(() => {
       if (isUpdate) {
         await updateTask();
 
-        alert(
-          "Task updated successfully."
-        );
+        toast.success("Task updated successfully.");
 
         return;
       }
@@ -560,9 +559,7 @@ useEffect(() => {
       // =================================================
 
       if (logs.length === 0) {
-        alert(
-          "Task created successfully, but no hours were entered."
-        );
+        toast.success("Task created successfully, but no hours were entered.");
 
         return;
       }
@@ -581,11 +578,9 @@ useEffect(() => {
         void response; // response used only for side effect
       }
 
-      alert(
-        "Task and hours saved successfully."
-      );
+      toast.success("Task and hours saved successfully.");
     } catch (error) {
-      alert(
+      toast.error(
         error?.response?.data?.message ||
           error?.response?.data ||
           error?.message ||

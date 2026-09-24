@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from "sonner";
 import {
   Table,
   TableBody,
@@ -130,7 +131,7 @@ function TaskTableRow({
     const projectId = Number(task.projectId || 0);
 
     if (!projectId) {
-      alert("Project ID is missing.");
+      toast.error("Project ID is missing.");
       return;
     }
 
@@ -162,7 +163,7 @@ router.push(
       task.id;
 
     if (!id) {
-      alert("Task ID is missing.");
+      toast.error("Task ID is missing.");
       return;
     }
 

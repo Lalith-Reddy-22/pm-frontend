@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { toast } from "sonner";
 import { fetchWeekUtilization } from "@/store/slices/weekUtilizationSlice";
 
 function startOfWeek(date) {
@@ -58,7 +59,7 @@ export default function WeekUtilization() {
   const handleExportExcel = async () => {
   try {
     if (!startDate || !endDate) {
-      alert("Please select Start Date and End Date.");
+      toast.error("Please select Start Date and End Date.");
       return;
     }
 
