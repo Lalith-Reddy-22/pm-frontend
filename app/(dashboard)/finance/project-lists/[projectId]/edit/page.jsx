@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
+import { useDispatch } from "react-redux";
 import {
   ArrowLeft, FolderOpen, Save, DollarSign, Calendar,
   Globe, ShoppingCart, Hash, Tag, Users, Building2,
@@ -13,6 +15,8 @@ import {
   getProjectLookups,
 } from "@/services/financeClientService";
 import SmartSelect from "@/app/components/SmartSelect";
+import { clearClientsCache } from "@/store/slices/financeClientSlice";
+import { clearProjects } from "@/store/slices/projectSlice";
 
 // Defined outside the component so React sees a stable identity across renders,
 // which prevents inputs from losing focus on every keystroke.
@@ -28,13 +32,28 @@ function Field({ label, icon: Icon, children, span, t }) {
   );
 }
 
-const STATUS_OPTIONS  = ["Active", "Inactive", "Completed", "On Hold"].map((s) => ({ value: s, label: s }));
+const STATUS_OPTIONS  = ["Active", "Completed", "On Hold"].map((s) => ({ value: s, label: s }));
 const BILLING_OPTIONS = ["Billable", "Non-Billable", "Internal"].map((s) => ({ value: s, label: s }));
 
 export default function EditProjectPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-center text-gray-500">Loading...</div>}>
+      <EditProjectPageInner />
+    </Suspense>
+  );
+}
+
+function EditProjectPageInner() {
   const { t } = useTheme();
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const dispatch = useDispatch();
   const { projectId } = useParams();
+  const searchParams = useSearchParams();
+
+  const backPath = searchParams.get("from") === "project"
+    ? "/project"
+    : "/finance/project-lists";
 
   const [form, setForm]               = useState(null);
   const [loading, setLoading]         = useState(true);
@@ -61,7 +80,7 @@ export default function EditProjectPage() {
     setLoading(true);
     getFinanceProjectById(projectId)
       .then((p) => {
-        const statusMap = { 1: "Active", 2: "Inactive", 3: "Completed", 4: "On Hold" };
+        const statusMap = { 2: "Active", 4: "Inactive", 3: "Completed", 1: "On Hold" };
         const typeMap   = { 1: "Billable", 2: "Non-Billable", 3: "Internal" };
         setForm({
           title:                 p.project_Title      ?? "",
@@ -89,9 +108,9 @@ export default function EditProjectPage() {
   const setField   = (key) => (e)    => setForm((prev) => ({ ...prev, [key]: e.target.value }));
   const setVal     = (key) => (val)  => setForm((prev) => ({ ...prev, [key]: val }));
   const toggle     = (key) => ()     => setForm((prev) => ({ ...prev, [key]: !prev[key] }));
-  const goBack     = () => router.push("/finance/project-lists");
+  const goBack     = () => router.push(backPath);
 
-  const statusMap  = { Active: 1, Inactive: 2, Completed: 3, "On Hold": 4 };
+  const statusMap  = { Active: 2, Inactive: 4, Completed: 3, "On Hold": 1 };
   const billingMap = { Billable: 1, "Non-Billable": 2, Internal: 3 };
 
   const handleSubmit = async (e) => {
@@ -118,7 +137,10 @@ export default function EditProjectPage() {
         includeInBuyingCenter: form.includeInBuyingCenter,
       };
       await updateFinanceProject({ projectId, payload });
-      router.push("/finance/project-lists");
+      queryClient.invalidateQueries({ queryKey: ["financeProjects"] });
+      dispatch(clearClientsCache());
+      dispatch(clearProjects());
+      router.push(backPath);
     } catch (e) {
       const errData = e.response?.data;
       const msg =
@@ -161,7 +183,8 @@ export default function EditProjectPage() {
       {/* ── Top bar ── */}
       <div className="shrink-0 px-6 pt-4 pb-3">
         <button onClick={goBack} className="flex items-center gap-1.5 text-sm mb-3 text-red-500 hover:text-red-600">
-          <ArrowLeft className="w-4 h-4" /> Back to Project Lists
+          <ArrowLeft className="w-4 h-4" />
+          {searchParams.get("from") === "project" ? "Back to Projects" : "Back to Project Lists"}
         </button>
         <div className="flex items-center gap-3">
           <div className={`p-2.5 rounded-xl ${t.clientIconBg}`}>

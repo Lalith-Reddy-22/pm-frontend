@@ -72,7 +72,7 @@ const STATUS_OPTIONS = [
   { label: "All Status", value: "" },
   { label: "Active",     value: "2" },
   { label: "Completed",  value: "3" },
-  { label: "On Hold",    value: "4" },
+  { label: "On Hold",    value: "1" },
 ];
 
 const fmtPct = (n) => `${n >= 0 ? "" : "-"}${Math.abs(n).toFixed(2)}%`;

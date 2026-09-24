@@ -171,7 +171,7 @@ export default function WeekRangePicker({ start, end, onChange }) {
       {/* Trigger */}
       <button
         onClick={handleToggle}
-        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors
+        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors cursor-pointer
           border-red-200 bg-white text-red-600 hover:bg-red-50
           ${isDark ? "bg-transparent border-red-500/40 text-red-400 hover:bg-red-500/10" : ""}
           ${open ? isDark ? "border-red-400 bg-red-500/10" : "border-red-400 bg-red-50" : ""}`}

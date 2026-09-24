@@ -155,7 +155,7 @@ function ProjectTableRow({ project, role }) {
     console.log("PROJECT ID:", project.id);
     console.log("==========================");
 
-    router.push(`/project/add-project?id=${project.id}`);
+    router.push(`/finance/project-lists/${project.id}/edit?from=project`);
   }}
 >
   <Pencil />
