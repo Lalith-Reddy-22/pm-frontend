@@ -9,6 +9,8 @@ import {
   FileText,
   Users,
 } from "lucide-react";
+import { useState } from "react";
+import ExportDropdown from "@/app/(dashboard)/employee/components/ExportDropdown";
 
 const departments = [
   {
@@ -43,8 +45,15 @@ export default function RateCardTopBar({
   setDepartment,
   search,
   setSearch,
+  handleFullData,
+  handleSelectedPages,
+  totalPages,
 }) {
   const pathname = usePathname();
+
+  const [showExport, setShowExport] = useState(false);
+
+  console.log("RATE CARD totalPages:", totalPages);
 
   return (
     <>
@@ -108,20 +117,45 @@ export default function RateCardTopBar({
 
         </div>
 
-        <div className="relative w-full sm:w-80">
+        <div className="flex items-center gap-3">
 
-          <Search
-            size={18}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-          />
+  {/* Search */}
+  <div className="relative w-full sm:w-80">
 
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search employee..."
-            className="h-11 w-full rounded-xl border border-gray-200 pl-10 pr-4 text-sm outline-none transition focus:border-[#E12729]"
-          />
-        </div>
+    <Search
+      size={18}
+      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+    />
+
+    <input
+      value={search}
+      onChange={(e) => setSearch(e.target.value)}
+      placeholder="Search employee..."
+      className="h-11 w-full rounded-xl border border-gray-200 pl-10 pr-4 text-sm outline-none transition focus:border-[#E12729]"
+    />
+
+  </div>
+
+  {/* Export */}
+  <div className="relative">
+
+    <ExportDropdown
+      showExport={showExport}
+      setShowExport={setShowExport}
+      handleFullData={handleFullData}
+      handleSelectedPages={handleSelectedPages}
+      totalPages={totalPages}
+      border="border-gray-200"
+      t={{
+        cardBg: "bg-white",
+        textPrimary: "text-gray-700",
+      }}
+      isDark={false}
+    />
+
+  </div>
+
+</div>
       </div>
     </>
   );

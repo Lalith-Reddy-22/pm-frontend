@@ -13,6 +13,8 @@ import TicketPagination from "./components/TicketPagination";
 import CreateTicketModal from "./components/CreateTicketModal";
 import IssueDetailModal from "./components/IssueDetailModal";
 import IssueLoggedDetailsModal from "./components/IssueLoggedDetailsModal";
+import { useDispatch } from "react-redux";
+import { exportFile } from "@/store/slices/exportSlice";
 
 import {
   raiseColumns as RAISE_COLUMNS,
@@ -59,6 +61,7 @@ function buildPageNumbers(page, totalPages) {
 
 export default function TicketsPage() {
   const { t } = useTheme();
+  const dispatch = useDispatch();
 
   // ── session ───────────────────────────────────────────────────────────────
   const [empId,   setEmpId]   = useState(null);
@@ -157,6 +160,188 @@ export default function TicketsPage() {
       setLoading(false);
     }
   }, [empId, empType, role, activeTab, page, pageSize, search, issueTypeId, severityId, statusId, dateRange]);
+
+  // =====================================================
+// FULL DATA EXPORT
+// =====================================================
+const handleTicketExport = async (exportFormat = "csv") => {
+  try {
+    setLoading(true);
+
+    const params = new URLSearchParams({
+      empId: String(empId),
+      empType: String(empType),
+      pageNumber: "1",
+      pageSize: "10000",
+    });
+
+    if (search.trim()) {
+      params.append("searchText", search.trim());
+    }
+
+    if (issueTypeId) {
+      params.append("issueTypeId", String(issueTypeId));
+    }
+
+    if (severityId) {
+      params.append("severityId", String(severityId));
+    }
+
+    if (statusId) {
+      params.append("statusId", String(statusId));
+    }
+
+    if (dateRange.from) {
+      params.append(
+        "startDate",
+        format(dateRange.from, "yyyy-MM-dd")
+      );
+    }
+
+    if (dateRange.to) {
+      params.append(
+        "endDate",
+        format(dateRange.to, "yyyy-MM-dd")
+      );
+    }
+
+    const endpoint =
+      activeTab === "tracker" || role === "sys_admin"
+        ? `/api/v1/ticket/all-list?${params.toString()}`
+        : `/api/v1/ticket/list?${params.toString()}`;
+
+    const data = await api.get(endpoint);
+
+    const exportData = (data?.tickets ?? []).map(normaliseTicket);
+
+    const columns = [
+      { key: "id", header: "Issue ID" },
+      { key: "issueType", header: "Issue Type" },
+      { key: "subIssueType", header: "Sub Issue Type" },
+      { key: "priority", header: "Severity" },
+      { key: "descriptionFull", header: "Description" },
+      { key: "status", header: "Status" },
+      { key: "issueDate", header: "Issue Date" },
+      { key: "employee", header: "Employee" },
+      { key: "employeeEmail", header: "Employee Email" },
+    ];
+
+    // Dispatch your existing global export
+    await dispatch(
+      exportFile({
+        fileName: `ticket-list-${format(
+          new Date(),
+          "yyyy-MM-dd-HHmmss"
+        )}`,
+        format: exportFormat,
+        columns,
+        data: exportData,
+      })
+    ).unwrap();
+
+  } catch (error) {
+    console.error("TICKET FULL EXPORT ERROR:", error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+// =====================================================
+// SELECTED PAGES EXPORT
+// =====================================================
+const handleTicketSelectedPages = async (
+  exportFormat,
+  fromPage,
+  toPage
+) => {
+  try {
+    const allTickets = [];
+
+    for (
+      let pageNumber = fromPage;
+      pageNumber <= toPage;
+      pageNumber++
+    ) {
+      const params = new URLSearchParams({
+        empId: String(empId),
+        empType: String(empType),
+        pageNumber: String(pageNumber),
+        pageSize: String(pageSize),
+      });
+
+      if (search.trim()) {
+        params.append("searchText", search.trim());
+      }
+
+      if (issueTypeId) {
+        params.append("issueTypeId", String(issueTypeId));
+      }
+
+      if (severityId) {
+        params.append("severityId", String(severityId));
+      }
+
+      if (statusId) {
+        params.append("statusId", String(statusId));
+      }
+
+      if (dateRange.from) {
+        params.append(
+          "startDate",
+          format(dateRange.from, "yyyy-MM-dd")
+        );
+      }
+
+      if (dateRange.to) {
+        params.append(
+          "endDate",
+          format(dateRange.to, "yyyy-MM-dd")
+        );
+      }
+
+      const endpoint =
+        activeTab === "tracker" || role === "sys_admin"
+          ? `/api/v1/ticket/all-list?${params.toString()}`
+          : `/api/v1/ticket/list?${params.toString()}`;
+
+      const data = await api.get(endpoint);
+
+      allTickets.push(...(data?.tickets ?? []));
+    }
+
+    const exportData = allTickets.map(normaliseTicket);
+
+    const columns = [
+      { key: "id", header: "Issue ID" },
+      { key: "issueType", header: "Issue Type" },
+      { key: "subIssueType", header: "Sub Issue Type" },
+      { key: "priority", header: "Severity" },
+      { key: "descriptionFull", header: "Description" },
+      { key: "status", header: "Status" },
+      { key: "issueDate", header: "Issue Date" },
+      { key: "employee", header: "Employee" },
+      { key: "employeeEmail", header: "Employee Email" },
+    ];
+
+    await dispatch(
+      exportFile({
+        fileName: `ticket-list-pages-${fromPage}-to-${toPage}-${format(
+          new Date(),
+          "yyyy-MM-dd-HHmmss"
+        )}`,
+        format: exportFormat,
+        columns,
+        data: exportData,
+      })
+    ).unwrap();
+
+  } catch (error) {
+    console.error(
+      "TICKET SELECTED PAGE EXPORT ERROR:",
+      error
+    );
+  }
+};
 
   useEffect(() => { fetchTickets(); }, [fetchTickets]);
 
@@ -265,17 +450,30 @@ export default function TicketsPage() {
         />
 
         <TicketToolbar
-          role={role}
-          activeTab={activeTab}
-          search={search}
-          setSearch={(val) => { setSearch(val); resetPage(); }}
-          dateRange={dateRange}
-          setDateRange={(val) => { setDateRange(val); resetPage(); }}
-          pageSize={pageSize}
-          setPageSize={(size) => { setPageSize(size); resetPage(); }}
-          setPage={setPage}
-          onCreate={() => setShowCreateModal(true)}
-        />
+  role={role}
+  activeTab={activeTab}
+  search={search}
+  setSearch={(val) => {
+    setSearch(val);
+    resetPage();
+  }}
+  dateRange={dateRange}
+  setDateRange={(val) => {
+    setDateRange(val);
+    resetPage();
+  }}
+  pageSize={pageSize}
+  setPageSize={(size) => {
+    setPageSize(size);
+    resetPage();
+  }}
+  setPage={setPage}
+  onCreate={() => setShowCreateModal(true)}
+
+  handleFullData={handleTicketExport}
+  handleSelectedPages={handleTicketSelectedPages}
+  totalPages={totalPages}
+/>
       </div>
 
       <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">

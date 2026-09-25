@@ -22,9 +22,10 @@ export default function EmployeeToolbar({
   setPageSize,
   setPage,
   onExport,
+  handleSelectedPages,
+  totalPages,
   searchPlaceholder = "Search employees...",
 }) {
-
   const [showExport, setShowExport] = useState(false);
   
   return (
@@ -90,10 +91,9 @@ export default function EmployeeToolbar({
       <ExportDropdown
   showExport={showExport}
   setShowExport={setShowExport}
-  handleCopy={() => onExport("copy")}
-  handlePrint={() => onExport("print")}
-  handlePDF={() => onExport("pdf")}
-  handleCSV={() => onExport("csv")}
+  handleFullData={onExport}
+  handleSelectedPages={handleSelectedPages}
+  totalPages={totalPages}
   border="border-gray-200"
   t={{
     cardBg: "bg-white",

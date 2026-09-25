@@ -42,9 +42,9 @@ const [popupStyle, setPopupStyle] = useState({});
 const [activeMenu, setActiveMenu] = useState(null);
 
 // Selected page range
-const [fromPage, setFromPage] = useState(1);
+const [fromPage, setFromPage] = useState("1");
 const [toPage, setToPage] = useState(
-Math.max(1, totalPages)
+  String(Math.max(1, Number(totalPages) || 1))
 );
 
 // Global export loading state
@@ -57,22 +57,14 @@ const { loading: exportLoading } = useSelector(
 // =====================================================
 
 useEffect(() => {
-const pages = Math.max(
-1,
-Number(totalPages) || 1
-);
+  const pages = Math.max(
+    1,
+    Number(totalPages) || 1
+  );
 
-setFromPage((current) =>
-  Math.min(Math.max(1, current), pages)
-);
-
-setToPage((current) =>
-  Math.min(Math.max(1, current), pages)
-);
-
-
+  setFromPage("1");
+  setToPage(String(pages));
 }, [totalPages]);
-
 // =====================================================
 // MOUNT
 // =====================================================
@@ -176,58 +168,55 @@ setActiveMenu(null);
 // =====================================================
 
 const handleFromPageChange = (value) => {
-const page = Number(value);
-
-if (!Number.isFinite(page)) {
-  return;
-}
-
-setFromPage(page);
-
-// Make sure To is never before From
-if (page > toPage) {
-  setToPage(page);
-}
-
+  setFromPage(value);
 };
 
 const handleToPageChange = (value) => {
-const page = Number(value);
-
-if (!Number.isFinite(page)) {
-  return;
-}
-
-setToPage(page);
-
-// Make sure From is never after To
-if (page < fromPage) {
-  setFromPage(page);
-}
-
+  setToPage(value);
 };
 
 const handleSelectedExport = (format) => {
-if (exportLoading) {
-return;
-}
+  if (exportLoading) {
+    return;
+  }
 
-if (fromPage > toPage) {
-  alert(
-    "From page cannot be greater than To page."
+  const from = Number(fromPage);
+  const to = Number(toPage);
+
+  if (
+    !Number.isInteger(from) ||
+    !Number.isInteger(to)
+  ) {
+    alert("Please enter valid page numbers.");
+    return;
+  }
+
+  if (
+    from < 1 ||
+    to < 1 ||
+    from > pageCount ||
+    to > pageCount
+  ) {
+    alert(
+      `Please enter page numbers between 1 and ${pageCount}.`
+    );
+    return;
+  }
+
+  if (from > to) {
+    alert(
+      "From page cannot be greater than To page."
+    );
+    return;
+  }
+
+  handleSelectedPages(
+    format,
+    from,
+    to
   );
-  return;
-}
 
-// Pass format + range to the existing handler
-handleSelectedPages(
-  format,
-  fromPage,
-  toPage
-);
-
-closeMenu();
-
+  closeMenu();
 };
 
 // =====================================================
@@ -237,11 +226,6 @@ closeMenu();
 const pageCount = Math.max(
 1,
 Number(totalPages) || 1
-);
-
-const pageOptions = Array.from(
-{ length: pageCount },
-(_, index) => index + 1
 );
 
 // =====================================================
@@ -394,66 +378,65 @@ EXPORT BUTTON
               </div>
 
               <div className="flex items-center gap-2">
-                {/* FROM */}
+  {/* FROM */}
+  <div className="flex-1">
+    <label
+      className={`mb-1 block text-[11px] ${t.textSecondary}`}
+    >
+      From
+    </label>
 
-                <div className="flex-1">
-                  <label
-                    className={`mb-1 block text-[11px] ${t.textSecondary}`}
-                  >
-                    From
-                  </label>
+    <input
+      type="number"
+      min={1}
+      max={pageCount}
+      list="export-page-options"
+      value={fromPage}
+      disabled={exportLoading}
+      onChange={(e) =>
+        handleFromPageChange(e.target.value)
+      }
+      className={`w-full rounded border ${border} px-2 py-1.5 text-xs outline-none`}
+      placeholder="Page"
+    />
+  </div>
 
-                  <select
-                    value={fromPage}
-                    disabled={exportLoading}
-                    onChange={(e) =>
-                      handleFromPageChange(
-                        e.target.value
-                      )
-                    }
-                    className={`w-full rounded border ${border} px-2 py-1.5 text-xs outline-none`}
-                  >
-                    {pageOptions.map((page) => (
-                      <option
-                        key={page}
-                        value={page}
-                      >
-                        {page}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+  {/* TO */}
+  <div className="flex-1">
+    <label
+      className={`mb-1 block text-[11px] ${t.textSecondary}`}
+    >
+      To
+    </label>
 
-                {/* TO */}
+    <input
+      type="number"
+      min={1}
+      max={pageCount}
+      list="export-page-options"
+      value={toPage}
+      disabled={exportLoading}
+      onChange={(e) =>
+        handleToPageChange(e.target.value)
+      }
+      className={`w-full rounded border ${border} px-2 py-1.5 text-xs outline-none`}
+      placeholder="Page"
+    />
+  </div>
 
-                <div className="flex-1">
-                  <label
-                    className={`mb-1 block text-[11px] ${t.textSecondary}`}
-                  >
-                    To
-                  </label>
-
-                  <select
-                    value={toPage}
-                    disabled={exportLoading}
-                    onChange={(e) =>
-                      handleToPageChange(
-                        e.target.value
-                      )
-                    }
-                    className={`w-full rounded border ${border} px-2 py-1.5 text-xs outline-none`}
-                  >
-                    {pageOptions.map((page) => (
-                      <option
-                        key={page}
-                        value={page}
-                      >
-                        {page}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+  {/* PAGE DROPDOWN OPTIONS */}
+  <datalist id="export-page-options">
+    {Array.from(
+      { length: pageCount },
+      (_, index) => index + 1
+    ).map((page) => (
+      <option
+        key={page}
+        value={page}
+      />
+    ))}
+  </datalist>
+</div>
             </div>
 
             {/* EXPORT FORMATS */}

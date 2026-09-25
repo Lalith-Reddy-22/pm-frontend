@@ -14,9 +14,10 @@ export default function TaskToolbar({
   onAddTask,
   dateRange,
   setDateRange,
-  onExport,
+  handleFullData,
+  handleSelectedPages,
+  totalPages,
 }) {
-
   const [showExport, setShowExport] = useState(false);
 
   return (
@@ -61,10 +62,9 @@ export default function TaskToolbar({
   <ExportDropdown
   showExport={showExport}
   setShowExport={setShowExport}
-  handleCopy={() => onExport("copy")}
-  handlePrint={() => onExport("print")}
-  handlePDF={() => onExport("pdf")}
-  handleCSV={() => onExport("csv")}
+  handleFullData={handleFullData}
+  handleSelectedPages={handleSelectedPages}
+  totalPages={totalPages}
   border="border-gray-200"
   t={{
     cardBg: "bg-white",

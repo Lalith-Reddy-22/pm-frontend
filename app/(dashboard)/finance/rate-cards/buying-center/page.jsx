@@ -122,6 +122,69 @@ export default function BuyingCenterPage() {
   }
 };
 
+const handleSelectedPages = async (
+  exportFormat,
+  fromPage,
+  toPage
+) => {
+  try {
+    const selectedRows = [];
+
+    for (
+      let pageNumber = fromPage;
+      pageNumber <= toPage;
+      pageNumber++
+    ) {
+      const start = (pageNumber - 1) * pageSize;
+      const end = pageNumber * pageSize;
+
+      selectedRows.push(
+        ...filteredBuyingCenters.slice(start, end)
+      );
+    }
+
+    const exportData = selectedRows.map((item) => ({
+      buyingCenter:
+        item.buying_CenterName ??
+        item.buyingCenterName ??
+        item.bName ??
+        item.name ??
+        "",
+
+      description:
+        item.description ??
+        item.Description ??
+        "",
+    }));
+
+    await dispatch(
+      exportFile({
+        fileName: `buying-center-pages-${fromPage}-to-${toPage}-${format(
+          new Date(),
+          "yyyy-MM-dd-HHmmss"
+        )}`,
+        format: exportFormat,
+        columns: [
+          {
+            key: "buyingCenter",
+            header: "Buying Center",
+          },
+          {
+            key: "description",
+            header: "Description",
+          },
+        ],
+        data: exportData,
+      })
+    ).unwrap();
+  } catch (error) {
+    console.error(
+      "BUYING CENTER SELECTED PAGE EXPORT ERROR:",
+      error
+    );
+  }
+};
+
   return (
     <div className="space-y-4 p-4 sm:p-6">
       <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
@@ -134,10 +197,9 @@ export default function BuyingCenterPage() {
   pageSize={pageSize}
   setPageSize={setPageSize}
   onAdd={() => setShowAddModal(true)}
-  handleCopy={() => handleExport("copy")}
-  handlePrint={() => handleExport("print")}
-  handlePDF={() => handleExport("pdf")}
-  handleCSV={() => handleExport("csv")}
+  handleFullData={handleExport}
+  handleSelectedPages={handleSelectedPages}
+  totalPages={totalPages}
 />
 
         {/* Loading */}

@@ -10,22 +10,20 @@ import EmployeeToolbar from "./components/EmployeeToolbar";
 import { getEmployeeList } from "@/services/employeeService";
 import AddEmployeeDrawer from "./components/AddEmployeeDrawer";
 import {
-  handleCopy,
-  handleCSV,
-  handlePrint,
-  handlePDF,
-} from "./utils";
-import {
   COLUMNS,
   PAGE_SIZE_OPTIONS,
 } from "./constants";
 import EmployeeTable from "./components/EmployeeTable";
+import { useDispatch } from "react-redux";
+import { exportFile } from "@/store/slices/exportSlice";
+import { format } from "date-fns";
 import EditEmployeeModal from "./components/EditEmployeeModal";
 
 // Mock data
 
 
 export default function EmployeePage() {
+  const dispatch = useDispatch();
 
   useEffect(() => {
   const loadEmployees = async () => {
@@ -54,7 +52,6 @@ export default function EmployeePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showDrawer, setShowDrawer] = useState(false);
-  const [showExport, setShowExport] = useState(false);
 
   const border = isDark ? "border-white/10" : "border-gray-200";
   const headerBg = isDark ? "bg-white/[0.04]" : "bg-gray-50";
@@ -95,6 +92,90 @@ export default function EmployeePage() {
   const clampedPage = Math.min(page, totalPages);
   const pageRows = sorted.slice((clampedPage - 1) * pageSize, clampedPage * pageSize);
 
+  const handleEmployeeExport = async (exportFormat = "csv") => {
+  try {
+    const exportData = sorted.map((employee) => ({
+      name: employee.name ?? "",
+      email: employee.email ?? "",
+      designation: employee.designation ?? "",
+      team: employee.team ?? "",
+      createdDate: employee.createdDate ?? "",
+    }));
+
+    await dispatch(
+      exportFile({
+        fileName: `employee-list-${format(
+          new Date(),
+          "yyyy-MM-dd-HHmmss"
+        )}`,
+        format: exportFormat,
+        columns: [
+          { key: "name", header: "Employee Name" },
+          { key: "email", header: "Email" },
+          { key: "designation", header: "Designation" },
+          { key: "team", header: "Team" },
+          { key: "createdDate", header: "Created Date" },
+        ],
+        data: exportData,
+      })
+    ).unwrap();
+  } catch (error) {
+    console.error("EMPLOYEE EXPORT ERROR:", error);
+  }
+};
+
+const handleEmployeeSelectedPages = async (
+  exportFormat,
+  fromPage,
+  toPage
+) => {
+  try {
+    const selectedRows = [];
+
+    for (
+      let pageNumber = fromPage;
+      pageNumber <= toPage;
+      pageNumber++
+    ) {
+      const start = (pageNumber - 1) * pageSize;
+      const end = pageNumber * pageSize;
+
+      selectedRows.push(...sorted.slice(start, end));
+    }
+
+    const exportData = selectedRows.map((employee) => ({
+      name: employee.name ?? "",
+      email: employee.email ?? "",
+      designation: employee.designation ?? "",
+      team: employee.team ?? "",
+      createdDate: employee.createdDate ?? "",
+    }));
+
+    await dispatch(
+      exportFile({
+        fileName: `employee-list-pages-${fromPage}-to-${toPage}-${format(
+          new Date(),
+          "yyyy-MM-dd-HHmmss"
+        )}`,
+        format: exportFormat,
+        columns: [
+          { key: "name", header: "Employee Name" },
+          { key: "email", header: "Email" },
+          { key: "designation", header: "Designation" },
+          { key: "team", header: "Team" },
+          { key: "createdDate", header: "Created Date" },
+        ],
+        data: exportData,
+      })
+    ).unwrap();
+  } catch (error) {
+    console.error(
+      "EMPLOYEE SELECTED PAGE EXPORT ERROR:",
+      error
+    );
+  }
+};
+
   const [showEditModal, setShowEditModal] = useState(false);
 
 const [selectedEmployee, setSelectedEmployee] = useState(null);
@@ -120,23 +201,16 @@ if (error) {
       <div className="space-y-4 p-4 sm:p-6">
         <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
           <EmployeeToolbar
-            search={search}
-            setSearch={setSearch}
-            pageSize={pageSize}
-            setPageSize={setPageSize}
-            setPage={setPage}
-            border={border}
-            inputBg={inputBg}
-            t={t}
-            isDark={isDark}
-            showExport={showExport}
-            setShowExport={setShowExport}
-            handleCopy={() => handleCopy(sorted)}
-            handleCSV={() => handleCSV(sorted)}
-            handlePrint={() => handlePrint(sorted)}
-            handlePDF={() => handlePDF(sorted)}
-            setShowDrawer={setShowDrawer}
-          />
+  search={search}
+  setSearch={setSearch}
+  pageSize={pageSize}
+  setPageSize={setPageSize}
+  setPage={setPage}
+  onExport={handleEmployeeExport}
+  handleSelectedPages={handleEmployeeSelectedPages}
+  totalPages={totalPages}
+  setShowDrawer={setShowDrawer}
+/>
         </div>
 
         <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">

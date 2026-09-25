@@ -164,6 +164,11 @@ const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
     totalItems: employeeTotal,
   });
 
+  const employeeTotalPages = Math.max(
+  1,
+  Math.ceil(employeeTotal / employeePageSize)
+);
+
   const projectPagination = {
   page: projectPage,
   setPage: setProjectPage,
@@ -547,6 +552,213 @@ projectTitle:
   }
 };
 
+const handleSelectedPages = async (
+  exportFormat,
+  fromPage,
+  toPage
+) => {
+  try {
+    console.log(
+      `SELECTED PAGE EXPORT: ${fromPage} → ${toPage}`
+    );
+
+    const allData = [];
+
+    for (
+      let pageNumber = fromPage;
+      pageNumber <= toPage;
+      pageNumber++
+    ) {
+      const filters = {
+        empId,
+        projectId:
+          selectedProject === "all"
+            ? 0
+            : Number(selectedProject),
+
+        startDate: startDate
+          ? format(startDate, "yyyy-MM-dd")
+          : null,
+
+        endDate: endDate
+          ? format(endDate, "yyyy-MM-dd")
+          : null,
+
+        search,
+
+        sortBy: "projectCode",
+        sortDirection: "asc",
+
+        page: pageNumber,
+        pageSize: pageSize,
+      };
+
+      console.log(
+        `FETCHING EXPORT PAGE ${pageNumber}`,
+        filters
+      );
+
+      const result =
+        await getTaskAllocationReport(filters);
+
+      const pageData = result?.data || [];
+
+      console.log(
+        `PAGE ${pageNumber} RECORDS:`,
+        pageData.length
+      );
+
+      allData.push(...pageData);
+    }
+
+    console.log(
+      "TOTAL SELECTED RECORDS:",
+      allData.length
+    );
+
+    const exportData = allData.map((row) => ({
+      projectCode:
+        row.projectCode ??
+        row.project_Code ??
+        "",
+
+      projectTitle:
+        row.project_Title ??
+        row.projectTitle ??
+        row.Project_Title ??
+        row.ProjectTitle ??
+        "",
+
+      client:
+        row.client_Title ??
+        row.Client_Title ??
+        row.client ??
+        "",
+
+      subClient:
+        row.sub_Client_Name ??
+        row.Sub_Client_Name ??
+        row.subClient ??
+        "",
+
+      taskId:
+        row.task_ID ??
+        row.Task_ID ??
+        row.Task_id ??
+        row.taskId ??
+        "",
+
+      taskTitle:
+        row.task_Title ??
+        row.Task_Title ??
+        row.TaskTitle ??
+        row.taskTitle ??
+        "",
+
+      type:
+        Number(row.billing_type) === 0
+          ? "Non-Billable"
+          : "Billable",
+
+      startDate:
+        row.startDate ??
+        row.StartDate ??
+        "",
+
+      endDate:
+        row.endDate ??
+        row.EndDate ??
+        "",
+
+      employeeName:
+        row.employee_Name ??
+        row.Employee_Name ??
+        row.emp_Name ??
+        row.Emp_Name ??
+        row.employeeName ??
+        "",
+
+      designation:
+        row.empDesignation ??
+        row.EmpDesignation ??
+        row.employee_Designation ??
+        row.Employee_Designation ??
+        row.employeeDesignation ??
+        row.EmployeeDesignation ??
+        row.designation ??
+        "",
+
+      function:
+        row.teams_Name ??
+        row.Teams_Name ??
+        row.Function_Name ??
+        row.functionName ??
+        row.function ??
+        "",
+
+      plannedHours:
+        row.planneHours ??
+        row.plannedHours ??
+        row.Planned_hours ??
+        0,
+
+      actualHours:
+        row.logHours ??
+        row.actualHours ??
+        row.ActualHours ??
+        0,
+
+      unitCost:
+        row.empValue ??
+        row.unitCost ??
+        row.Unit_Cost ??
+        0,
+
+      plannedCost:
+        row.planned_Cost ??
+        row.Planned_Cost ??
+        0,
+
+      actualCost:
+        row.actual_Cost ??
+        row.Actual_Cost ??
+        0,
+
+      difference:
+        Number(
+          row.actual_Cost ??
+          row.Actual_Cost ??
+          0
+        ) -
+        Number(
+          row.planned_Cost ??
+          row.Planned_Cost ??
+          0
+        ),
+    }));
+
+    await dispatch(
+      exportFile({
+        fileName: `task-allocation-report-pages-${fromPage}-to-${toPage}`,
+        format: exportFormat,
+        columns: REPORT_EXPORT_COLUMNS,
+        data: exportData,
+      })
+    ).unwrap();
+
+    console.log(
+      `SELECTED PAGE EXPORT COMPLETED: ${fromPage} → ${toPage}`
+    );
+  } catch (err) {
+    console.error(
+      "SELECTED PAGE EXPORT ERROR:",
+      err
+    );
+
+    setError("Failed to export selected pages");
+  }
+};
+
   /**
    * Handle employee list export
    */
@@ -605,6 +817,96 @@ projectTitle:
   }
 };
 
+const handleEmployeeSelectedPages = async (
+  exportFormat,
+  fromPage,
+  toPage
+) => {
+  try {
+    console.log(
+      `EMPLOYEE SELECTED PAGE EXPORT: ${fromPage} → ${toPage}`
+    );
+
+    const allData = [];
+
+    for (
+      let pageNumber = fromPage;
+      pageNumber <= toPage;
+      pageNumber++
+    ) {
+      const filters = {
+        search: employeeSearch || "",
+        startDate: startDate
+          ? format(startDate, "yyyy-MM-dd")
+          : format(new Date(), "yyyy-MM-dd"),
+
+        endDate: endDate
+          ? format(endDate, "yyyy-MM-dd")
+          : format(new Date(), "yyyy-MM-dd"),
+
+        page: pageNumber,
+        pageSize: employeePageSize,
+      };
+
+      console.log(
+        `FETCHING EMPLOYEE EXPORT PAGE ${pageNumber}`,
+        filters
+      );
+
+      const result = await getEmployeeList(filters);
+
+      const pageData = result?.data || [];
+
+      console.log(
+        `EMPLOYEE PAGE ${pageNumber} RECORDS:`,
+        pageData.length
+      );
+
+      allData.push(...pageData);
+    }
+
+    console.log(
+      "TOTAL SELECTED EMPLOYEE RECORDS:",
+      allData.length
+    );
+
+    const exportData = allData.map((employee) => ({
+      name:
+        employee.name ??
+        employee.employee_Name ??
+        employee.employeeName ??
+        employee.emp_Name ??
+        "",
+    }));
+
+    await dispatch(
+      exportFile({
+        fileName: `employee-list-pages-${fromPage}-to-${toPage}-${format(
+          new Date(),
+          "yyyy-MM-dd-HHmmss"
+        )}`,
+        format: exportFormat,
+        columns: [
+          {
+            key: "name",
+            header: "Employee Name",
+          },
+        ],
+        data: exportData,
+      })
+    ).unwrap();
+
+    console.log(
+      `EMPLOYEE SELECTED PAGE EXPORT COMPLETED: ${fromPage} → ${toPage}`
+    );
+  } catch (err) {
+    console.error(
+      "EMPLOYEE SELECTED PAGE EXPORT ERROR:",
+      err.response?.data || err
+    );
+  }
+};
+
 const handleProjectExport = async (exportFormat = "csv") => {
   try {
     // Use the project data already loaded/displayed on the page
@@ -651,6 +953,154 @@ const handleProjectExport = async (exportFormat = "csv") => {
     ).unwrap();
   } catch (err) {
     console.error("PROJECT EXPORT ERROR:", err);
+  }
+};
+
+const handleProjectSelectedPages = async (
+  exportFormat,
+  fromPage,
+  toPage
+) => {
+  try {
+    console.log(
+      `PROJECT SELECTED PAGE EXPORT: ${fromPage} → ${toPage}`
+    );
+
+    const allData = [];
+
+    // Get logged-in employee details
+    const token = sessionStorage.getItem("accessToken");
+    const storedEmpId = sessionStorage.getItem("empId");
+
+    let loggedEmpId = Number(storedEmpId || 0);
+    let empType = Number(sessionStorage.getItem("userType") || 0);
+
+    try {
+      if (token) {
+        const payload = JSON.parse(
+          atob(
+            token
+              .split(".")[1]
+              .replace(/-/g, "+")
+              .replace(/_/g, "/")
+          )
+        );
+
+        loggedEmpId =
+          loggedEmpId ||
+          Number(
+            payload.empId ||
+              payload.EmpId ||
+              payload.emp_id ||
+              payload.employeeId ||
+              payload.employee_ID ||
+              0
+          );
+
+        empType =
+          empType ||
+          Number(
+            payload.userType ||
+              payload.UserType ||
+              payload.user_Type ||
+              payload.user_type ||
+              0
+          );
+      }
+    } catch (error) {
+      console.error("FAILED TO READ JWT:", error);
+    }
+
+    if (!loggedEmpId) {
+      console.error("PROJECT EXPORT: Employee ID not available");
+      return;
+    }
+
+    // Fetch each selected page
+    for (
+      let pageNumber = fromPage;
+      pageNumber <= toPage;
+      pageNumber++
+    ) {
+      const result = await dispatch(
+        fetchProjectList({
+          empId: loggedEmpId,
+          empType,
+          searchText: projectSearch || "",
+          pageNumber,
+          pageSize: projectPageSize,
+        })
+      ).unwrap();
+
+      const pageData = result?.data || [];
+
+      console.log(
+        `PROJECT PAGE ${pageNumber} RECORDS:`,
+        pageData.length
+      );
+
+      allData.push(...pageData);
+    }
+
+    console.log(
+      "TOTAL SELECTED PROJECT RECORDS:",
+      allData.length
+    );
+
+    // Map project data for export
+    const exportData = allData.map((project) => ({
+      projectCode:
+        project.projectCode ??
+        project.project_Code ??
+        "",
+
+      projectTitle:
+        project.projectTitle ??
+        project.project_Title ??
+        project.project_Title_Name ??
+        "",
+
+      client:
+        project.clientName ??
+        project.client_Title ??
+        project.client ??
+        "",
+    }));
+
+    // Export
+    await dispatch(
+      exportFile({
+        fileName: `project-list-pages-${fromPage}-to-${toPage}-${format(
+          new Date(),
+          "yyyy-MM-dd-HHmmss"
+        )}`,
+        format: exportFormat,
+        columns: [
+          {
+            key: "projectCode",
+            header: "Project Code",
+          },
+          {
+            key: "projectTitle",
+            header: "Project Title",
+          },
+          {
+            key: "client",
+            header: "Client",
+          },
+        ],
+        data: exportData,
+      })
+    ).unwrap();
+
+    console.log(
+      `PROJECT SELECTED PAGE EXPORT COMPLETED: ${fromPage} → ${toPage}`
+    );
+  } catch (err) {
+    console.error(
+      "PROJECT SELECTED PAGE EXPORT ERROR:",
+      err
+    );
   }
 };
 
@@ -769,19 +1219,24 @@ if (projectTotalPages <= 5) {
         <>
           <div className="overflow-visible rounded-xl border border-border bg-card shadow-sm">
             <ReportToolbar
-              projects={projects}
-              selectedProject={selectedProject}
-              setSelectedProject={setSelectedProject}
-              startDate={startDate}
-              endDate={endDate}
-              setDateRange={(s, e) => { setStartDate(s); setEndDate(e); }}
-              search={search}
-              setSearch={setSearch}
-              pageSize={pageSize}
-              setPageSize={setPageSize}
-              setPage={reportPagination.setPage}
-              onExport={handleExport}
-            />
+  projects={projects}
+  selectedProject={selectedProject}
+  setSelectedProject={setSelectedProject}
+  startDate={startDate}
+  endDate={endDate}
+  setDateRange={(s, e) => {
+    setStartDate(s);
+    setEndDate(e);
+  }}
+  search={search}
+  setSearch={setSearch}
+  pageSize={pageSize}
+  setPageSize={setPageSize}
+  setPage={reportPagination.setPage}
+  onExport={handleExport}
+  handleSelectedPages={handleSelectedPages}
+  totalPages={taskTotalPages}
+/>
           </div>
 
           {/* Table & Pagination Card */}
@@ -858,13 +1313,15 @@ if (projectTotalPages <= 5) {
           {/* Employee Toolbar Card */}
           <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
             <EmployeeToolbar
-              search={employeeSearch}
-              setSearch={setEmployeeSearch}
-              pageSize={employeePageSize}
-              setPageSize={setEmployeePageSize}
-              setPage={employeePagination.setPage}
-              onExport={handleEmployeeExport}
-            />
+  search={employeeSearch}
+  setSearch={setEmployeeSearch}
+  pageSize={employeePageSize}
+  setPageSize={setEmployeePageSize}
+  setPage={employeePagination.setPage}
+  onExport={handleEmployeeExport}
+  handleSelectedPages={handleEmployeeSelectedPages}
+  totalPages={employeeTotalPages}
+/>
           </div>
 
           {/* Employee Table Card */}
@@ -901,14 +1358,16 @@ if (projectTotalPages <= 5) {
     {/* Toolbar */}
     <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
       <EmployeeToolbar
-        search={projectSearch}
-        setSearch={setProjectSearch}
-        pageSize={projectPageSize}
-        setPageSize={setProjectPageSize}
-        setPage={projectPagination.setPage}
-        searchPlaceholder="Search projects..."
-        onExport={handleProjectExport}
-      />
+  search={projectSearch}
+  setSearch={setProjectSearch}
+  pageSize={projectPageSize}
+  setPageSize={setProjectPageSize}
+  setPage={projectPagination.setPage}
+  searchPlaceholder="Search projects..."
+  onExport={handleProjectExport}
+  handleSelectedPages={handleProjectSelectedPages}
+  totalPages={projectTotalPages}
+/>
     </div>
 
     {/* Table */}

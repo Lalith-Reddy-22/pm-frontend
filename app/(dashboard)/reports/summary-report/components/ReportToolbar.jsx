@@ -37,6 +37,8 @@ export default function ReportToolbar({
   setPageSize,
   setPage,
   onExport,
+  handleSelectedPages,
+  totalPages,
 }) {
   const [showExport, setShowExport] = useState(false);
 
@@ -118,19 +120,18 @@ export default function ReportToolbar({
         {/* Export Button */}
         <div className="relative">
   <ExportDropdown
-    showExport={showExport}
-    setShowExport={setShowExport}
-    handleCopy={() => onExport("copy")}
-    handlePrint={() => onExport("print")}
-    handlePDF={() => onExport("pdf")}
-    handleCSV={() => onExport("csv")}
-    border="border-gray-200"
-    t={{
-      cardBg: "bg-white",
-      textPrimary: "text-gray-700",
-    }}
-    isDark={false}
-  />
+  showExport={showExport}
+  setShowExport={setShowExport}
+  handleFullData={onExport}
+  handleSelectedPages={handleSelectedPages}
+  totalPages={totalPages}
+  border="border-gray-200"
+  t={{
+    cardBg: "bg-white",
+    textPrimary: "text-gray-700",
+  }}
+  isDark={false}
+/>
 </div>
 
         {/* Show Entries */}

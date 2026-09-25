@@ -18,6 +18,8 @@ export default function ProjectToolbar({
   view,
   setView,
   onExport,
+  handleSelectedPages,
+  totalPages,
 }) {
   const router = useRouter();
   const [role, setRole] = useState("admin");
@@ -58,10 +60,9 @@ export default function ProjectToolbar({
   <ExportDropdown
   showExport={showExport}
   setShowExport={setShowExport}
-  handleCopy={() => onExport("copy")}
-  handlePrint={() => onExport("print")}
-  handlePDF={() => onExport("pdf")}
-  handleCSV={() => onExport("csv")}
+  handleFullData={onExport}
+  handleSelectedPages={handleSelectedPages}
+  totalPages={totalPages}
   border="border-gray-200"
   t={{
     cardBg: "bg-white",

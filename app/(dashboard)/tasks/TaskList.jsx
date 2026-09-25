@@ -176,7 +176,7 @@ async function handleDeleteTask(task) {
   }
 }
 
-const handleExport = async (exportFormat = "csv") => {
+const handleFullData = async (exportFormat = "csv") => {
   try {
     const exportData = tasks.map((task) => ({
       taskTitle: task.title || "",
@@ -191,29 +191,43 @@ const handleExport = async (exportFormat = "csv") => {
     }));
 
     await dispatch(
-  exportFile({
-    fileName: `task-list-${format(
-      new Date(),
-      "yyyy-MM-dd-HHmmss"
-    )}`,
-    format: exportFormat,
-    columns: [
-      { key: "taskTitle", header: "Task Title" },
-      { key: "projectCode", header: "Project Code" },
-      { key: "projectTitle", header: "Project Title" },
-      { key: "priority", header: "Priority" },
-      { key: "startDate", header: "Start Date" },
-      { key: "endDate", header: "End Date" },
-      { key: "employees", header: "Employees" },
-    ],
-    data: exportData,
-  })
-).unwrap();
+      exportFile({
+        fileName: `task-list-${format(
+          new Date(),
+          "yyyy-MM-dd-HHmmss"
+        )}`,
+        format: exportFormat,
+        columns: [
+          { key: "taskTitle", header: "Task Title" },
+          { key: "projectCode", header: "Project Code" },
+          { key: "projectTitle", header: "Project Title" },
+          { key: "priority", header: "Priority" },
+          { key: "startDate", header: "Start Date" },
+          { key: "endDate", header: "End Date" },
+          { key: "employees", header: "Employees" },
+        ],
+        data: exportData,
+      })
+    ).unwrap();
   } catch (error) {
-    // export errors are silently swallowed — the exportSlice handles user-facing feedback
+    console.error("FULL DATA EXPORT ERROR:", error);
   }
 };
 
+const handleSelectedPages = async (
+  exportFormat,
+  fromPage,
+  toPage
+) => {
+  console.log(
+    "Selected page range:",
+    fromPage,
+    "to",
+    toPage
+  );
+
+  // Temporary test only
+};
   // --------------------------------------------------
   // Local state for Project-wise Task page
   // --------------------------------------------------
@@ -363,6 +377,8 @@ const handleExport = async (exportFormat = "csv") => {
         return searchableText.includes(normalizedSearch);
       });
 
+console.log("TASK TOTAL PAGES:", totalPages);
+
   return (
     <div className="space-y-4 p-4 sm:p-6">
 
@@ -387,7 +403,9 @@ const handleExport = async (exportFormat = "csv") => {
   dateRange={dateRange}
   setDateRange={setDateRange}
   onAddTask={() => setOpenDrawer(true)}
-  onExport={handleExport}
+  handleFullData={handleFullData}
+  handleSelectedPages={handleSelectedPages}
+  totalPages={totalPages}
 />
 
       </div>

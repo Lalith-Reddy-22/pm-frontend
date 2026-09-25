@@ -19,6 +19,9 @@ export default function TicketToolbar({
   activeTab = "raise",
   dateRange,
   setDateRange,
+  handleFullData,
+  handleSelectedPages,
+  totalPages = 1,
 }) {
 
   const [showExport, setShowExport] = useState(false);
@@ -87,19 +90,18 @@ export default function TicketToolbar({
 
         <div className="relative">
   <ExportDropdown
-    showExport={showExport}
-    setShowExport={setShowExport}
-    handleCopy={() => console.log("Copy")}
-    handlePrint={() => window.print()}
-    handlePDF={() => console.log("Export PDF")}
-    handleCSV={() => console.log("Export CSV")}
-    border="border-gray-200"
-    t={{
-      cardBg: "bg-white",
-      textPrimary: "text-gray-700",
-    }}
-    isDark={false}
-  />
+  showExport={showExport}
+  setShowExport={setShowExport}
+  handleFullData={handleFullData}
+  handleSelectedPages={handleSelectedPages}
+  totalPages={totalPages}
+  border="border-gray-200"
+  t={{
+    cardBg: "bg-white",
+    textPrimary: "text-gray-700",
+  }}
+  isDark={false}
+/>
 </div>
 
         {activeTab === "raise" && (

@@ -95,6 +95,71 @@ const handleProjectExport = async (exportFormat = "csv") => {
     console.error("PROJECT EXPORT ERROR:", error);
   }
 };
+
+const handleProjectSelectedPages = async (
+  exportFormat,
+  fromPage,
+  toPage
+) => {
+  try {
+    const allProjects = [];
+
+    for (
+      let page = fromPage;
+      page <= toPage;
+      page++
+    ) {
+      const result = await dispatch(
+        fetchProjects({
+          searchText: search,
+          pageNumber: page,
+          pageSize: pageSize,
+        })
+      ).unwrap();
+
+      const pageProjects = result?.projects ?? result?.data ?? [];
+
+      allProjects.push(...pageProjects);
+    }
+
+    const exportData = allProjects.map((project) => ({
+      projectCode: project.projectCode || "",
+      projectTitle: project.projectTitle || "",
+      client: project.client || "",
+    }));
+
+    await dispatch(
+      exportFile({
+        fileName: `project-list-pages-${fromPage}-to-${toPage}-${format(
+          new Date(),
+          "yyyy-MM-dd-HHmmss"
+        )}`,
+        format: exportFormat,
+        columns: [
+          {
+            key: "projectCode",
+            header: "Project Code",
+          },
+          {
+            key: "projectTitle",
+            header: "Project Title",
+          },
+          {
+            key: "client",
+            header: "Client",
+          },
+        ],
+        data: exportData,
+      })
+    ).unwrap();
+
+  } catch (error) {
+    console.error(
+      "PROJECT SELECTED PAGE EXPORT ERROR:",
+      error
+    );
+  }
+};
   // =====================================================
   // PAGE CHANGE
   // =====================================================
@@ -158,15 +223,17 @@ const handleProjectExport = async (exportFormat = "csv") => {
       <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
 
         <ProjectToolbar
-          search={search}
-          setSearch={handleSearchChange}
-          pageSize={pageSize}
-          setPageSize={handlePageSizeChange}
-          setPage={handlePageChange}
-          view={view}
-          setView={setView}
-          onExport={handleProjectExport}
-        />
+  search={search}
+  setSearch={handleSearchChange}
+  pageSize={pageSize}
+  setPageSize={handlePageSizeChange}
+  setPage={handlePageChange}
+  view={view}
+  setView={setView}
+  onExport={handleProjectExport}
+  handleSelectedPages={handleProjectSelectedPages}
+  totalPages={totalPages}
+/>
 
       </div>
 

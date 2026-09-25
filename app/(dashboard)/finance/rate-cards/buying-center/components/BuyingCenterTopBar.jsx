@@ -18,13 +18,9 @@ export default function BuyingCenterTopBar({
   pageSize,
   setPageSize,
   onAdd,
-  border,
-  t,
-  isDark,
-  handleCopy,
-  handlePrint,
-  handlePDF,
-  handleCSV,
+  handleFullData,
+  handleSelectedPages,
+  totalPages,
 }) {
   const router = useRouter();
   const [showExport, setShowExport] = useState(false);
@@ -74,21 +70,18 @@ export default function BuyingCenterTopBar({
         {/* COMMON EXPORT DROPDOWN */}
         
         <ExportDropdown
-          showExport={showExport}
-          setShowExport={setShowExport}
-          handleCopy={handleCopy}
-          handlePrint={handlePrint}
-          handlePDF={handlePDF || (() => console.log("PDF clicked"))}
-          handleCSV={handleCSV}
-          border={border || "border-gray-200"}
-          t={
-            t || {
-              cardBg: "bg-white",
-              textPrimary: "text-gray-700",
-            }
-          }
-          isDark={isDark || false}
-        />
+  showExport={showExport}
+  setShowExport={setShowExport}
+  handleFullData={handleFullData}
+  handleSelectedPages={handleSelectedPages}
+  totalPages={totalPages}
+  border="border-gray-200"
+  t={{
+    cardBg: "bg-white",
+    textPrimary: "text-gray-700",
+  }}
+  isDark={false}
+/>
 
         {/* Add Project */}
         <Button

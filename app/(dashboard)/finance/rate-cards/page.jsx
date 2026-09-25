@@ -2,6 +2,8 @@
 
 import { useMemo, useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { format } from "date-fns";
+import { exportFile } from "@/store/slices/exportSlice";
 
 import RateCardTopBar from "./components/RateCardTopBar";
 import RateCardTable from "./components/RateCardTable";
@@ -33,15 +35,16 @@ export default function Page() {
 
   // Sync department label → teamId in Redux, then fetch if not cached
   useEffect(() => {
-    const teamId = TEAM_IDS[department];
-    if (!teamId) return; // department has no mapped teamId yet
+  const teamId = TEAM_IDS[department];
 
-    dispatch(setSelectedTeamId(teamId));
+  if (!teamId) return;
 
-    if (!cache[teamId]) {
-      dispatch(fetchFinanceRateCard({ teamId }));
-    }
-  }, [department, dispatch, cache]);
+  dispatch(setSelectedTeamId(teamId));
+
+  if (!cache[teamId]) {
+    dispatch(fetchFinanceRateCard({ teamId }));
+  }
+}, [department, dispatch, cache]);
 
   // Resolve the rows for the currently selected team
   const allRows = cache[selectedTeamId]?.rows ?? [];
@@ -75,6 +78,97 @@ export default function Page() {
     pageNumbers,
   } = usePagination({ data: filteredRows, pageSize: 10 });
 
+  const handleRateCardExport = async (exportFormat = "csv") => {
+  try {
+    const exportData = filteredRows.map((row) => ({
+      employeeName: row.Employee_Name ?? "",
+      designation: row.Designation ?? "",
+      empId: row.EmpId ?? "",
+    }));
+
+    await dispatch(
+      exportFile({
+        fileName: `rate-card-${department}-${format(
+          new Date(),
+          "yyyy-MM-dd-HHmmss"
+        )}`,
+        format: exportFormat,
+        columns: [
+          {
+            key: "employeeName",
+            header: "Employee Name",
+          },
+          {
+            key: "designation",
+            header: "Designation",
+          },
+          {
+            key: "empId",
+            header: "Employee ID",
+          },
+        ],
+        data: exportData,
+      })
+    ).unwrap();
+  } catch (error) {
+    console.error("RATE CARD EXPORT ERROR:", error);
+  }
+};
+
+const handleRateCardSelectedPages = async (
+  exportFormat,
+  fromPage,
+  toPage
+) => {
+  try {
+    const selectedRows = [];
+
+    for (
+      let pageNumber = fromPage;
+      pageNumber <= toPage;
+      pageNumber++
+    ) {
+      const start = (pageNumber - 1) * pageSize;
+      const end = pageNumber * pageSize;
+
+      selectedRows.push(...filteredRows.slice(start, end));
+    }
+
+    const exportData = selectedRows.map((row) => ({
+      employeeName: row.Employee_Name ?? "",
+      designation: row.Designation ?? "",
+      empId: row.EmpId ?? "",
+    }));
+
+    await dispatch(
+      exportFile({
+        fileName: `rate-card-${department}-pages-${fromPage}-to-${toPage}`,
+        format: exportFormat,
+        columns: [
+          {
+            key: "employeeName",
+            header: "Employee Name",
+          },
+          {
+            key: "designation",
+            header: "Designation",
+          },
+          {
+            key: "empId",
+            header: "Employee ID",
+          },
+        ],
+        data: exportData,
+      })
+    ).unwrap();
+  } catch (error) {
+    console.error(
+      "RATE CARD SELECTED PAGE EXPORT ERROR:",
+      error
+    );
+  }
+};
+
   // Reset to page 1 when search or department changes
   const handleSearch = (val) => { setSearch(val); setPage(1); };
   const handleDepartment = (val) => { setDepartment(val); setSearch(""); setPage(1); };
@@ -86,12 +180,14 @@ export default function Page() {
       <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
 
         <RateCardTopBar
-          department={department}
-          setDepartment={handleDepartment}
-          search={search}
-          setSearch={handleSearch}
-        />
-
+  department={department}
+  setDepartment={handleDepartment}
+  search={search}
+  setSearch={handleSearch}
+  handleFullData={handleRateCardExport}
+  handleSelectedPages={handleRateCardSelectedPages}
+  totalPages={totalPages}
+/>
         {/* Loading state */}
         {loading && (
           <div className="flex items-center justify-center py-16">
