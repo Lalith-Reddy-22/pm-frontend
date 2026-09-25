@@ -10,6 +10,9 @@ import ProjectGrid from "./components/ProjectGrid";
 import { fetchProjects } from "@/store/slices/projectSlice";
 import { format } from "date-fns";
 import { exportFile } from "@/store/slices/exportSlice";
+import { api } from "@/lib/api";
+import axiosClient from "@/services/axiosClient";
+import { getProjectsDropdown } from "@/services/reportService";
 
 export default function ProjectPage() {
   const dispatch = useDispatch();
@@ -35,6 +38,7 @@ export default function ProjectPage() {
   const [search, setSearch] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
   const [view, setView] = useState("list");
+const [exportLoading, setExportLoading] = useState(false);
 
   // =====================================================
   // FETCH PROJECTS
@@ -61,11 +65,96 @@ export default function ProjectPage() {
 
 const handleProjectExport = async (exportFormat = "csv") => {
   try {
-    const exportData = projects.map((project) => ({
-      projectCode: project.projectCode || "",
-      projectTitle: project.projectTitle || "",
-      client: project.client || "",
-    }));
+    setExportLoading(true);
+
+    console.log("===== PROJECT EXPORT START =====");
+    console.log("Search:", search);
+    console.log("Format:", exportFormat);
+
+    // Get project data from existing Reports API
+    const result = await getProjectsDropdown();
+
+    console.log("===== PROJECT DROPDOWN RESPONSE =====");
+    console.log(result);
+
+    const allProjects = Array.isArray(result)
+      ? result
+      : result?.data || [];
+
+      console.log("===== FIRST PROJECT OBJECT =====");
+console.log(allProjects[0]);
+
+console.log(
+  "===== FIRST PROJECT KEYS ====="
+);
+console.log(
+  allProjects[0]
+    ? Object.keys(allProjects[0])
+    : "No project"
+);
+
+    console.log(
+      "TOTAL PROJECTS RECEIVED:",
+      allProjects.length
+    );
+
+    if (allProjects.length === 0) {
+      alert("No project data available for export.");
+      return;
+    }
+
+   const exportData = allProjects
+  .filter((project) => {
+    if (!search.trim()) {
+      return true;
+    }
+
+    const searchText = search.trim().toLowerCase();
+
+    return Object.values(project).some((value) =>
+      String(value ?? "")
+        .toLowerCase()
+        .includes(searchText)
+    );
+  })
+  .map((project) => ({
+    projectCode:
+      project.projectCode ??
+      project.project_Code ??
+      project.ProjectCode ??
+      project.Project_Code ??
+      project.project_ID ??
+      project.projectId ??
+      project.Project_ID ??
+      "",
+
+    projectTitle:
+      project.project_Title ??
+      project.projectTitle ??
+      project.Project_Title ??
+      project.ProjectTitle ??
+      project.project_Name ??
+      project.projectName ??
+      project.Project_Name ??
+      project.ProjectName ??
+      "",
+
+    client:
+      project.client_Title ??
+      project.clientTitle ??
+      project.Client_Title ??
+      project.ClientTitle ??
+      project.client_Name ??
+      project.clientName ??
+      project.Client_Name ??
+      project.ClientName ??
+      "",
+  }));
+
+    console.log(
+      "FINAL EXPORT COUNT:",
+      exportData.length
+    );
 
     await dispatch(
       exportFile({
@@ -74,6 +163,7 @@ const handleProjectExport = async (exportFormat = "csv") => {
           "yyyy-MM-dd-HHmmss"
         )}`,
         format: exportFormat,
+
         columns: [
           {
             key: "projectCode",
@@ -88,11 +178,29 @@ const handleProjectExport = async (exportFormat = "csv") => {
             header: "Client",
           },
         ],
+
         data: exportData,
       })
     ).unwrap();
+
+    console.log(
+      "===== PROJECT EXPORT SUCCESS ====="
+    );
+
   } catch (error) {
-    console.error("PROJECT EXPORT ERROR:", error);
+    console.error(
+      "===== PROJECT EXPORT ERROR ====="
+    );
+
+    console.error("Message:", error?.message);
+    console.error(
+      "Response:",
+      error?.response?.data
+    );
+
+    alert("Project export failed.");
+  } finally {
+    setExportLoading(false);
   }
 };
 
@@ -102,6 +210,8 @@ const handleProjectSelectedPages = async (
   toPage
 ) => {
   try {
+    setExportLoading(true);
+
     const allProjects = [];
 
     for (
@@ -109,23 +219,28 @@ const handleProjectSelectedPages = async (
       page <= toPage;
       page++
     ) {
-      const result = await dispatch(
-        fetchProjects({
+      const response = await axiosClient.get("/project/all", {
+        params: {
           searchText: search,
           pageNumber: page,
           pageSize: pageSize,
-        })
-      ).unwrap();
+        },
+      });
 
-      const pageProjects = result?.projects ?? result?.data ?? [];
+      const pageProjects = response.data?.projects ?? [];
 
       allProjects.push(...pageProjects);
     }
 
+    console.log(
+      `PROJECTS FROM PAGE ${fromPage} TO ${toPage}:`,
+      allProjects.length
+    );
+
     const exportData = allProjects.map((project) => ({
-      projectCode: project.projectCode || "",
-      projectTitle: project.projectTitle || "",
-      client: project.client || "",
+      projectCode: project.projectCode ?? "",
+      projectTitle: project.project_Title ?? "",
+      client: project.client_Title ?? "",
     }));
 
     await dispatch(
@@ -158,6 +273,8 @@ const handleProjectSelectedPages = async (
       "PROJECT SELECTED PAGE EXPORT ERROR:",
       error
     );
+  } finally {
+    setExportLoading(false);
   }
 };
   // =====================================================
@@ -184,30 +301,6 @@ const handleProjectSelectedPages = async (
       })
     );
   };
-
-  // =====================================================
-  // LOADING
-  // =====================================================
-
-  if (loading && projects.length === 0) {
-    return (
-      <div className="p-6">
-        Loading projects...
-      </div>
-    );
-  }
-
-  // =====================================================
-  // ERROR
-  // =====================================================
-
-  if (error && projects.length === 0) {
-    return (
-      <div className="p-6 text-red-500">
-        {error}
-      </div>
-    );
-  }
 
   // =====================================================
   // UI
@@ -244,27 +337,41 @@ const handleProjectSelectedPages = async (
 
       <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
 
-        {view === "list" ? (
-          <ProjectTable rows={projects} />
-        ) : (
-          <ProjectGrid projects={projects} />
-        )}
-
-        {/* =============================================
-            PAGINATION
-        ============================================= */}
-
-        <ProjectPagination
-          pageNumber={pageNumber}
-          pageSize={pageSize}
-          totalCount={totalCount}
-          totalPages={totalPages}
-          onPageChange={handlePageChange}
-          onPageSizeChange={handlePageSizeChange}
-        />
-
+  {loading && !exportLoading ? (
+    <div className="flex min-h-[300px] items-center justify-center">
+      <div className="flex flex-col items-center gap-3">
+        <div className="h-7 w-7 animate-spin rounded-full border-2 border-gray-200 border-t-[#E12729]" />
+        <p className="text-sm text-gray-500">
+          Loading projects...
+        </p>
       </div>
+    </div>
+  ) : error ? (
+    <div className="flex min-h-[300px] items-center justify-center">
+      <p className="text-sm text-red-500">
+        {error}
+      </p>
+    </div>
+  ) : (
+    <>
+      {view === "list" ? (
+        <ProjectTable rows={projects} />
+      ) : (
+        <ProjectGrid projects={projects} />
+      )}
 
+      <ProjectPagination
+        pageNumber={pageNumber}
+        pageSize={pageSize}
+        totalCount={totalCount}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+        onPageSizeChange={handlePageSizeChange}
+      />
+    </>
+  )}
+
+</div>
 
       {/* ===============================================
           ADD PROJECT MODAL

@@ -472,124 +472,53 @@ useEffect(() => {
   // SAVE HOURS
   // =====================================================
 
-  const handleSaveHours = async () => {
-    try {
-      setSaving(true);
+ const handleSaveHours = async () => {
+  try {
+    setSaving(true);
 
-      // =================================================
-      // UPDATE MODE
-      // =================================================
+    // =================================================
+    // UPDATE MODE
+    // =================================================
 
-      if (isUpdate) {
-        await updateTask();
+    if (isUpdate) {
+      await updateTask();
 
-        toast.success("Task updated successfully.");
+      toast.success("Task updated successfully.");
 
-        return;
-      }
-
-      // =================================================
-      // CREATE MODE
-      // =================================================
-
-      let finalTaskId = Number(
-        taskId ||
-          formData?.taskId ||
-          0
-      );
-
-      // =================================================
-      // CREATE TASK
-      // =================================================
-
-      if (!finalTaskId) {
-        finalTaskId =
-          await createTask();
-      }
-
-      // =================================================
-      // BUILD TIME LOGS
-      // =================================================
-
-      const logs = [];
-
-      resources.forEach(
-        (resource) => {
-          dates.forEach(
-            (date) => {
-              const key =
-                `${resource.id}_${date}`;
-
-              const value =
-                hoursData[key];
-
-              if (
-                value !== undefined &&
-                value !== "" &&
-                Number(value) > 0
-              ) {
-                logs.push({
-                  timeLogId: 0,
-
-                  taskId:
-                    finalTaskId,
-
-                  empId: Number(
-                    resource.id
-                  ),
-
-                  logDate:
-                    formatDateForApi(
-                      date
-                    ),
-
-                  logHours:
-                    Number(value),
-
-                  notes: "",
-                });
-              }
-            }
-          );
-        }
-      );
-
-      // =================================================
-      // NO HOURS
-      // =================================================
-
-      if (logs.length === 0) {
-        toast.success("Task created successfully, but no hours were entered.");
-
-        return;
-      }
-
-      // =================================================
-      // SAVE HOURS
-      // =================================================
-
-      for (const log of logs) {
-        const response =
-          await api.post(
-            "/api/Timesheet/log",
-            log
-          );
-
-        void response; // response used only for side effect
-      }
-
-      toast.success("Task and hours saved successfully.");
-    } catch (error) {
-      toast.error(
-        error?.response?.data?.message ||
-          error?.response?.data ||
-          error?.message ||
-          "Failed to save task."
-      );
-    } finally {
-      setSaving(false);
+      return;
     }
-  };
+
+    // =================================================
+    // CREATE MODE
+    // =================================================
+
+    let finalTaskId = Number(
+      taskId ||
+        formData?.taskId ||
+        0
+    );
+
+    // =================================================
+    // CREATE TASK
+    // =================================================
+
+    if (!finalTaskId) {
+      finalTaskId = await createTask();
+    }
+
+    toast.success("Task created successfully.");
+
+  } catch (error) {
+    toast.error(
+      error?.response?.data?.message ||
+        error?.response?.data ||
+        error?.message ||
+        "Failed to save task."
+    );
+  } finally {
+    setSaving(false);
+  }
+};
 
   // =====================================================
   // NO RESOURCES

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
+import { getTasks } from "@/services/taskService";
 import {
   rescheduleTask,
   deleteTask,
@@ -178,17 +179,144 @@ async function handleDeleteTask(task) {
 
 const handleFullData = async (exportFormat = "csv") => {
   try {
-    const exportData = tasks.map((task) => ({
-      taskTitle: task.title || "",
-      projectCode: task.projectCode || "",
-      projectTitle: task.projectTitle || "",
-      priority: task.priority || "",
-      startDate: task.startDate || "",
-      endDate: task.endDate || "",
-      employees: Array.isArray(task.employees)
-        ? task.employees.join(", ")
-        : task.employees || "",
-    }));
+
+    console.log("===== TASK FULL EXPORT START =====");
+    console.log("Search:", search);
+    console.log("Format:", exportFormat);
+
+    const empId = Number(
+      sessionStorage.getItem("empId") || 0
+    );
+
+    const userType = Number(
+      sessionStorage.getItem("userType") || 0
+    );
+
+    if (!empId || !userType) {
+      toast.error("Unable to identify the logged-in user.");
+      return;
+    }
+
+    const startDate = dateRange?.from
+      ? format(dateRange.from, "yyyy-MM-dd")
+      : "";
+
+    const endDate = dateRange?.to
+      ? format(dateRange.to, "yyyy-MM-dd")
+      : "";
+
+    // First request only to get total count
+    const firstResponse = await getTasks({
+      empId,
+      userType,
+      startDate,
+      endDate,
+      searchText: search.trim(),
+      projectId: null,
+      pageNumber: 1,
+      pageSize: 100,
+    });
+
+    const firstRecords =
+      Array.isArray(firstResponse)
+        ? firstResponse
+        : firstResponse?.tasks ||
+          firstResponse?.items ||
+          firstResponse?.data ||
+          [];
+
+    const totalRecords =
+      firstResponse?.totalCount ||
+      firstResponse?.totalRecords ||
+      firstRecords.length;
+
+    const totalPages = Math.ceil(totalRecords / 100);
+
+    console.log("TOTAL TASKS:", totalRecords);
+    console.log("TOTAL PAGES:", totalPages);
+
+    // Collect all pages
+    const allTasks = [...firstRecords];
+
+    for (let page = 2; page <= totalPages; page++) {
+      console.log(`Fetching task page ${page}/${totalPages}`);
+
+      const response = await getTasks({
+        empId,
+        userType,
+        startDate,
+        endDate,
+        searchText: search.trim(),
+        projectId: null,
+        pageNumber: page,
+        pageSize: 100,
+      });
+
+      const pageTasks =
+        Array.isArray(response)
+          ? response
+          : response?.tasks ||
+            response?.items ||
+            response?.data ||
+            [];
+
+      allTasks.push(...pageTasks);
+    }
+
+    console.log(
+      "TOTAL TASKS COLLECTED:",
+      allTasks.length
+    );
+
+    const exportData = allTasks.map((task) => {
+      const employees =
+        resolveEmployeeDisplayNames(task);
+
+      return {
+        taskTitle:
+          task.title ||
+          task.task_Title ||
+          task.taskTitle ||
+          "",
+
+        projectCode:
+          task.projectCode ||
+          task.ProjectCode ||
+          task.project_Code ||
+          "",
+
+        projectTitle:
+          task.projectTitle ||
+          task.project_Title ||
+          task.projectName ||
+          "",
+
+        priority:
+          task.priority ||
+          task.tskpriority ||
+          task.taskPriority ||
+          "",
+
+        startDate:
+          task.startDate ||
+          task.start_Date_Formatted ||
+          task.StartDate ||
+          "",
+
+        endDate:
+          task.endDate ||
+          task.end_Date_Formatted ||
+          task.EndDate ||
+          "",
+
+        employees: employees.join(", "),
+      };
+    });
+
+    console.log(
+      "FINAL TASK EXPORT COUNT:",
+      exportData.length
+    );
 
     await dispatch(
       exportFile({
@@ -196,38 +324,289 @@ const handleFullData = async (exportFormat = "csv") => {
           new Date(),
           "yyyy-MM-dd-HHmmss"
         )}`,
+
         format: exportFormat,
+
         columns: [
-          { key: "taskTitle", header: "Task Title" },
-          { key: "projectCode", header: "Project Code" },
-          { key: "projectTitle", header: "Project Title" },
-          { key: "priority", header: "Priority" },
-          { key: "startDate", header: "Start Date" },
-          { key: "endDate", header: "End Date" },
-          { key: "employees", header: "Employees" },
+          {
+            key: "taskTitle",
+            header: "Task Title",
+          },
+          {
+            key: "projectCode",
+            header: "Project Code",
+          },
+          {
+            key: "projectTitle",
+            header: "Project Title",
+          },
+          {
+            key: "priority",
+            header: "Priority",
+          },
+          {
+            key: "startDate",
+            header: "Start Date",
+          },
+          {
+            key: "endDate",
+            header: "End Date",
+          },
+          {
+            key: "employees",
+            header: "Employees",
+          },
         ],
+
         data: exportData,
       })
     ).unwrap();
+
+    toast.success(
+      `Exported ${exportData.length} tasks successfully.`
+    );
+
+    console.log(
+      "===== TASK FULL EXPORT SUCCESS ====="
+    );
+
   } catch (error) {
-    console.error("FULL DATA EXPORT ERROR:", error);
+    console.error(
+      "===== TASK FULL EXPORT ERROR ====="
+    );
+
+    console.error("Message:", error?.message);
+    console.error(
+      "Response:",
+      error?.response?.data
+    );
+
+    toast.error(
+      error?.message ||
+      "Task export failed."
+    );
+    } finally {
+    console.log("===== TASK FULL EXPORT END =====");
   }
 };
 
 const handleSelectedPages = async (
-  exportFormat,
-  fromPage,
-  toPage
+exportFormat,
+fromPage,
+toPage
 ) => {
-  console.log(
-    "Selected page range:",
-    fromPage,
-    "to",
-    toPage
-  );
+try {
+const empId = Number(
+sessionStorage.getItem("empId") || 0
+);
 
-  // Temporary test only
+
+const userType = Number(
+  sessionStorage.getItem("userType") || 0
+);
+
+if (!empId || !userType) {
+  toast.error("Unable to identify the logged-in user.");
+  return;
+}
+
+const startDate = dateRange?.from
+  ? format(dateRange.from, "yyyy-MM-dd")
+  : "";
+
+const endDate = dateRange?.to
+  ? format(dateRange.to, "yyyy-MM-dd")
+  : "";
+
+const searchText = search?.trim() || "";
+
+// =====================================================
+// FETCH ALL RECORDS REQUIRED FOR SELECTED PAGES
+// =====================================================
+
+const recordsPerPage = Number(pageSize) || 10;
+
+// Example:
+// Page 1-20 with pageSize 10 = 200 records
+// Page 1-50 with pageSize 10 = 500 records
+const lastRecordNeeded = toPage * recordsPerPage;
+
+console.log("===== TASK SELECTED PAGE EXPORT =====");
+console.log("From Page:", fromPage);
+console.log("To Page:", toPage);
+console.log("Records Per Page:", recordsPerPage);
+console.log("Records Needed:", lastRecordNeeded);
+
+const response = await getTasks({
+  empId,
+  userType,
+  startDate,
+  endDate,
+  searchText,
+  projectId: null,
+
+  // IMPORTANT:
+  // Fetch from page 1 only once
+  pageNumber: 1,
+
+  // Fetch enough records to cover the selected pages
+  pageSize: lastRecordNeeded,
+});
+
+const fetchedTasks =
+  Array.isArray(response)
+    ? response
+    : response?.tasks ||
+      response?.items ||
+      response?.data ||
+      [];
+
+console.log(
+  "Total tasks received from API:",
+  fetchedTasks.length
+);
+
+// =====================================================
+// SELECT ONLY THE REQUESTED PAGES
+// =====================================================
+
+const startIndex =
+  (fromPage - 1) * recordsPerPage;
+
+const endIndex =
+  toPage * recordsPerPage;
+
+const selectedTasks = fetchedTasks.slice(
+  startIndex,
+  endIndex
+);
+
+console.log(
+  `Selected tasks from page ${fromPage} to ${toPage}:`,
+  selectedTasks.length
+);
+
+// =====================================================
+// PREPARE EXPORT DATA
+// =====================================================
+
+const exportData = selectedTasks.map((task) => {
+  const employees =
+    resolveEmployeeDisplayNames(task);
+
+  return {
+    taskTitle:
+      task.title ||
+      task.task_Title ||
+      task.taskTitle ||
+      "",
+
+    projectCode:
+      task.projectCode ||
+      task.ProjectCode ||
+      task.project_Code ||
+      "",
+
+    projectTitle:
+      task.projectTitle ||
+      task.project_Title ||
+      task.projectName ||
+      "",
+
+    priority:
+      task.priority ||
+      task.tskpriority ||
+      task.taskPriority ||
+      "",
+
+    startDate:
+      task.startDate ||
+      task.start_Date_Formatted ||
+      task.StartDate ||
+      "",
+
+    endDate:
+      task.endDate ||
+      task.end_Date_Formatted ||
+      task.EndDate ||
+      "",
+
+    employees: employees.join(", "),
+  };
+});
+
+// =====================================================
+// EXPORT
+// =====================================================
+
+await dispatch(
+  exportFile({
+    fileName: `task-list-pages-${fromPage}-to-${toPage}-${format(
+      new Date(),
+      "yyyy-MM-dd-HHmmss"
+    )}`,
+
+    format: exportFormat,
+
+    columns: [
+      {
+        key: "taskTitle",
+        header: "Task Title",
+      },
+      {
+        key: "projectCode",
+        header: "Project Code",
+      },
+      {
+        key: "projectTitle",
+        header: "Project Title",
+      },
+      {
+        key: "priority",
+        header: "Priority",
+      },
+      {
+        key: "startDate",
+        header: "Start Date",
+      },
+      {
+        key: "endDate",
+        header: "End Date",
+      },
+      {
+        key: "employees",
+        header: "Employees",
+      },
+    ],
+
+    data: exportData,
+  })
+).unwrap();
+
+toast.success(
+  `Exported ${exportData.length} tasks successfully.`
+);
+
+
+} catch (error) {
+console.error(
+"TASK SELECTED PAGE EXPORT ERROR:",
+error
+);
+
+toast.error(
+  error?.message ||
+  "Task selected page export failed."
+);
+
+
+} finally {
+console.log(
+"===== TASK SELECTED PAGE EXPORT END ====="
+);
+}
 };
+
   // --------------------------------------------------
   // Local state for Project-wise Task page
   // --------------------------------------------------

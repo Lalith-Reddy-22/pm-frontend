@@ -182,18 +182,21 @@ function getPlannedHoursValue(entry) {
 }
 
 function getActualHoursValue(entry) {
-  return Number(
+  const value =
     entry?.loghours ??
     entry?.Loghours ??
-    entry?.actualHours ??
-    entry?.ActualHours ??
     entry?.logHours ??
-    entry?.LogHours ??
-    entry?.hoursLogged ??
-    entry?.hoursWorked ??
-    entry?.loggedHours ??
-    0
-  );
+    entry?.LogHours;
+
+  if (
+    value === undefined ||
+    value === null ||
+    value === ""
+  ) {
+    return "";
+  }
+
+  return Number(value) || 0;
 }
 
 function extractTaskDates(task) {
@@ -254,7 +257,7 @@ const [commentText, setCommentText] = useState("");
         if (!dateKey) return;
 
         planned[dateKey] = getPlannedHoursValue(date) || 0;
-        actual[dateKey] = getActualHoursValue(date) || 0;
+actual[dateKey] = getActualHoursValue(date);
       });
 
       const taskId = normalizeTaskId(task);
