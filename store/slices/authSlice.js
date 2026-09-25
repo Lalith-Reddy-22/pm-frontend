@@ -5,6 +5,11 @@ import {
   verifyOtpRequest,
   resetPasswordRequest,
 } from "@/services/authService";
+import {
+  clearAuthSession,
+  getRoleFromUserType,
+  persistAuthSession,
+} from "@/lib/session";
 
 /* =========================================================
    LOGIN
@@ -182,13 +187,7 @@ const authSlice = createSlice({
       state.resetPasswordError = null;
       state.resetPasswordSuccess = false;
 
-      if (typeof window !== "undefined") {
-        const keys = ["accessToken", "refreshToken", "empId", "userType", "employeeName", "email", "role", "auth"];
-        keys.forEach((key) => {
-          sessionStorage.removeItem(key);
-          localStorage.removeItem(key);
-        });
-      }
+      clearAuthSession();
     },
   },
 
@@ -226,34 +225,28 @@ const authSlice = createSlice({
 
         state.refreshToken = refreshToken;
 
+        const userType = authData?.user_Type ?? authData?.userType ?? "";
+        const role = getRoleFromUserType(userType) || authData?.role || "";
+
         state.user = {
           empId: authData?.empId,
-          userType: authData?.user_Type,
+          userType,
           employeeName: authData?.employee_Name,
           email: authData?.emailId,
+          role,
         };
 
-        // Save authentication data
         if (typeof window !== "undefined") {
-          const authData_persist = {
-            accessToken:  accessToken || "",
-            refreshToken: refreshToken || "",
-            empId:        String(authData?.empId || ""),
-            userType:     String(authData?.user_Type || ""),
-            employeeName: authData?.employee_Name || "",
-            email:        authData?.emailId || "",
-            auth:         "true",
-          };
-
-          // Write to sessionStorage (current tab)
-          Object.entries(authData_persist).forEach(([key, value]) => {
-            sessionStorage.setItem(key, value);
-          });
-
-          // Also write to localStorage so new tabs and page refreshes
-          // can restore the session without requiring a re-login.
-          Object.entries(authData_persist).forEach(([key, value]) => {
-            localStorage.setItem(key, value);
+          persistAuthSession({
+            accessToken,
+            refreshToken,
+            empId: authData?.empId,
+            userType,
+            employeeName: authData?.employee_Name,
+            email: authData?.emailId,
+            auth: "true",
+            role,
+            designation: authData?.designation ?? "",
           });
         }
       })

@@ -1,4 +1,5 @@
 import axios from "axios";
+import { readAuthSession, restoreAuthSessionFromLocalStorage } from "@/lib/session";
 
 const axiosClient = axios.create({
   baseURL: `${process.env.NEXT_PUBLIC_API_URL}/api/v1`,
@@ -15,19 +16,10 @@ const axiosClient = axios.create({
 axiosClient.interceptors.request.use(
   (config) => {
     if (typeof window !== "undefined") {
-      // If sessionStorage has no token (e.g. page opened in a new tab),
-      // restore the session from localStorage before reading the token.
-      if (!sessionStorage.getItem("accessToken") && localStorage.getItem("accessToken")) {
-        ["accessToken", "refreshToken", "empId", "userType", "employeeName", "email", "auth", "role"]
-          .forEach((key) => {
-            const val = localStorage.getItem(key);
-            if (val !== null) sessionStorage.setItem(key, val);
-          });
-      }
+      restoreAuthSessionFromLocalStorage();
 
-      const token =
-        sessionStorage.getItem("accessToken") ||
-        sessionStorage.getItem("token");
+      const { accessToken } = readAuthSession();
+      const token = accessToken || sessionStorage.getItem("token");
 
       if (token) {
         config.headers = config.headers || {};

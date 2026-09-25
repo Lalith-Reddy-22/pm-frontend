@@ -5,25 +5,8 @@ export async function loginUser(email, password) {
     emailId: email,
     password: password,
   });
-  const data = response.data;
 
-  const token =
-    data?.accessToken ||
-    data?.token ||
-    data?.data?.accessToken ||
-    data?.data?.token ||
-    data?.jwt ||
-    data?.data?.jwt;
-
-  if (typeof window !== "undefined" && token) {
-  sessionStorage.setItem("accessToken", token);
-
-  if (data?.refreshToken) {
-    sessionStorage.setItem("refreshToken", data.refreshToken);
-  }
-}
-
-  return data;
+  return response.data;
 }
 
 export async function forgotPasswordRequest(email) {

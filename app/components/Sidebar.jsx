@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   BarChart2, FileText, PieChart, Users,
   CheckSquare, Layout, Ticket, Package,
-  Calendar, Briefcase, UserCheck, Clock,
+  Briefcase, UserCheck, Clock,
   DollarSign, FolderOpen, List, CreditCard,
-  ChevronDown, LogOut,
+  ChevronDown,
 } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 
@@ -41,7 +41,6 @@ const ALL_NAV_ITEMS = [
       { id: "claim-assets", href: "/it/claim-assets", label: "Claim Assets", icon: Package, roles: ["admin", "employee", "sys_admin", "pm_employee"] },
     ],
   },
-  { id: "calendar",  href: "/calendar",  label: "Calendar View", icon: Calendar,   roles: ["admin", "employee", "sys_admin", "pm_employee"] },
   { id: "clients",   href: "/clients",   label: "Clients",       icon: Briefcase,  roles: ["admin", "pm_employee"] },
   { id: "project",   href: "/project",   label: "Project",       icon: FolderOpen, roles: ["admin", "pm_employee"] },
   { id: "employee",  href: "/employee",  label: "Employee",      icon: UserCheck,  roles: ["admin", "pm_employee"] },
@@ -80,7 +79,6 @@ function computeOpenGroups(pathname, items) {
 
 export default function Sidebar({ onClose, collapsed = false }) {
   const pathname = usePathname();
-  const router = useRouter();
   const { t, isDark } = useTheme();
 
   // role is read client-side only (sessionStorage unavailable on server)
@@ -94,12 +92,6 @@ export default function Sidebar({ onClose, collapsed = false }) {
   }, []);
 
   const navItems = getNavItems(role);
-
-  function handleLogout() {
-    sessionStorage.removeItem("auth");
-    sessionStorage.removeItem("role");
-    router.push("/login");
-  }
 
   function toggleGroup(id) {
     setOpenGroups(prev => ({ ...prev, [id]: !prev[id] }));

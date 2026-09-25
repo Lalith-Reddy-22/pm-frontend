@@ -1,36 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Medtrix PM Tool
+
+Medtrix PM Tool is a role-aware project management dashboard for managing projects, clients, employees, tasks, finance data, timesheets, IT requests, and operational reports.
+
+The application is built with Next.js App Router and uses Redux Toolkit, TanStack Query/Table, Axios, Chart.js, Recharts, and Tailwind CSS.
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 20 or later
+- npm
+- Access to the Medtrix API (the local fallback is `http://localhost:5234`)
+
+### Install dependencies
+
+```bash
+npm install
+```
+
+### Configure the API
+
+Create a `.env.local` file in the project root:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:5234
+```
+
+The API client uses `/api/v1` for authenticated service requests. Use the base URL required by your backend environment.
+
+### Run the development server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in a browser. The dashboard root redirects to the daily reports view after authentication.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Available Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start the development server |
+| `npm run build` | Create a production build |
+| `npm run start` | Start the production server |
+| `npm run lint` | Run ESLint |
 
-## Learn More
+## Main Areas
 
-To learn more about Next.js, take a look at the following resources:
+- **Projects and tasks**: project details, task allocation, templates, and project creation
+- **Clients and employees**: client records, employee profiles, rate cards, and resource allocation
+- **Finance**: finance clients, project lists, rate cards, and buying centers
+- **Reports**: daily reports, summary reports, resource allocation, and week utilization
+- **Operations**: calendar, timesheets, leave, IT tickets, and asset claims
+- **Authentication**: session persistence, role-based navigation, and session timeout handling
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Useful Routes
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `/login` - Sign in
+- `/reports/daily-report` - Daily reports
+- `/project` - Projects
+- `/tasks` - Tasks
+- `/employee` - Employees
+- `/clients` - Clients
+- `/finance` - Finance workspace
+- `/calendar` - Calendar
+- `/timesheet` - Timesheets
 
-## Deploy on Vercel
+Access to routes is filtered by the authenticated user's role.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Production
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Build and run the production application with:
+
+```bash
+npm run build
+npm run start
+```
+
+Set `NEXT_PUBLIC_API_URL` to the production API base URL before building.
