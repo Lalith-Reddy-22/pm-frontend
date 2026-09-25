@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Eye, EyeOff, Lock, User, CheckCircle } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { login, forgotPassword, verifyOtp, resetPassword, clearError } from "@/store/slices/authSlice";
+import { readAuthSession } from "@/lib/session";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -57,31 +58,11 @@ const [confirmPassword, setConfirmPassword] = useState("");
   );
 
   if (login.fulfilled.match(result)) {
-    const data = result.payload;
+    const authState = readAuthSession();
+    const role = authState.role || "employee";
 
-    const roleMap = {
-      1: "admin",
-      2: "pm",
-      3: "employee",
-      4: "pm_employee",
-      5: "sys_admin",
-      6: "management_admin",
-    };
-
-    const role = roleMap[data.user_Type] || "employee";
-
-    // Clear any stale role from a previous session before writing the new one
-    sessionStorage.removeItem("role");
-    sessionStorage.setItem("role", role);
-    // Mirror role to localStorage so new tabs can restore it
-    localStorage.setItem("role", role);
-
-    if (
-      ["employee", "sys_admin"].includes(role)
-    ) {
-      router.push(
-        "/reports/resource-allocation"
-      );
+    if (["employee", "sys_admin"].includes(role)) {
+      router.push("/reports/resource-allocation");
     } else {
       router.push("/reports/daily-report");
     }

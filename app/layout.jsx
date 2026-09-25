@@ -3,7 +3,6 @@ import QueryProvider from "./providers/QueryProvider";
 import StoreProvider from "@/store/storeProvider";
 import { Toaster } from "sonner";
 import "./globals.css";
-import ReduxProvider from "./components/ReduxProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
