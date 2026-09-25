@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   BarChart2, FileText, PieChart, Users,
   CheckSquare, Layout, Ticket, Package,
-  Calendar, Briefcase, UserCheck, Clock,
+  Briefcase, UserCheck, Clock,
   DollarSign, FolderOpen, List, CreditCard,
   ChevronDown,
 } from "lucide-react";
@@ -41,7 +41,6 @@ const ALL_NAV_ITEMS = [
       { id: "claim-assets", href: "/it/claim-assets", label: "Claim Assets", icon: Package, roles: ["admin", "employee", "sys_admin", "pm_employee"] },
     ],
   },
-  { id: "calendar",  href: "/calendar",  label: "Calendar View", icon: Calendar,   roles: ["admin", "employee", "sys_admin", "pm_employee"] },
   { id: "clients",   href: "/clients",   label: "Clients",       icon: Briefcase,  roles: ["admin", "pm_employee"] },
   { id: "project",   href: "/project",   label: "Project",       icon: FolderOpen, roles: ["admin", "pm_employee"] },
   { id: "employee",  href: "/employee",  label: "Employee",      icon: UserCheck,  roles: ["admin", "pm_employee"] },

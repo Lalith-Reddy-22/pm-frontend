@@ -173,6 +173,8 @@ export default function AddTaskDrawer({ open, onClose }) {
                 ? "Loading projects..."
                 : "Select Project"
             }
+            searchable
+            searchPlaceholder="Search projects..."
           />
 
           {/* API error */}

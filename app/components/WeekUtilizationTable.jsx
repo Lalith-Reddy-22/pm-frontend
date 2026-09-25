@@ -130,11 +130,11 @@ function DayCell({
   t,
   onCellClick,
 }) {
-  if (!entry) return <td className={`px-4 py-3 text-center ${t.textMuted}`}>—</td>;
+  if (!entry) return <td className={`px-4 py-3 text-center align-middle ${t.textMuted}`}>—</td>;
 
   if (entry.type === "available") {
   return (
-    <td className="px-4 py-3 text-center">
+    <td className="px-4 py-3 text-center align-middle">
       <div
   onClick={onCellClick}
   className="flex cursor-pointer items-center justify-center gap-1 rounded-md px-2 py-1 text-xs hover:bg-red-50"
@@ -171,7 +171,7 @@ const barColor =
       : "bg-green-500";
 
   return (
-    <td className="px-4 py-3 text-center">
+    <td className="px-4 py-3 text-center align-middle">
       <div
   onClick={onCellClick}
   className="mb-1 flex cursor-pointer items-center justify-center gap-1 rounded-md px-2 py-1 text-xs transition hover:bg-red-50 hover:text-red-600"
@@ -196,16 +196,18 @@ const barColor =
     L:{l}
   </span>
 </div>
-      <div
-  className={`relative h-1.25 w-40 rounded-md overflow-hidden ${
-    isDark ? "bg-white/10" : "bg-gray-200"
-  }`}
->
-  <div
-    className={`absolute left-0 top-0 h-full rounded-full ${barColor}`}
-    style={{ width: `${pPct}%` }}
-  />
-</div>
+      <div className="flex justify-center">
+        <div
+          className={`relative h-1.5 w-40 rounded-md overflow-hidden ${
+            isDark ? "bg-white/10" : "bg-gray-200"
+          }`}
+        >
+          <div
+            className={`absolute left-0 top-0 h-full rounded-full ${barColor}`}
+            style={{ width: `${pPct}%` }}
+          />
+        </div>
+      </div>
     </td>
   );
 }
@@ -435,7 +437,7 @@ function loadResourceAllocation() {
                 <tr key={row.id} className={trCls}>
                   {/* Name cell */}
                   <td
-  className={`px-4 py-3 sticky left-0 z-10 ${
+  className={`px-4 py-3 sticky left-0 z-10 align-middle ${
     isDark
       ? "text-gray-200 bg-[#111111]"
       : "text-gray-800 bg-white"
