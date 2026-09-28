@@ -41,15 +41,18 @@ export default function CustomSelect({
     });
   }, [options, searchTerm, searchable]);
 
+  // Search bar is p-2 (8px top + 8px bottom) + h-8 (32px) + 1px border = ~49px
+  const SEARCH_BAR_HEIGHT = 49;
+
   const dropdownContent = (
     <div
       ref={dropdownRef}
       style={portal ? popupStyle : undefined}
       className={
-  portal
-    ? "rounded-md border border-gray-200 bg-white shadow-xl"
-    : "absolute left-0 right-0 top-full z-30 mt-1 rounded-md border border-gray-200 bg-white shadow-xl"
-}
+        portal
+          ? "rounded-md border border-gray-200 bg-white shadow-xl"
+          : "absolute left-0 right-0 top-full z-30 mt-1 rounded-md border border-gray-200 bg-white shadow-xl"
+      }
     >
       {searchable && (
         <div className="border-b border-gray-200 p-2">
@@ -64,10 +67,14 @@ export default function CustomSelect({
         </div>
       )}
 
-     <div
-  className="overflow-y-auto"
-  style={{ maxHeight: `${dropdownMaxHeight}px` }}
->
+      <div
+        className="overflow-y-auto"
+        style={{
+          maxHeight: portal
+            ? `${(popupStyle.maxHeight ?? dropdownMaxHeight) - (searchable ? SEARCH_BAR_HEIGHT : 0)}px`
+            : `${dropdownMaxHeight}px`,
+        }}
+      >
         {filteredOptions.length === 0 ? (
           <div className="px-4 py-2 text-sm text-gray-500">
             No options found
