@@ -8,6 +8,10 @@ import EmployeeTaskDetailsModal from "./EmployeeTaskDetailsModal";
 import Pagination from "./pagination";
 import { usePagination } from "../../hooks/usePagination";
 import { useDispatch, useSelector } from "react-redux";
+import {
+  startOfWeek,
+  endOfWeek,
+} from "date-fns";
 import { Info } from "lucide-react";
 
 import {
@@ -15,8 +19,15 @@ import {
   fetchTaskDetails,
 } from "@/store/slices/resourceAllocationSlice";
 
-const SEED_START = new Date("2026-08-10");
-const SEED_END = new Date("2026-08-14");
+const today = new Date();
+
+const DEFAULT_START = startOfWeek(today, {
+  weekStartsOn: 1,
+});
+
+const DEFAULT_END = endOfWeek(today, {
+  weekStartsOn: 1,
+});
 
 
 // Parse date string to ISO key YYYY-MM-DD (handles both MM/DD/YYYY and YYYY-MM-DD)
@@ -237,8 +248,8 @@ const PAGE_SIZE = 10;
 export default function WeekUtilizationTable() {
   const { t, isDark } = useTheme();
 
-  const [startDate,  setStartDate]  = useState(SEED_START);
-  const [endDate,    setEndDate]    = useState(SEED_END);
+  const [startDate, setStartDate] = useState(DEFAULT_START);
+const [endDate, setEndDate] = useState(DEFAULT_END);
   const dispatch = useDispatch();
 
 const {
@@ -261,19 +272,23 @@ const {
 
   const weekDays = useMemo(() => getDatesInRange(startDate, endDate), [startDate, endDate]);
 
-  function handleTaskPopup(employee, date, entry) {
+  function handleTaskPopup(employee, date, entry, dateKey) {
   setSelectedEmployee(employee);
   setSelectedDate(date);
   setSelectedEntry(entry);
 
+  // Open popup immediately
   setTaskPopupOpen(true);
 
-  const dateVal = fmtApiDate(date);
+  // Use exact table date for API
+  const dateVal = dateKey;
 
-  console.log("TASK DETAIL REQUEST:", {
-    empId: employee.id,
-    dateVal,
-  });
+  console.log("===== TASK DETAIL REQUEST =====");
+  console.log("Employee ID:", employee.id);
+  console.log("Clicked Date:", date);
+  console.log("Date Key:", dateKey);
+  console.log("API Date:", dateVal);
+  console.log("================================");
 
   dispatch(
     fetchTaskDetails({
@@ -480,12 +495,13 @@ function loadResourceAllocation() {
       isDark={isDark}
       t={t}
       onCellClick={() =>
-        handleTaskPopup(
-          row,
-          day,
-          row.dailyData[key]
-        )
-      }
+  handleTaskPopup(
+    row,
+    day,
+    row.dailyData[key],
+    key
+  )
+}
     />
   );
 })}
