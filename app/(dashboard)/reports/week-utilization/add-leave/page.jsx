@@ -152,6 +152,16 @@ const leaveRows = Array.isArray(leaves)
       ? leaves.items
       : [];
 
+console.log("========== LEAVE API RESPONSE ==========");
+console.log("leaves:", leaves);
+console.log("leaveRows:", leaveRows);
+
+if (leaveRows.length > 0) {
+  console.log("FIRST LEAVE ROW:", leaveRows[0]);
+}
+
+console.log("========================================");
+
 const toNumericValue = (value) => {
   if (value === null || value === undefined || value === "") {
     return 0;
@@ -310,29 +320,16 @@ const validateForm = () => {
   const numericNonBillable = Number(formData.nonBillableHours) || 0;
 
   const payload = {
-    team_Id: Number(formData.team),
-    teamId: Number(formData.team),
-    designation: formData.designation,
-    designationName: formData.designation,
-    design_Billablevalue: numericBillable,
-    design_NonBillablevalue: numericNonBillable,
-    billableHours: numericBillable,
-    nonBillableHours: numericNonBillable,
-    start_date: formData.startDate,
-    startDate: formData.startDate,
-    end_date: formData.endDate,
-    endDate: formData.endDate,
-  };
+  teamId: Number(formData.team),
+  designation: formData.designation,
 
-  if (numericBillable === 0 && formData.billableHours !== "") {
-    payload.design_Billablevalue = Number(formData.billableHours);
-    payload.billableHours = Number(formData.billableHours);
-  }
+  // IMPORTANT: These names must match the backend DTO
+  billableLeaveHours: numericBillable,
+  nonBillableLeaveHours: numericNonBillable,
 
-  if (numericNonBillable === 0 && formData.nonBillableHours !== "") {
-    payload.design_NonBillablevalue = Number(formData.nonBillableHours);
-    payload.nonBillableHours = Number(formData.nonBillableHours);
-  }
+  startDate: formData.startDate,
+  endDate: formData.endDate,
+};
 
   try {
     if (editingId) {

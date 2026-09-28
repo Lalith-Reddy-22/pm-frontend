@@ -185,14 +185,16 @@ function getActualHoursValue(entry) {
   const value =
     entry?.loghours ??
     entry?.Loghours ??
+    entry?.actualHours ??
+    entry?.ActualHours ??
     entry?.logHours ??
-    entry?.LogHours;
+    entry?.LogHours ??
+    entry?.hoursLogged ??
+    entry?.hoursWorked ??
+    entry?.loggedHours;
 
-  if (
-    value === undefined ||
-    value === null ||
-    value === ""
-  ) {
+  // No actual hours logged yet
+  if (value === undefined || value === null || value === "") {
     return "";
   }
 
