@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { getTasks } from "@/services/taskService";
 import {
@@ -794,7 +794,7 @@ console.log("TASK TOTAL PAGES:", totalPages);
   {loading ? (
     <div className="flex h-72 items-center justify-center bg-card">
       <div className="flex items-center gap-3 text-sm font-medium text-muted-foreground">
-        <div className="h-5 w-5 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-[#E12729]" />
+        <Loader2 size={20} className="animate-spin text-[#E12729]" />
         Loading tasks...
       </div>
     </div>

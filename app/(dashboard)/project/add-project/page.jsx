@@ -3,6 +3,7 @@
 import { useEffect, Suspense } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useSearchParams } from "next/navigation";
+import { Loader2 } from "lucide-react";
 
 import { fetchProjectById } from "@/store/slices/projectSlice";
 import AddProject from "@/app/components/AddProject";
@@ -52,7 +53,7 @@ function AddProjectPageInner() {
 
 export default function AddProjectPage() {
   return (
-    <Suspense fallback={<div className="p-6 text-center text-gray-500">Loading...</div>}>
+    <Suspense fallback={<div className="flex items-center justify-center gap-2 p-6 text-gray-500"><Loader2 size={16} className="animate-spin text-[#E12729]" />Loading...</div>}>
       <AddProjectPageInner />
     </Suspense>
   );

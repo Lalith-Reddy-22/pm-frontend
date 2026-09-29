@@ -4,6 +4,7 @@ import { useMemo, useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { format } from "date-fns";
 import { exportFile } from "@/store/slices/exportSlice";
+import { Loader2 } from "lucide-react";
 
 import RateCardTopBar from "./components/RateCardTopBar";
 import RateCardTable from "./components/RateCardTable";
@@ -190,7 +191,8 @@ const handleRateCardSelectedPages = async (
 />
         {/* Loading state */}
         {loading && (
-          <div className="flex items-center justify-center py-16">
+          <div className="flex items-center justify-center gap-2 py-16">
+            <Loader2 size={18} className="animate-spin text-[#E12729]" />
             <p className="text-sm text-gray-400">Loading rate card data…</p>
           </div>
         )}

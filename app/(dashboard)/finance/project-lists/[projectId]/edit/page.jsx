@@ -6,7 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useDispatch } from "react-redux";
 import {
   ArrowLeft, FolderOpen, Save, DollarSign, Calendar,
-  Globe, ShoppingCart, Hash, Tag, Users, Building2,
+  Globe, ShoppingCart, Hash, Tag, Users, Building2, Loader2,
 } from "lucide-react";
 import { useTheme } from "../../../../../context/ThemeContext";
 import {
@@ -37,7 +37,7 @@ const BILLING_OPTIONS = ["Billable", "Non-Billable", "Internal"].map((s) => ({ v
 
 export default function EditProjectPage() {
   return (
-    <Suspense fallback={<div className="p-6 text-center text-gray-500">Loading...</div>}>
+    <Suspense fallback={<div className="flex items-center justify-center gap-2 p-6 text-gray-500"><Loader2 size={16} className="animate-spin text-[#E12729]" />Loading...</div>}>
       <EditProjectPageInner />
     </Suspense>
   );

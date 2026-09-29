@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { Loader2 } from "lucide-react";
 import ProjectToolbar from "./components/ProjectToolbar";
 import ProjectTable from "./components/ProjectTable";
 import ProjectPagination from "./components/Projectpagination";
@@ -339,11 +340,9 @@ const handleProjectSelectedPages = async (
 
   {loading && !exportLoading ? (
     <div className="flex min-h-[300px] items-center justify-center">
-      <div className="flex flex-col items-center gap-3">
-        <div className="h-7 w-7 animate-spin rounded-full border-2 border-gray-200 border-t-[#E12729]" />
-        <p className="text-sm text-gray-500">
-          Loading projects...
-        </p>
+      <div className="flex items-center gap-3">
+        <Loader2 size={22} className="animate-spin text-[#E12729]" />
+        <p className="text-sm text-gray-500">Loading projects...</p>
       </div>
     </div>
   ) : error ? (

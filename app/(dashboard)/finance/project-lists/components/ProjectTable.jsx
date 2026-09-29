@@ -2,7 +2,7 @@
 
 import { Fragment, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Search, ChevronDown, ChevronRight, Pencil } from "lucide-react";
+import { Search, ChevronDown, ChevronRight, Pencil, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTheme } from "../../../../context/ThemeContext";
 import DataPagination from "@/components/DataPagination";
@@ -68,7 +68,7 @@ export default function ProjectTable({
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={7} className={`py-8 text-center text-sm ${t.textMuted}`}>Loading...</td></tr>
+                <tr><td colSpan={7} className={`py-8 text-center text-sm ${t.textMuted}`}><div className="flex items-center justify-center gap-2"><Loader2 size={16} className="animate-spin text-[#E12729]" />Loading...</div></td></tr>
               ) : projects.length === 0 ? (
                 <tr><td colSpan={7} className={`py-8 text-center text-sm ${t.textMuted}`}>No projects found</td></tr>
               ) : projects.map((p, i) => {
