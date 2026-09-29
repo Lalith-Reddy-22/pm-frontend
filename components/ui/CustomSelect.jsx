@@ -15,6 +15,7 @@ export default function CustomSelect({
   portal = true,
   dropdownMaxHeight = 240,
   error = false,
+  
 }) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);

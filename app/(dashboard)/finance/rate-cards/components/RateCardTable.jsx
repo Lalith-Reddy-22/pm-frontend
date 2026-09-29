@@ -118,9 +118,9 @@ export default function RateCardTable({ rows = [] }) {
                         <span className="truncate text-xs text-gray-500">
                           {row.Designation}
                         </span>
-                        <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-[#E12729] ring-1 ring-red-200">
+                        {/* <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-[#E12729] ring-1 ring-red-200">
                           #{row.EmpId}
-                        </span>
+                        </span> */}
                       </div>
                     </div>
                   </div>

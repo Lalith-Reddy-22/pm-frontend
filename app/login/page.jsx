@@ -62,9 +62,9 @@ const [confirmPassword, setConfirmPassword] = useState("");
     const role = authState.role || "employee";
 
     if (["employee", "sys_admin"].includes(role)) {
-      router.push("/reports/resource-allocation");
+      router.push("/timesheet");
     } else {
-      router.push("/reports/daily-report");
+      router.push("/reports/resource-allocation");
     }
   }
 }

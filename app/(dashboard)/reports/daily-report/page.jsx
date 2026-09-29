@@ -36,6 +36,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchDailyReports } from "@/store/slices/dailyReportSlice";
 import { getDailyReports } from "@/services/reportService";
 import { exportFile } from "@/store/slices/exportSlice";
+import DailyReportEmployeeSelect from "./components/DailyReportEmployeeSelect";
 
 // ---------------------------------------------------------
 // PRIORITY STYLES
@@ -497,31 +498,6 @@ const handleExport = (format) => {
   ]);
 
 
-  const employeeOptions = useMemo(() => {
-    const uniqueEmployees = Array.from(
-      new Map(
-        employees
-          .filter((employee) => employee.employeeName)
-          .map((employee) => [
-            employee.employeeId,
-            employee,
-          ])
-      ).values()
-    );
-
-    return [
-      {
-        value: "All Employees",
-        label: "All Employees",
-      },
-      ...uniqueEmployees.map((employee) => ({
-        value: employee.employeeName.trim(),
-        label: employee.employeeName.trim(),
-      })),
-    ];
-  }, [employees]);
-
-
   // -------------------------------------------------------
   // TABLE COLUMNS
   // -------------------------------------------------------
@@ -906,23 +882,17 @@ const endIndex =
 
           <div className="w-full sm:w-64">
 
-            <CustomSelect
-              value={employeeFilter}
-              onChange={(value) => {
-                setEmployeeFilter(value);
-
-                setPagination(
-                  (prev) => ({
-                    ...prev,
-                    pageIndex: 0,
-                  })
-                );
-              }}
-
-              options={employeeOptions}
-
-              placeholder="All Employees"
-            />
+            <DailyReportEmployeeSelect
+  employees={employees}
+  value={employeeFilter}
+  onChange={(value) => {
+    setEmployeeFilter(value);
+    setPagination((prev) => ({
+      ...prev,
+      pageIndex: 0,
+    }));
+  }}
+/>
 
           </div>
 
