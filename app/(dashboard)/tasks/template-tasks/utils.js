@@ -1,13 +1,31 @@
 export function filterTemplateTasks(tasks, search, selectedTemplate) {
   const normalizedSearch = search.trim().toLowerCase();
 
-  return tasks.filter((task) => {
-    const matchesTemplate = selectedTemplate === "all" || task.templateName === selectedTemplate;
-    const matchesSearch = [task.taskName, task.templateName, task.responsibility]
-      .filter(Boolean)
-      .some((value) => value.toLowerCase().includes(normalizedSearch));
+  const normalizedSelectedTemplate = String(selectedTemplate)
+    .trim()
+    .toLowerCase();
 
-    return matchesTemplate && (normalizedSearch === "" ? true : matchesSearch);
+  return tasks.filter((task) => {
+    const normalizedTaskTemplate = String(task.templateName ?? "")
+      .trim()
+      .toLowerCase();
+
+    const matchesTemplate =
+      normalizedSelectedTemplate === "all" ||
+      normalizedTaskTemplate === normalizedSelectedTemplate;
+
+    const matchesSearch =
+      normalizedSearch === "" ||
+      [task.taskName, task.templateName, task.responsibility]
+        .filter(Boolean)
+        .some((value) =>
+          String(value)
+            .trim()
+            .toLowerCase()
+            .includes(normalizedSearch)
+        );
+
+    return matchesTemplate && matchesSearch;
   });
 }
 

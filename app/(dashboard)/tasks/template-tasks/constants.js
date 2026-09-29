@@ -1,8 +1,8 @@
 export const TEMPLATE_OPTIONS = [
   { value: "all", label: "Select Template" },
-  { value: "AnimateBanner", label: "AnimateBanner" },
+  { value: "AnnimateBanner", label: "AnimateBanner" },
   { value: "EMR Ads", label: "EMR Ads" },
-  { value: "Email", label: "Email" },
+  { value: "Emails", label: "Email" },
 ];
 
 export const PAGE_SIZE_OPTIONS = [

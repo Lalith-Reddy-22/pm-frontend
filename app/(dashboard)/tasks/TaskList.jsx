@@ -391,11 +391,26 @@ const handleFullData = async (exportFormat = "csv") => {
 };
 
 const handleSelectedPages = async (
-exportFormat,
-fromPage,
-toPage
+  exportFormat,
+  fromPage,
+  toPage
 ) => {
-try {
+  try {
+    const MAX_EXPORT_PAGES = 50;
+
+    const selectedPageCount = toPage - fromPage + 1;
+
+    if (selectedPageCount > MAX_EXPORT_PAGES) {
+      toast.error(
+        "You can download a maximum of 50 pages at a time."
+      );
+      return;
+    }
+
+    if (fromPage < 1 || toPage < fromPage) {
+      toast.error("Please select a valid page range.");
+      return;
+    }
 const empId = Number(
 sessionStorage.getItem("empId") || 0
 );
@@ -782,7 +797,6 @@ console.log("TASK TOTAL PAGES:", totalPages);
   dateRange={dateRange}
   setDateRange={setDateRange}
   onAddTask={() => setOpenDrawer(true)}
-  handleFullData={handleFullData}
   handleSelectedPages={handleSelectedPages}
   totalPages={totalPages}
 />

@@ -127,21 +127,24 @@ export const fetchTaskNotifications = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const data = await api.get(
-        `/api/v1/Task/notifications?recipientId=${recipientId}&unreadOnly=${unreadOnly}`
-      );
+      console.log("NOTIFICATION REQUEST:", {
+        recipientId,
+        unreadOnly,
+      });
 
-      console.log(
-        "TASK NOTIFICATIONS API RESPONSE:",
-        data
-      );
+      const url =
+        `/api/v1/Task/notifications?recipientId=${recipientId}` +
+        `&unreadOnly=${unreadOnly}`;
+
+      console.log("NOTIFICATION URL:", url);
+
+      const data = await api.get(url);
+
+      console.log("TASK NOTIFICATIONS API RESPONSE:", data);
 
       return data;
     } catch (error) {
-      console.error(
-        "TASK NOTIFICATIONS API ERROR:",
-        error
-      );
+      console.error("TASK NOTIFICATIONS API ERROR:", error);
 
       return rejectWithValue(
         error.message || "Failed to load notifications."

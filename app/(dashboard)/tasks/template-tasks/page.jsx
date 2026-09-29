@@ -46,7 +46,7 @@ useEffect(() => {
   const [showAddTaskDrawer, setShowAddTaskDrawer] = useState(false);
 
   const tasks = useMemo(() => {
-  return (taskTemplates || []).map((item) => ({
+  const mappedTasks = (taskTemplates || []).map((item) => ({
     id: item.taskId,
     taskId: item.taskId,
     templateId: item.tempId,
@@ -55,6 +55,17 @@ useEffect(() => {
     responsibility: item.responsibility?.trim() || "",
     templateName: item.templateName?.trim() || "",
   }));
+
+  console.log("========== RAW FIRST TASK ==========");
+  console.log(taskTemplates?.[0]);
+  console.log("RAW KEYS:", Object.keys(taskTemplates?.[0] || {}));
+
+  console.log("========== TEMPLATE IDS ==========");
+  console.log(
+    [...new Set(mappedTasks.map((task) => task.templateId))]
+  );
+
+  return mappedTasks;
 }, [taskTemplates]);
 
 const filteredTasks = useMemo(
@@ -103,22 +114,6 @@ const handleCloseDrawer = () => {
   setShowAddTaskDrawer(false);
 };
 
-if (taskTemplatesLoading) {
-  return (
-    <div className="p-6">
-      Loading task templates...
-    </div>
-  );
-}
-
-if (taskTemplatesError) {
-  return (
-    <div className="p-6 text-red-500">
-      {taskTemplatesError}
-    </div>
-  );
-}
-
   return (
     <div className="space-y-4 p-4 sm:p-6">
       <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
@@ -132,15 +127,38 @@ if (taskTemplatesError) {
       </div>
 
       <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-        <TaskTable
-          tasks={pagination.paginatedData}
-          sortBy={sortBy}
-          sortDirection={sortDirection}
-          onSort={handleSort}
-          onAddTask={handleAddTask}
-          pagination={<DataPagination {...pagination} className="border-t border-border" />}
-        />
+  {taskTemplatesLoading ? (
+    <div className="flex min-h-[300px] items-center justify-center">
+      <div className="flex flex-col items-center gap-3">
+        <div className="h-7 w-7 animate-spin rounded-full border-2 border-gray-200 border-t-[#E12729]" />
+
+        <p className="text-sm text-gray-500">
+          Loading task templates...
+        </p>
       </div>
+    </div>
+  ) : taskTemplatesError ? (
+    <div className="flex min-h-[300px] items-center justify-center">
+      <p className="text-sm text-red-500">
+        {taskTemplatesError}
+      </p>
+    </div>
+  ) : (
+    <TaskTable
+      tasks={pagination.paginatedData}
+      sortBy={sortBy}
+      sortDirection={sortDirection}
+      onSort={handleSort}
+      onAddTask={handleAddTask}
+      pagination={
+        <DataPagination
+          {...pagination}
+          className="border-t border-border"
+        />
+      }
+    />
+  )}
+</div>
 
       <AddTaskDrawer
   open={showAddTaskDrawer}

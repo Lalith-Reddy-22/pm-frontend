@@ -180,22 +180,6 @@ const handleEmployeeSelectedPages = async (
 
 const [selectedEmployee, setSelectedEmployee] = useState(null);
 
-if (loading) {
-  return (
-    <div className="p-6">
-      Loading employees...
-    </div>
-  );
-}
-
-if (error) {
-  return (
-    <div className="p-6 text-red-500">
-      {error}
-    </div>
-  );
-}
-
   return (
     <>
       <div className="space-y-4 p-4 sm:p-6">
@@ -214,23 +198,41 @@ if (error) {
         </div>
 
         <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-          <EmployeeTable
-            pageRows={pageRows}
-            border={border}
-            headerBg={headerBg}
-            t={t}
-            isDark={isDark}
-            avatar={avatar}
-            filtered={sorted}
-            clampedPage={clampedPage}
-            pageSize={pageSize}
-            totalPages={totalPages}
-            setPage={setPage}
-            COLUMNS={COLUMNS}
-            sort={sort}
-            toggleSort={toggleSort}
-          />
-        </div>
+  {loading ? (
+    <div className="flex min-h-[300px] items-center justify-center">
+      <div className="flex flex-col items-center gap-3">
+        <div className="h-7 w-7 animate-spin rounded-full border-2 border-gray-200 border-t-[#E12729]" />
+
+        <p className="text-sm text-gray-500">
+          Loading employees...
+        </p>
+      </div>
+    </div>
+  ) : error ? (
+    <div className="flex min-h-[300px] items-center justify-center">
+      <p className="text-sm text-red-500">
+        {error}
+      </p>
+    </div>
+  ) : (
+    <EmployeeTable
+      pageRows={pageRows}
+      border={border}
+      headerBg={headerBg}
+      t={t}
+      isDark={isDark}
+      avatar={avatar}
+      filtered={sorted}
+      clampedPage={clampedPage}
+      pageSize={pageSize}
+      totalPages={totalPages}
+      setPage={setPage}
+      COLUMNS={COLUMNS}
+      sort={sort}
+      toggleSort={toggleSort}
+    />
+  )}
+</div>
       </div>
 
       <AddEmployeeDrawer showDrawer={showDrawer} setShowDrawer={setShowDrawer} />

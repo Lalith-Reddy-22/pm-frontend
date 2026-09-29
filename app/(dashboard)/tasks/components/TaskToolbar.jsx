@@ -14,7 +14,6 @@ export default function TaskToolbar({
   onAddTask,
   dateRange,
   setDateRange,
-  handleFullData,
   handleSelectedPages,
   totalPages,
 }) {
@@ -59,12 +58,13 @@ export default function TaskToolbar({
       {/* ── Right: Export + Add Task ── */}
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative">
-  <ExportDropdown
+ <ExportDropdown
   showExport={showExport}
   setShowExport={setShowExport}
-  handleFullData={handleFullData}
   handleSelectedPages={handleSelectedPages}
   totalPages={totalPages}
+  maxExportPages={50}
+  hideFullData={true}
   border="border-gray-200"
   t={{
     cardBg: "bg-white",
