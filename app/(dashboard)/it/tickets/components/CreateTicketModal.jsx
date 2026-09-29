@@ -46,7 +46,7 @@ export default function CreateTicketModal({ open, onClose }) {
     setError(null);
 
     api
-      .get("/api/v1/ticket/form-data")
+      .get("/ticket/form-data")
       .then((data) => {
         if (cancelled) return;
         setIssueTypes(data?.issueTypes ?? []);
@@ -71,7 +71,7 @@ export default function CreateTicketModal({ open, onClose }) {
     setSubIssueTypeId("");
 
     api
-      .get(`/api/v1/ticket/sub-issues?issueTypeId=${issueTypeId}`)
+      .get(`/ticket/sub-issues?issueTypeId=${issueTypeId}`)
       .then((data) => {
         if (!cancelled) setSubIssues(Array.isArray(data) ? data : []);
       })
@@ -114,7 +114,7 @@ export default function CreateTicketModal({ open, onClose }) {
     setError(null);
 
     try {
-      await api.post("/api/v1/ticket", payload);
+      await api.post("/ticket", payload);
       handleClose();
     } catch (err) {
       setError(err.message ?? "Failed to create ticket. Please try again.");

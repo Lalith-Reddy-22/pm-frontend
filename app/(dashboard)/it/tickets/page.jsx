@@ -149,8 +149,8 @@ export default function TicketsPage() {
 
     try {
       const endpoint = (activeTab === "tracker" || role === "sys_admin")
-        ? `/api/v1/ticket/all-list?${params.toString()}`
-        : `/api/v1/ticket/list?${params.toString()}`;
+  ? `/ticket/all-list?${params.toString()}`
+  : `/ticket/list?${params.toString()}`;
       const data = await api.get(endpoint);
       setTickets((data?.tickets ?? []).map(normaliseTicket));
       setTotalCount(data?.totalCount ?? 0);
@@ -205,10 +205,10 @@ const handleTicketExport = async (exportFormat = "csv") => {
       );
     }
 
-    const endpoint =
-      activeTab === "tracker" || role === "sys_admin"
-        ? `/api/v1/ticket/all-list?${params.toString()}`
-        : `/api/v1/ticket/list?${params.toString()}`;
+   const endpoint =
+  activeTab === "tracker" || role === "sys_admin"
+    ? `/ticket/all-list?${params.toString()}`
+    : `/ticket/list?${params.toString()}`;
 
     const data = await api.get(endpoint);
 
@@ -300,9 +300,9 @@ const handleTicketSelectedPages = async (
       }
 
       const endpoint =
-        activeTab === "tracker" || role === "sys_admin"
-          ? `/api/v1/ticket/all-list?${params.toString()}`
-          : `/api/v1/ticket/list?${params.toString()}`;
+  activeTab === "tracker" || role === "sys_admin"
+    ? `/ticket/all-list?${params.toString()}`
+    : `/ticket/list?${params.toString()}`;
 
       const data = await api.get(endpoint);
 

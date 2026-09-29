@@ -14,10 +14,10 @@ export const fetchTimesheet = createAsyncThunk(
   ) => {
     try {
       const data = await api.get(
-        `/api/Timesheet?empId=${empId}&startDate=${encodeURIComponent(
-          startDate
-        )}&endDate=${encodeURIComponent(endDate)}`
-      );
+  `/Timesheet?empId=${empId}&startDate=${encodeURIComponent(
+    startDate
+  )}&endDate=${encodeURIComponent(endDate)}`
+);
 
       console.log("TIMESHEET API RESPONSE:", data);
 
@@ -37,9 +37,9 @@ export const rescheduleTask = createAsyncThunk(
   async (request, { rejectWithValue }) => {
     try {
       const data = await api.post(
-        "/api/Timesheet/reschedule",
-        request
-      );
+  "/Timesheet/reschedule",
+  request
+);
 
       console.log("RESCHEDULE API RESPONSE:", data);
 
@@ -64,9 +64,9 @@ export const addTaskComment = createAsyncThunk(
       );
 
       const data = await api.post(
-        "/api/v1/Task/comment",
-        commentData
-      );
+  "/Task/comment",
+  commentData
+);
 
       console.log(
         "COMMENT API RESPONSE:",
@@ -99,8 +99,8 @@ export const fetchTaskComments = createAsyncThunk(
   async (taskId, { rejectWithValue }) => {
     try {
       const data = await api.get(
-        `/api/v1/Task/${taskId}/comments`
-      );
+  `/Task/${taskId}/comments`
+);
 
       console.log("TASK COMMENTS API RESPONSE:", data);
 
@@ -133,8 +133,8 @@ export const fetchTaskNotifications = createAsyncThunk(
       });
 
       const url =
-        `/api/v1/Task/notifications?recipientId=${recipientId}` +
-        `&unreadOnly=${unreadOnly}`;
+  `/Task/notifications?recipientId=${recipientId}` +
+  `&unreadOnly=${unreadOnly}`;
 
       console.log("NOTIFICATION URL:", url);
 
@@ -163,8 +163,8 @@ export const markNotificationRead = createAsyncThunk(
   async (notificationId, { rejectWithValue }) => {
     try {
       const data = await api.put(
-        `/api/v1/Task/notifications/${notificationId}/read`
-      );
+  `/Task/notifications/${notificationId}/read`
+);
 
       console.log(
         "MARK NOTIFICATION READ RESPONSE:",

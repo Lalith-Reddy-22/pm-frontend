@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { api } from "@/lib/api";
+import { api, rateCardApi } from "@/lib/api";
 
 // =====================================================
 // GET EMPLOYEE DETAILS
@@ -10,7 +10,7 @@ export const fetchEmployeeDetails = createAsyncThunk(
   async (empId, { rejectWithValue }) => {
     try {
       const response = await api.get(
-        `/api/v1/employee/details?empId=${empId}`
+        `/employee/details?empId=${empId}`
       );
       return response;
     } catch (error) {
@@ -41,7 +41,7 @@ export const fetchEmployeeProjectDetails = createAsyncThunk(
   ) => {
     try {
       const response = await api.get(
-        `/api/v1/employee/project-details?empId=${empId}&pageNumber=${pageNumber}&pageSize=${pageSize}&searchText=${encodeURIComponent(
+        `/employee/project-details?empId=${empId}&pageNumber=${pageNumber}&pageSize=${pageSize}&searchText=${encodeURIComponent(
           searchText
         )}`
       );
@@ -69,7 +69,7 @@ export const fetchEmployeeTypes = createAsyncThunk(
   "employee/fetchEmployeeTypes",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get("/api/v1/employee/types");
+      const response = await api.get("/employee/types");
 
 return response;
     } catch (error) {
@@ -92,7 +92,7 @@ export const fetchEmployeeSubTeams = createAsyncThunk(
   async (teamId, { rejectWithValue }) => {
     try {
       const response = await api.get(
-  `/api/v1/employee/sub-teams?teamId=${teamId}`
+  `/employee/sub-teams?teamId=${teamId}`
 );
 
 return response;
@@ -122,7 +122,7 @@ export const fetchEmployeeTasks = createAsyncThunk(
   ) => {
     try {
       const response = await api.get(
-        `/api/v1/Task?empId=${empId}&userType=${userType}&startDate=${startDate}&endDate=${endDate}&pageNumber=${pageNumber}&pageSize=${pageSize}`
+        `/Task?empId=${empId}&userType=${userType}&startDate=${startDate}&endDate=${endDate}&pageNumber=${pageNumber}&pageSize=${pageSize}`
       );
 
       return response;
@@ -142,7 +142,7 @@ export const updateEmployee = createAsyncThunk(
   async ({ empId, employeeData }, { rejectWithValue }) => {
     try {
       const response = await api.put(
-        `/api/v1/employee/${empId}`,
+        `/employee/${empId}`,
         employeeData
       );
       return response;
@@ -162,9 +162,9 @@ export const fetchEmployeeRateCard = createAsyncThunk(
   async (empId, { rejectWithValue }) => {
     try {
 
-      const response = await api.get(
-        `/api/employees/${empId}/rate-card`
-      );
+      const response = await rateCardApi.get(
+  `/employees/${empId}/rate-card`
+);
       return response;
     } catch (error) {
       return rejectWithValue(
@@ -182,12 +182,12 @@ export const updateEmployeeRateCard = createAsyncThunk(
   async ({ empId, buyingCenters }, { rejectWithValue }) => {
     try {
 
-      const response = await api.post(
-        `/api/employees/${empId}/rate-card`,
-        {
-          buyingCenters,
-        }
-      );
+      const response = await rateCardApi.post(
+  `/employees/${empId}/rate-card`,
+  {
+    buyingCenters,
+  }
+);
 
       return response;
     } catch (error) {

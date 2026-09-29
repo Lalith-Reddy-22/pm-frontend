@@ -25,7 +25,7 @@ export default function TicketFilters({
 
   useEffect(() => {
     api
-      .get("/api/v1/ticket/form-data")
+      .get("/ticket/form-data")
       .then((data) => {
         setIssueTypes(
           (data?.issueTypes ?? []).map((t) => ({ id: t.id, name: t.issue_Type }))

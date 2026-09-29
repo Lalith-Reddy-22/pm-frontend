@@ -549,7 +549,7 @@ const {
     try {
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      await api.post("/api/Timesheet/log", {
+      await api.post("/Timesheet/log", {
         timeLogId: 0,
         taskId: parsedTaskId,
         empId,

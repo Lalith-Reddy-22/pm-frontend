@@ -2,7 +2,7 @@ import axios from "axios";
 import { readAuthSession, restoreAuthSessionFromLocalStorage } from "@/lib/session";
 
 const axiosClient = axios.create({
-  baseURL: `${process.env.NEXT_PUBLIC_API_URL}/api/v1`,
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
