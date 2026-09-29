@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -50,7 +50,7 @@ export default function ReportTable({
                 className="py-12 text-center"
               >
                 <div className="flex items-center justify-center gap-2">
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#E12729] border-t-transparent"></div>
+                  <Loader2 size={16} className="animate-spin text-[#E12729]" />
                   Loading...
                 </div>
               </TableCell>

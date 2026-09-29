@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
+import { Loader2 } from "lucide-react";
 
 import TaskList from "./TaskList";
 import {
@@ -493,7 +494,7 @@ const notificationTask =
 
 export default function TasksPage() {
   return (
-    <Suspense fallback={<div className="p-6 text-center text-gray-500">Loading...</div>}>
+    <Suspense fallback={<div className="flex items-center justify-center gap-2 p-6 text-gray-500"><Loader2 size={16} className="animate-spin text-[#E12729]" />Loading...</div>}>
       <TasksPageInner />
     </Suspense>
   );

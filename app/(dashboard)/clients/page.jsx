@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useTheme } from "../../context/ThemeContext";
 import ClientTile from "../../components/ClientTile";
 import axiosClient from "@/services/axiosClient";
+import { Loader2 } from "lucide-react";
 
 export default function ClientsPage() {
   const { t } = useTheme();
@@ -46,10 +47,9 @@ export default function ClientsPage() {
   if (loading) {
     return (
       <div className="p-6">
-        <div className="flex items-center justify-center py-20">
-          <p className={`text-sm ${t.textSecondary}`}>
-            Loading clients...
-          </p>
+        <div className="flex items-center justify-center gap-2 py-20">
+          <Loader2 size={18} className="animate-spin text-[#E12729]" />
+          <p className={`text-sm ${t.textSecondary}`}>Loading clients...</p>
         </div>
       </div>
     );

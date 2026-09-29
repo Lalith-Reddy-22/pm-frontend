@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import MiniCalendar from "./components/MiniCalendar";
 import SummaryPanel from "./components/SummaryPanel";
 import EventCard    from "./components/EventCard";
@@ -15,7 +15,7 @@ const DAY_HEADERS = ["Monday","Tuesday","Wednesday","Thursday","Friday"];
 
 function MonthView({ year, month, events, loading, error }) {
   const { t } = useTheme();
-  if (loading) return <div className="flex items-center justify-center h-full"><p className={`text-sm animate-pulse ${t.textSecondary}`}>Loading events…</p></div>;
+  if (loading) return <div className="flex items-center justify-center h-full"><div className="flex items-center gap-2"><Loader2 size={16} className={`animate-spin text-[#E12729]`} /><p className={`text-sm ${t.textSecondary}`}>Loading events…</p></div></div>;
   if (error)   return <div className="flex items-center justify-center h-full"><p className="text-destructive text-sm">{error}</p></div>;
 
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -216,7 +216,10 @@ export default function CalendarPage() {
           {view === "list" && (
             loading ? (
               <div className="flex items-center justify-center h-full">
-                <p className={`text-sm animate-pulse ${t.textSecondary}`}>Loading events…</p>
+                <div className="flex items-center gap-2">
+                  <Loader2 size={16} className="animate-spin text-[#E12729]" />
+                  <p className={`text-sm ${t.textSecondary}`}>Loading events…</p>
+                </div>
               </div>
             ) : error ? (
               <div className="flex items-center justify-center h-full">

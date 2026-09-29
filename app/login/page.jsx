@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Eye, EyeOff, Lock, User, CheckCircle } from "lucide-react";
+import { Eye, EyeOff, Lock, User, CheckCircle, Loader2 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { login, forgotPassword, verifyOtp, resetPassword, clearError } from "@/store/slices/authSlice";
 import { readAuthSession } from "@/lib/session";
@@ -244,7 +244,9 @@ async function handleResetPassword(e) {
             className="w-full py-3.5 rounded-xl text-white font-semibold text-sm disabled:opacity-60"
             style={{ background: "#303030", boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }}
           >
-            {forgotPasswordLoading ? "Sending..." : "Send Reset Link"}
+            {forgotPasswordLoading ? (
+              <span className="flex items-center justify-center gap-2"><Loader2 size={14} className="animate-spin" />Sending...</span>
+            ) : "Send Reset Link"}
           </button>
 
           <button
@@ -313,7 +315,9 @@ async function handleResetPassword(e) {
             className="w-full py-3.5 rounded-xl text-white font-semibold text-sm disabled:opacity-60"
             style={{ background: "#303030", boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }}
           >
-            {otpLoading ? "Verifying..." : "Verify OTP"}
+            {otpLoading ? (
+              <span className="flex items-center justify-center gap-2"><Loader2 size={14} className="animate-spin" />Verifying...</span>
+            ) : "Verify OTP"}
           </button>
 
           <button
@@ -417,7 +421,9 @@ async function handleResetPassword(e) {
             className="w-full py-3.5 rounded-xl text-white font-semibold text-sm disabled:opacity-60"
             style={{ background: "#303030", boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }}
           >
-            {resetPasswordLoading ? "Resetting..." : "Reset Password"}
+            {resetPasswordLoading ? (
+              <span className="flex items-center justify-center gap-2"><Loader2 size={14} className="animate-spin" />Resetting...</span>
+            ) : "Reset Password"}
           </button>
 
           <button
@@ -592,7 +598,7 @@ async function handleResetPassword(e) {
         }}
       >
         {loading
-          ? "Signing in…"
+          ? <span className="flex items-center justify-center gap-2"><Loader2 size={16} className="animate-spin" />Signing in…</span>
           : "Sign in"}
       </button>
 

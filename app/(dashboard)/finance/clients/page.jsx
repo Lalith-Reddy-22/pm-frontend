@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
-import { Plus } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 import { useTheme } from "../../../context/ThemeContext";
 import StatCards     from "./components/StatCards";
 import GPBarChart    from "./components/GPBarChart";
@@ -49,7 +49,10 @@ export default function FinanceClientsPage() {
   if (yearsLoading) {
     return (
       <div className="flex h-full min-h-[400px] items-center justify-center">
-        <p className="text-sm text-muted-foreground">Loading...</p>
+        <div className="flex items-center gap-2">
+          <Loader2 size={18} className="animate-spin text-[#E12729]" />
+          <p className="text-sm text-muted-foreground">Loading...</p>
+        </div>
       </div>
     );
   }
@@ -92,7 +95,8 @@ export default function FinanceClientsPage() {
 
       <div className="p-6 space-y-5">
         {clientsLoading ? (
-          <div className="flex items-center justify-center py-16">
+          <div className="flex items-center justify-center gap-2 py-16">
+            <Loader2 size={18} className="animate-spin text-[#E12729]" />
             <p className="text-sm text-muted-foreground">Loading clients...</p>
           </div>
         ) : (

@@ -14,6 +14,7 @@ import {
   ChevronDown,
   ChevronUp,
   Search,
+  Loader2,
 } from "lucide-react";
 
 import { useTheme } from "../../../context/ThemeContext";
@@ -983,7 +984,8 @@ const endIndex =
 
 
         {reportsLoading && (
-  <div className="px-5 py-2 text-xs text-muted-foreground border-b border-border">
+  <div className="flex items-center gap-2 px-5 py-2 text-xs text-muted-foreground border-b border-border">
+    <Loader2 size={13} className="animate-spin text-[#E12729]" />
     Loading...
   </div>
 )}

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSelector, useDispatch } from "react-redux";
-import { ArrowLeft, Briefcase } from "lucide-react";
+import { ArrowLeft, Briefcase, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useTheme } from "../../../../../context/ThemeContext";
 import DataPagination from "@/components/DataPagination";
@@ -108,7 +108,7 @@ export default function ProjectTasksPage() {
               </thead>
               <tbody>
                 {tasksLoading && !cached ? (
-                  <tr><td colSpan={HEADERS.length} className={`py-8 text-center ${t.textMuted}`}>Loading...</td></tr>
+                  <tr><td colSpan={HEADERS.length} className={`py-8 text-center ${t.textMuted}`}><div className="flex items-center justify-center gap-2"><Loader2 size={16} className="animate-spin text-[#E12729]" />Loading...</div></td></tr>
                 ) : tasks.length === 0 ? (
                   <tr><td colSpan={HEADERS.length} className={`py-8 text-center ${t.textMuted}`}>No tasks found.</td></tr>
                 ) : tasks.map((tk, i) => (

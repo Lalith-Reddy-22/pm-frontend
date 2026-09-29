@@ -3,7 +3,7 @@
 import { Suspense, useState, useEffect, useRef } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useSelector, useDispatch } from "react-redux";
-import { ArrowLeft, Briefcase, DollarSign, BarChart2, TrendingDown, PieChart, Search } from "lucide-react";
+import { ArrowLeft, Briefcase, DollarSign, BarChart2, TrendingDown, PieChart, Search, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useTheme } from "../../../../context/ThemeContext";
 import DataPagination from "@/components/DataPagination";
@@ -19,7 +19,8 @@ export default function ClientProjectsPageWrapper() {
   return (
     <Suspense
       fallback={
-        <div className="p-6 text-sm text-muted-foreground">
+        <div className="flex items-center justify-center gap-2 p-6 text-sm text-muted-foreground">
+          <Loader2 size={16} className="animate-spin text-[#E12729]" />
           Loading client projects...
         </div>
       }
@@ -241,7 +242,7 @@ function ClientProjectsPageInner() {
               </thead>
               <tbody>
                 {projectsLoading && !cached ? (
-                  <tr><td colSpan={HEADERS.length} className={`py-8 text-center text-sm ${t.textMuted}`}>Loading...</td></tr>
+                  <tr><td colSpan={HEADERS.length} className={`py-8 text-center text-sm ${t.textMuted}`}><div className="flex items-center justify-center gap-2"><Loader2 size={16} className="animate-spin text-[#E12729]" />Loading...</div></td></tr>
                 ) : projects.length === 0 ? (
                   <tr><td colSpan={HEADERS.length} className={`py-8 text-center text-sm ${t.textMuted}`}>No projects found</td></tr>
                 ) : projects.map(p => (

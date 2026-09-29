@@ -13,6 +13,7 @@ import {
   FolderKanban,
   CalendarDays,
   MoreHorizontal,
+  Loader2,
 } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
@@ -265,9 +266,10 @@ useEffect(() => {
 if (loading) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#f7f7f9]">
-      <p className="text-sm text-gray-500">
-        Loading employee details...
-      </p>
+      <div className="flex items-center gap-2">
+        <Loader2 size={18} className="animate-spin text-[#E12729]" />
+        <p className="text-sm text-gray-500">Loading employee details...</p>
+      </div>
     </div>
   );
 }
@@ -683,7 +685,10 @@ const stats = [
         colSpan={6}
         className="px-6 py-8 text-center text-sm text-gray-500"
       >
-        Loading projects...
+        <div className="flex items-center justify-center gap-2">
+          <Loader2 size={16} className="animate-spin text-[#E12729]" />
+          Loading projects...
+        </div>
       </td>
     </tr>
   </tbody>
@@ -829,7 +834,10 @@ const stats = [
       colSpan={4}
       className="px-6 py-8 text-center text-sm text-gray-500"
     >
-      Loading tasks...
+      <div className="flex items-center justify-center gap-2">
+        <Loader2 size={16} className="animate-spin text-[#E12729]" />
+        Loading tasks...
+      </div>
     </td>
   </tr>
 ) : employeeTasksError ? (
@@ -935,7 +943,10 @@ const stats = [
             <div className="max-h-[65vh] overflow-auto">
               {projectsLoading ? (
                 <div className="py-16 text-center text-sm text-gray-500">
-                  Loading projects...
+                  <div className="flex items-center justify-center gap-2">
+                    <Loader2 size={16} className="animate-spin text-[#E12729]" />
+                    Loading projects...
+                  </div>
                 </div>
               ) : projectsError ? (
                 <div className="py-16 text-center text-sm text-red-500">

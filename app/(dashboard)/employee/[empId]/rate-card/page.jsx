@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useParams } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useDispatch, useSelector } from "react-redux";
@@ -176,7 +176,10 @@ useEffect(() => {
         colSpan={3}
         className="px-6 py-10 text-center text-sm text-gray-500"
       >
-        Loading rate card...
+        <div className="flex items-center justify-center gap-2">
+          <Loader2 size={16} className="animate-spin text-[#E12729]" />
+          Loading rate card...
+        </div>
       </td>
     </tr>
   ) : rateCardError ? (
@@ -241,7 +244,12 @@ useEffect(() => {
   disabled={rateCardLoading || rateCardUpdateLoading || rateCards.length === 0}
   className="rounded-lg bg-primary px-5 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
 >
-  {rateCardUpdateLoading ? "Updating..." : "Update"}
+  {rateCardUpdateLoading ? (
+    <span className="flex items-center gap-2">
+      <Loader2 size={14} className="animate-spin" />
+      Updating...
+    </span>
+  ) : "Update"}
 </button>
 
           </div>
