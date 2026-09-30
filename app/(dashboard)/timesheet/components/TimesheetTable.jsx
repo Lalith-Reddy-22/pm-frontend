@@ -79,7 +79,7 @@ export default function TimesheetTable({
   isDark={isDark}
   onPlannedChange={updatePlanned}
   onActualChange={updateActual}
-  onComment={onComment}
+  // onComment={onComment}
 />
             ))}
 

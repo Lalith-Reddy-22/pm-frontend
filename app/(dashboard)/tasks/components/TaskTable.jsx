@@ -177,7 +177,7 @@ router.push(
 </Button>
 
     {/* RESCHEDULE TASK */}
-    <Button
+    {/* <Button
       variant="ghost"
       size="icon-sm"
       aria-label="Reschedule task"
@@ -187,7 +187,7 @@ router.push(
       className="opacity-60 group-hover:opacity-100 hover:text-[#E12729]"
     >
       <CalendarClock />
-    </Button>
+    </Button> */}
 
     {/* Delete Task */}
     <Button

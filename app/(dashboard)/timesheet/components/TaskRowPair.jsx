@@ -93,7 +93,7 @@ export default function TaskRowPair({
   Reschedule
 </button> */}
 
-<button
+{/* <button
   type="button"
   onClick={() => {
     console.log("COMMENT BUTTON CLICKED:", task);
@@ -107,7 +107,7 @@ export default function TaskRowPair({
 >
   <MessageSquare size={14} />
   Comment
-</button>
+</button> */}
 
         </td>
 
