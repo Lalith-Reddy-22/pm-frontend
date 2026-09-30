@@ -173,7 +173,7 @@ export default function IssueLoggedDetailsModal({ issueId, onClose }) {
                             className="flex items-center gap-1.5"
                           >
                             {col.header}
-                            <span className="flex flex-col text-[10px] text-gray-400">
+                            {/* <span className="flex flex-col text-[10px] text-gray-400">
                               <ChevronUp
                                 size={11}
                                 className={isActive && sortDir === "asc" ? "text-[#E12729]" : ""}
@@ -182,7 +182,7 @@ export default function IssueLoggedDetailsModal({ issueId, onClose }) {
                                 size={11}
                                 className={isActive && sortDir === "desc" ? "text-[#E12729]" : ""}
                               />
-                            </span>
+                            </span> */}
                           </button>
                         </th>
                       );

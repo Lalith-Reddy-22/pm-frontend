@@ -1002,7 +1002,7 @@ const endIndex =
                               header.getContext()
                             )}
 
-                            {header.column.getCanSort() ? (
+                            {/* {header.column.getCanSort() ? (
                               <span className="flex flex-col text-[10px] text-muted-foreground">
 
                                 <ChevronUp
@@ -1028,7 +1028,7 @@ const endIndex =
                                 />
 
                               </span>
-                            ) : null}
+                            ) : null} */}
 
                           </button>
                         )}

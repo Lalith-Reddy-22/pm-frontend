@@ -2,7 +2,7 @@
 
 import { Fragment, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Search, ChevronDown, ChevronRight, Pencil, Loader2 } from "lucide-react";
+import { Search, Pencil, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTheme } from "../../../../context/ThemeContext";
 import DataPagination from "@/components/DataPagination";
@@ -78,12 +78,12 @@ export default function ProjectTable({
                   <Fragment key={rowKey}>
                     <tr className={`border-b ${t.clientBorder} ${t.clientRowHover} cursor-pointer`} onClick={() => toggle(rowId)}>
                       <td className="py-2.5 px-3 align-top">
-                        <div className="flex items-center gap-1.5">
+                        {/* <div className="flex items-center gap-1.5">
                           {expanded.has(rowId)
                             ? <ChevronDown className={`w-3.5 h-3.5 shrink-0 ${t.textMuted} transition-transform duration-200`} />
                             : <ChevronRight className={`w-3.5 h-3.5 shrink-0 ${t.textMuted} transition-transform duration-200`} />}
                           <p className={`font-medium ${t.clientInputText}`}>{p.project_Title}</p>
-                        </div>
+                        </div> */}
                         <div
                           className="overflow-hidden transition-[max-height] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]"
                           style={{ maxHeight: expanded.has(rowId) ? "300px" : "0px" }}

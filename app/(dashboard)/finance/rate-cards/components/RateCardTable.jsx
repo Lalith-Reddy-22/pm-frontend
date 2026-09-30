@@ -45,10 +45,10 @@ export default function RateCardTable({ rows = [] }) {
             >
               <div className="flex items-center justify-between gap-2">
                 Employee Name
-                <span className="flex flex-col">
+                {/* <span className="flex flex-col">
                   <ChevronUp size={12} />
                   <ChevronDown size={12} />
-                </span>
+                </span> */}
               </div>
             </th>
 
@@ -61,10 +61,10 @@ export default function RateCardTable({ rows = [] }) {
                 <div className="flex items-center justify-between gap-2">
                   {/* Replace underscores with spaces for display */}
                   {col.replace(/_/g, " ")}
-                  <span className="flex flex-col">
+                  {/* <span className="flex flex-col">
                     <ChevronUp size={12} />
                     <ChevronDown size={12} />
-                  </span>
+                  </span> */}
                 </div>
               </th>
             ))}

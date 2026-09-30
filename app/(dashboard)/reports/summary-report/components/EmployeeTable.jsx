@@ -30,10 +30,10 @@ export default function EmployeeTable({
   className="px-6 py-3 text-xs  font-semibold uppercase tracking-wide text-muted-foreground sticky top-0 z-10 bg-muted min-w-[200px]"
 >              <div className="flex items-center justify-center  gap-1">
                       Employee Name
-                  <div className="flex flex-col gap-0.5">
+                  {/* <div className="flex flex-col gap-0.5">
                     <ChevronUp size={12} className="text-muted-foreground opacity-50 leading-none" />
                     <ChevronDown size={12} className="text-muted-foreground opacity-50 leading-none" />
-                  </div>
+                  </div> */}
                 </div>
               </TableHead>
             </TableRow>
@@ -85,10 +85,10 @@ console.log("DUPLICATE IDS IN EMPLOYEE TABLE:", duplicateIds);
             <TableHead className="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground sticky top-0 z-10 bg-muted w-12">
   <div className="flex items-center justify-center gap-1">
                 Employee Name
-                <div className="flex flex-col gap-0.5">
+                {/* <div className="flex flex-col gap-0.5">
                   <ChevronUp size={12} className="text-muted-foreground opacity-50 leading-none" />
                   <ChevronDown size={12} className="text-muted-foreground opacity-50 leading-none" />
-                </div>
+                </div> */}
               </div>
             </TableHead>
           </TableRow>

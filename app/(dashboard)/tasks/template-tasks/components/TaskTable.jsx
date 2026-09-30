@@ -29,12 +29,12 @@ export default function TaskTable({ tasks, sortBy, sortDirection, onSort, onAddT
 
   const renderSortIcon = (accessor) => {
     const active = sortBy === accessor;
-    return (
-      <span className="flex flex-col text-[10px] text-muted-foreground">
-        <ChevronUp size={10} className={active && sortDirection === "asc" ? "text-foreground" : ""} />
-        <ChevronDown size={10} className={active && sortDirection === "desc" ? "text-foreground" : ""} />
-      </span>
-    );
+    // return (
+    //   <span className="flex flex-col text-[10px] text-muted-foreground">
+    //     <ChevronUp size={10} className={active && sortDirection === "asc" ? "text-foreground" : ""} />
+    //     <ChevronDown size={10} className={active && sortDirection === "desc" ? "text-foreground" : ""} />
+    //   </span>
+    // );
   };
 
   if (tasks.length === 0) {

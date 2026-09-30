@@ -309,10 +309,10 @@ if (rows?.[0]) {
                     <div className="flex items-center gap-2">
                       {item}
 
-                      <div className="flex flex-col">
+                      {/* <div className="flex flex-col">
                         <ChevronUp size={12} />
                         <ChevronDown size={12} />
-                      </div>
+                      </div> */}
                     </div>
                   </th>
                 ))}

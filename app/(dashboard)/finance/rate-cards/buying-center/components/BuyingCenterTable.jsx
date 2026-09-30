@@ -12,10 +12,10 @@ export default function BuyingCenterTable({ buyingCenters, onClone }) {
               <button className="flex w-full items-center justify-between">
   <span>Buying Center Name</span>
 
-  <div className="flex flex-col text-gray-400">
+  {/* <div className="flex flex-col text-gray-400">
     <ChevronUp size={12} />
     <ChevronDown size={12} className="-mt-1" />
-  </div>
+  </div> */}
 </button>
             </th>
 
@@ -23,10 +23,10 @@ export default function BuyingCenterTable({ buyingCenters, onClone }) {
               <button className="flex w-full items-center justify-between">
   <span>Created Date</span>
 
-  <div className="flex flex-col text-gray-400">
+  {/* <div className="flex flex-col text-gray-400">
     <ChevronUp size={12} />
     <ChevronDown size={12} className="-mt-1" />
-  </div>
+  </div> */}
 </button>
             </th>
 
@@ -34,10 +34,10 @@ export default function BuyingCenterTable({ buyingCenters, onClone }) {
               <button className="flex w-full items-center justify-between">
   <span>Status</span>
 
-  <div className="flex flex-col text-gray-400">
+  {/* <div className="flex flex-col text-gray-400">
     <ChevronUp size={12} />
     <ChevronDown size={12} className="-mt-1" />
-  </div>
+  </div> */}
 </button>
             </th>
 
@@ -45,10 +45,10 @@ export default function BuyingCenterTable({ buyingCenters, onClone }) {
               <button className="flex w-full items-center justify-between">
   <span>Created By</span>
 
-  <div className="flex flex-col text-gray-400">
+  {/* <div className="flex flex-col text-gray-400">
     <ChevronUp size={12} />
     <ChevronDown size={12} className="-mt-1" />
-  </div>
+  </div> */}
 </button>
             </th>
 

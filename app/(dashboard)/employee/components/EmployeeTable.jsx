@@ -1,6 +1,5 @@
  "use client";
 
-import { ChevronUp, ChevronDown } from "lucide-react";
 import EmployeeRow from "./EmployeeRow";
 import EmployeePagination from "./EmployeePagination";
 
@@ -35,7 +34,7 @@ export default function EmployeeTable({
                 >
                   <span className="inline-flex items-center gap-1">
                     {col.label}
-                    {col.sortable && (
+                    {/* {col.sortable && (
                       <span className="inline-flex flex-col -space-y-1">
                         <ChevronUp
                           size={11}
@@ -46,7 +45,7 @@ export default function EmployeeTable({
                           className={sort.key === col.key && sort.dir === "desc" ? (isDark ? "text-red-400" : "text-red-600") : "opacity-40"}
                         />
                       </span>
-                    )}
+                    )} */}
                   </span>
                 </th>
               ))}

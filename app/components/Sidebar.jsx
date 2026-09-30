@@ -22,7 +22,7 @@ const ALL_NAV_ITEMS = [
       { id: "daily-report",        href: "/reports/daily-report",        label: "Daily Report",                icon: FileText,  roles: ["admin", "pm_employee"]                          },
       { id: "week-utilization",    href: "/reports/week-utilization",    label: "Week Utilization",            icon: PieChart,  roles: ["admin", "pm_employee"]                          },
       { id: "summary-report",      href: "/reports/summary-report",      label: "Summary Report",              icon: BarChart2, roles: ["admin", "pm_employee"]                          },
-      { id: "resource-allocation", href: "/reports/resource-allocation", label: "Resource Allocation Reports", icon: Users,     roles: ["admin", "employee", "sys_admin", "pm_employee"] },
+      { id: "resource-allocation", href: "/reports/resource-allocation", label: "Resource Allocation",         icon: Users,     roles: ["admin", "employee", "sys_admin", "pm_employee"] },
     ],
   },
   {

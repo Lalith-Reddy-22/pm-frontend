@@ -186,10 +186,10 @@ const nonBillableCount = useMemo(() => {
             Task Details
         </h3>
 
-        <div className="flex flex-col text-gray-500">
+        {/* <div className="flex flex-col text-gray-500">
             <ChevronUp size={13}/>
             <ChevronDown size={13} className="-mt-1"/>
-        </div>
+        </div> */}
 
     </div>
 

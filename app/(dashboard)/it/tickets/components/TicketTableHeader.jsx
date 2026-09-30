@@ -35,7 +35,7 @@ export default function TicketTableHeader({
                 className="flex items-center gap-2 transition"
               >
                 {column.header}
-                <span className="flex flex-col items-center text-[11px] text-gray-500">
+                {/* <span className="flex flex-col items-center text-[11px] text-gray-500">
                   <ChevronUp
                     size={12}
                     className={isActive && sortDirection === "asc" ? "text-[#E12729]" : ""}
@@ -44,7 +44,7 @@ export default function TicketTableHeader({
                     size={12}
                     className={isActive && sortDirection === "desc" ? "text-[#E12729]" : ""}
                   />
-                </span>
+                </span> */}
               </button>
             </th>
           );

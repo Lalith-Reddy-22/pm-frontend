@@ -219,10 +219,10 @@ const filteredLeaveList = mappedLeaveList.filter((row) => {
       <div className="flex items-center justify-between">
         <span>{children}</span>
 
-        <div className="flex flex-col leading-none">
+        {/* <div className="flex flex-col leading-none">
           <ChevronUp size={12} className="text-gray-400" />
           <ChevronDown size={12} className="-mt-1 text-gray-400" />
-        </div>
+        </div> */}
       </div>
     </th>
   );

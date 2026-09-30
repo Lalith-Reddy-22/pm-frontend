@@ -29,20 +29,20 @@ export default function ProjectTable({
               <TableHead>
                 <div className="flex items-center justify-center gap-1">
                   Project Title
-                  <div className="flex flex-col">
+                  {/* <div className="flex flex-col">
                     <ChevronUp size={12} />
                     <ChevronDown size={12} />
-                  </div>
+                  </div> */}
                 </div>
               </TableHead>
 
               <TableHead>
                 <div className="flex items-center justify-center gap-1">
                   Project Code
-                  <div className="flex flex-col">
+                  {/* <div className="flex flex-col">
                     <ChevronUp size={12} />
                     <ChevronDown size={12} />
-                  </div>
+                  </div> */}
                 </div>
               </TableHead>
             </TableRow>
@@ -78,20 +78,20 @@ export default function ProjectTable({
             <TableHead className="min-w-[450px]">
               <div className="flex items-center justify-center gap-1">
                 Project Title
-                <div className="flex flex-col">
+                {/* <div className="flex flex-col">
                   <ChevronUp size={12} />
                   <ChevronDown size={12} />
-                </div>
+                </div> */}
               </div>
             </TableHead>
 
             <TableHead className="min-w-[180px]">
               <div className="flex items-center justify-center gap-1">
                 Project Code
-                <div className="flex flex-col">
+                {/* <div className="flex flex-col">
                   <ChevronUp size={12} />
                   <ChevronDown size={12} />
-                </div>
+                </div> */}
               </div>
             </TableHead>
 

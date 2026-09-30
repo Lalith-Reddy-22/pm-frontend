@@ -74,7 +74,7 @@ export default function ReportTable({
                 <div className="flex items-center gap-2">
                   <span>{column.label}</span>
 
-                  <div className="flex flex-col">
+                  {/* <div className="flex flex-col">
                     <ChevronUp
                       size={12}
                       className="text-muted-foreground opacity-50"
@@ -83,7 +83,7 @@ export default function ReportTable({
                       size={12}
                       className="-mt-1 text-muted-foreground opacity-50"
                     />
-                  </div>
+                  </div> */}
                 </div>
               </TableHead>
             ))}

@@ -224,12 +224,12 @@ const barColor =
 }
 
 function SortIcon({ col, sortCol, sortDir }) {
-  return (
-    <span className="inline-flex flex-col ml-1 opacity-50">
-      <ChevronUp   size={10} className={sortCol === col && sortDir === "asc"  ? "opacity-100 text-red-500" : ""} />
-      <ChevronDown size={10} className={sortCol === col && sortDir === "desc" ? "opacity-100 text-red-500" : ""} style={{ marginTop: -4 }} />
-    </span>
-  );
+  // return (
+  //   <span className="inline-flex flex-col ml-1 opacity-50">
+  //     <ChevronUp   size={10} className={sortCol === col && sortDir === "asc"  ? "opacity-100 text-red-500" : ""} />
+  //     <ChevronDown size={10} className={sortCol === col && sortDir === "desc" ? "opacity-100 text-red-500" : ""} style={{ marginTop: -4 }} />
+  //   </span>
+  // );
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
