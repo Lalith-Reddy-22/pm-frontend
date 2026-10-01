@@ -75,7 +75,7 @@ export const fetchEmployeeList = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await axiosClient.get(
-        "/api/v1/Reports/employee-list"
+        "/Reports/employee-list"
       );
       return response.data;
     } catch (error) {

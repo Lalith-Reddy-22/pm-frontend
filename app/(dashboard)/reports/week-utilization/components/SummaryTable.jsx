@@ -1,15 +1,21 @@
 export default function SummaryTable({ title, data = [] }) {
-  const totalHours = data.reduce(
+  // Remove the Total row coming from the API/data
+  const teamData = data.filter(
+    (item) => item.team?.trim().toLowerCase() !== "total"
+  );
+
+  // Calculate totals only from actual teams
+  const totalHours = teamData.reduce(
     (sum, item) => sum + Number(item.hours || 0),
     0
   );
 
-  const totalAvailable = data.reduce(
+  const totalAvailable = teamData.reduce(
     (sum, item) => sum + Number(item.available || 0),
     0
   );
 
-  const totalRevenue = data.reduce(
+  const totalRevenue = teamData.reduce(
     (sum, item) => sum + Number(item.revenue || 0),
     0
   );
@@ -49,8 +55,8 @@ export default function SummaryTable({ title, data = [] }) {
 
         <tbody>
 
-          {data.map((item) => (
-            <tr key={item.team}>
+          {teamData.map((item, index) => (
+            <tr key={`${item.team}-${index}`}>
 
               <td className="border p-2">
                 {item.team}
@@ -75,6 +81,7 @@ export default function SummaryTable({ title, data = [] }) {
             </tr>
           ))}
 
+          {/* Only one Total row */}
           <tr className="bg-[#2d79c7] text-white font-semibold">
 
             <td className="border p-2">

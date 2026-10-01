@@ -22,7 +22,7 @@ export default function IssueDetailModal({ ticket, onClose, onUpdated }) {
     setError(null);
 
     api
-      .get("/api/v1/ticket/form-data")
+      .get("/ticket/form-data")
       .then((data) => {
         const list = data?.statuses ?? [];
         setStatuses(list);
@@ -48,7 +48,7 @@ export default function IssueDetailModal({ ticket, onClose, onUpdated }) {
         ? Number(sessionStorage.getItem("empId") || 0)
         : 0;
 
-      await api.put("/api/v1/ticket/update-status", {
+      await api.put("/ticket/update-status", {
         issueId:   Number(ticket.id),
         status:    Number(statusId),
         comments:  comment.trim() || "",

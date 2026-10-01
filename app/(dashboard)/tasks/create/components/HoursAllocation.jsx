@@ -227,7 +227,7 @@ useEffect(() => {
 };
 
       const response = await api.post(
-        "/api/v1/Task",
+        "/Task",
         payload
       );
 
@@ -376,7 +376,7 @@ useEffect(() => {
     };
 
     const response = await api.put(
-      `/api/v1/Task/${finalTaskId}`,
+      `/Task/${finalTaskId}`,
       payload
     );
 

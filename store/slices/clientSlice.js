@@ -10,7 +10,7 @@ export const fetchClients = createAsyncThunk(
   "client/fetchClients",
   async (_, { rejectWithValue }) => {
     try {
-      const data = await api.get("/api/v1/client/all");
+      const data = await api.get("/client/all");
       return data.clients || [];
     } catch (error) {
       return rejectWithValue(

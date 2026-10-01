@@ -298,6 +298,30 @@ const {
   );
 }
 
+async function handleTaskReassigned() {
+  if (!selectedEmployee || !selectedDate) {
+    return;
+  }
+
+  const dateVal = getLocalDateKey(selectedDate);
+
+  console.log("Refreshing after reassignment...");
+  console.log("Employee ID:", selectedEmployee.id);
+  console.log("Date:", dateVal);
+
+  // 1. Refresh Task Details popup
+  await dispatch(
+    fetchTaskDetails({
+      empId: selectedEmployee.id,
+      dateVal,
+    })
+  );
+
+  // 2. Refresh Resource Allocation table
+  // This updates P / A / L values
+  await loadResourceAllocation();
+}
+
   function handleRangeChange(s, e) { setStartDate(s); setEndDate(e); }
 
   const allData = useMemo(() => {
@@ -542,6 +566,7 @@ function loadResourceAllocation() {
   entry={selectedEntry}
   taskDetails={taskDetails}
   loading={taskDetailsLoading}
+  onReassigned={handleTaskReassigned}
 />
     </div>
   );

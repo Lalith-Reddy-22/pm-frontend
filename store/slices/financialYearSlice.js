@@ -7,7 +7,7 @@ export const fetchFinancialYears = createAsyncThunk(
     try {
       console.log("CALLING FINANCIAL YEAR API");
 
-      const data = await api.get("/api/v1/finance/financial-years");
+      const data = await api.get("/finance/financial-years");
 
       console.log("FINANCIAL YEAR API RESPONSE:", data);
 

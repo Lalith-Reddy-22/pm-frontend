@@ -40,7 +40,7 @@ export default function IssueLoggedDetailsModal({ issueId, onClose }) {
     setLoading(true);
     setError(null);
     api
-      .get(`/api/v1/ticket/issue-logged-details?issueId=${issueId}`)
+      .get(`/ticket/issue-logged-details?issueId=${issueId}`)
       .then((data) => setLogs(Array.isArray(data) ? data : []))
       .catch((err) => setError(err.message ?? "Failed to load details."))
       .finally(() => setLoading(false));
